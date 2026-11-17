@@ -233,18 +233,43 @@
         <span>{{ videoCodec }}</span>
       </template>
       <span class="grow"></span>
-      <a-tooltip content="刷新" position="top">
-        <button class="ghost" type="button" @click="connect">
-          <svg viewBox="0 0 24 24" fill="none">
-            <path d="M19.2 12a7.2 7.2 0 1 1-2.1-5.1" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
-            <path d="M19.4 4.8v4.4h-4.4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+      <div class="meta-actions">
+        <button class="egg-btn" type="button" @click="openEgg">
+          <svg class="egg-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <ellipse cx="12" cy="15.6" rx="4.5" ry="3.7" fill="currentColor" />
+            <circle cx="6.7" cy="11.2" r="1.8" fill="currentColor" />
+            <circle cx="9.8" cy="8.6" r="1.8" fill="currentColor" />
+            <circle cx="14.2" cy="8.6" r="1.8" fill="currentColor" />
+            <circle cx="17.3" cy="11.2" r="1.8" fill="currentColor" />
           </svg>
+          <span>千万不要点！</span>
         </button>
-      </a-tooltip>
+        <a-tooltip content="刷新" position="top">
+          <button class="ghost" type="button" @click="connect">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M19.2 12a7.2 7.2 0 1 1-2.1-5.1" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+              <path d="M19.4 4.8v4.4h-4.4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </button>
+        </a-tooltip>
+      </div>
     </footer>
 
     <transition name="fade">
       <div v-if="toast" class="toast">{{ toast }}</div>
+    </transition>
+
+    <transition name="egg-fade">
+      <div v-if="eggOpen" class="egg-overlay" role="dialog" aria-modal="true" aria-label="彩蛋照片" @click.self="closeEgg">
+        <figure class="egg-card" :class="{ settled: eggSettled }" @animationend="onEggAnimationEnd">
+          <img :src="eggPhoto" alt="彩蛋照片" draggable="false" />
+          <button class="egg-close" type="button" aria-label="关闭" @click="closeEgg">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="m7 7 10 10M17 7 7 17" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" />
+            </svg>
+          </button>
+        </figure>
+      </div>
     </transition>
   </div>
 </template>
@@ -252,6 +277,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { interact, queryDevice, queryStream, type DeviceInfo, type StreamInfo } from './api'
+import eggPhoto from './assets/easter-egg.jpg'
 
 const did = '1200010180ee9bea'
 
@@ -276,6 +302,9 @@ const interacting = ref(false)
 const touchMode = ref(false)
 // 设备信息默认折叠
 const infoOpen = ref(false)
+// 彩蛋
+const eggOpen = ref(false)
+const eggSettled = ref(false)
 
 const isLive = computed(() => status.value === 'playing')
 const fullActive = computed(() => isFullscreen.value || pseudoFullscreen.value)
@@ -740,7 +769,29 @@ function onStageDoubleClick(event: MouseEvent) {
 }
 
 function onKeydown(event: KeyboardEvent) {
-  if (event.key === 'Escape' && pseudoFullscreen.value) exitPseudoFullscreen()
+  if (event.key !== 'Escape') return
+  if (eggOpen.value) {
+    closeEgg()
+    return
+  }
+  if (pseudoFullscreen.value) exitPseudoFullscreen()
+}
+
+// ==================== 彩蛋 ====================
+function openEgg() {
+  eggSettled.value = false
+  eggOpen.value = true
+  lockScroll(true)
+}
+
+function closeEgg() {
+  eggOpen.value = false
+  eggSettled.value = false
+  if (!pseudoFullscreen.value) lockScroll(false)
+}
+
+function onEggAnimationEnd(event: AnimationEvent) {
+  if (event.target === event.currentTarget) eggSettled.value = true
 }
 
 function onViewportResize() {
@@ -1605,6 +1656,14 @@ onBeforeUnmount(() => {
   color: #9aa4b4;
 }
 
+.meta-actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+}
+
 .dot {
   width: 6px;
   height: 6px;
@@ -1719,6 +1778,167 @@ onBeforeUnmount(() => {
   }
 }
 
+/* ==================== 右下角彩蛋 ==================== */
+.egg-btn {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 26px;
+  padding: 0 10px 0 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.92);
+  color: #c2185b;
+  background: linear-gradient(135deg, #fff3f8, #ffdcea);
+  box-shadow:
+    0 6px 14px -10px rgba(194, 24, 91, 0.8),
+    inset 0 1px 0 #fff;
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.egg-btn:hover {
+  transform: translateY(-1px) scale(1.03);
+  box-shadow:
+    0 10px 18px -10px rgba(194, 24, 91, 0.8),
+    inset 0 1px 0 #fff;
+}
+
+.egg-btn:active {
+  transform: scale(0.97);
+}
+
+.egg-icon {
+  width: 14px;
+  height: 14px;
+  transform-origin: 50% 80%;
+  animation: eggPaw 3.4s ease-in-out infinite;
+}
+
+@keyframes eggPaw {
+  0%,
+  66%,
+  100% {
+    transform: rotate(0);
+  }
+  72% {
+    transform: rotate(-14deg);
+  }
+  78% {
+    transform: rotate(12deg);
+  }
+  84% {
+    transform: rotate(-7deg);
+  }
+  90% {
+    transform: rotate(3deg);
+  }
+}
+
+.egg-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(7, 11, 19, 0.56);
+  backdrop-filter: blur(10px) saturate(140%);
+  -webkit-backdrop-filter: blur(10px) saturate(140%);
+}
+
+.egg-card {
+  position: relative;
+  margin: 0;
+  padding: 8px;
+  border-radius: 24px;
+  background: linear-gradient(160deg, #fffdfd, #ffeef4);
+  border: 1px solid rgba(255, 255, 255, 0.92);
+  box-shadow:
+    0 40px 90px -30px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(194, 24, 91, 0.08);
+  will-change: transform;
+  animation: eggFly 2.6s cubic-bezier(0.18, 0.72, 0.22, 1) both;
+}
+
+.egg-card img {
+  display: block;
+  width: min(80vw, 440px);
+  max-height: 72vh;
+  object-fit: cover;
+  border-radius: 18px;
+  user-select: none;
+}
+
+@keyframes eggFly {
+  0% {
+    opacity: 0;
+    transform: translate(46vw, 42vh) scale(0.08) rotate(-30deg);
+  }
+  10% {
+    opacity: 1;
+  }
+  62% {
+    transform: translate(0, 0) scale(1.04) rotate(1080deg);
+  }
+  80% {
+    transform: translate(0, -6px) scale(0.985) rotate(1080deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1) rotate(1080deg);
+  }
+}
+
+.egg-close {
+  position: absolute;
+  top: -12px;
+  right: -12px;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.86);
+  background: rgba(22, 26, 34, 0.72);
+  color: #fff;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.24s ease, transform 0.2s ease;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+.egg-close svg {
+  width: 16px;
+  height: 16px;
+}
+
+.egg-card.settled .egg-close {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.egg-close:hover {
+  transform: scale(1.08);
+}
+
+.egg-fade-enter-active,
+.egg-fade-leave-active {
+  transition: opacity 0.22s ease;
+}
+
+.egg-fade-enter-from,
+.egg-fade-leave-to {
+  opacity: 0;
+}
+
 /* ==================== 响应式 ==================== */
 @media (max-width: 720px) {
   .page {
@@ -1814,6 +2034,37 @@ onBeforeUnmount(() => {
     flex-wrap: wrap;
     gap: 6px;
     padding: 0 16px;
+  }
+
+  .egg-btn {
+    position: fixed;
+    right: 14px;
+    bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+    z-index: 25;
+    height: 26px;
+    padding: 0 10px 0 8px;
+    font-size: 11px;
+    box-shadow:
+      0 12px 26px -12px rgba(194, 24, 91, 0.8),
+      inset 0 1px 0 #fff;
+  }
+
+  .egg-card {
+    padding: 7px;
+    border-radius: 20px;
+  }
+
+  .egg-card img {
+    width: min(84vw, 340px);
+    max-height: 68vh;
+    border-radius: 15px;
+  }
+
+  .egg-close {
+    top: -10px;
+    right: -10px;
+    width: 32px;
+    height: 32px;
   }
 
   .info {
