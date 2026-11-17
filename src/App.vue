@@ -246,26 +246,7 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
-
-interface StreamInfo {
-  ws_url: string
-  resource_id: string
-  enc_type: string
-  enc_key: string
-  enc_load: string
-}
-
-interface DeviceInfo {
-  name: string
-  did: string
-  license: string
-  model: string
-  version: string
-  mac: string
-  ssid: string
-  ip: string
-  online: boolean
-}
+import { interact, queryDevice, queryStream, type DeviceInfo, type StreamInfo } from './api'
 
 const did = '1200010180ee9bea'
 
@@ -552,12 +533,7 @@ function stopWatchdog() {
 // ==================== 取流 ====================
 async function fetchStream(force = false): Promise<StreamInfo> {
   if (!force && cachedStream) return cachedStream
-  const res = await fetch('/api/stream')
-  const json = await res.json().catch(() => null)
-  if (!json || json.code !== 200 || !json.data) {
-    throw new Error(json?.message || '取流失败，请稍后重试')
-  }
-  cachedStream = json.data as StreamInfo
+  cachedStream = await queryStream()
   return cachedStream
 }
 
@@ -602,9 +578,7 @@ async function switchStream(target: 0 | 1) {
 // ==================== 设备信息 / 互动 ====================
 async function loadDevice() {
   try {
-    const res = await fetch('/api/device')
-    const json = await res.json().catch(() => null)
-    if (json?.code === 200 && json.data) device.value = json.data as DeviceInfo
+    device.value = await queryDevice()
   } catch {
     /* 信息获取失败不影响播放 */
   }
@@ -614,11 +588,10 @@ async function triggerInteract() {
   if (interacting.value) return
   interacting.value = true
   try {
-    const res = await fetch('/api/interact', { method: 'POST' })
-    const json = await res.json().catch(() => null)
-    showToast(json?.code === 200 ? '已挥动逗猫棒，瞧瞧小猫发现了啥！' : json?.message || '逗猫棒指令下发失败')
-  } catch {
-    showToast('逗猫棒指令下发失败')
+    await interact()
+    showToast('已挥动逗猫棒，瞧瞧小猫发现了啥！')
+  } catch (error) {
+    showToast((error as Error).message || '逗猫棒指令下发失败')
   } finally {
     setTimeout(() => (interacting.value = false), 1200)
   }
