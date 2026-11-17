@@ -146,7 +146,7 @@
             </button>
           </a-tooltip>
 
-          <a-tooltip content="挥动逗猫棒，猫猫会吓一跳～" position="top" :disabled="touchMode">
+          <a-tooltip content="猫猫要和你互动咯～" position="top" :disabled="touchMode">
             <button
               class="action"
               type="button"
@@ -242,7 +242,7 @@
             <circle cx="14.2" cy="8.6" r="1.8" fill="currentColor" />
             <circle cx="17.3" cy="11.2" r="1.8" fill="currentColor" />
           </svg>
-          <span>千万不要点！</span>
+          <span>很娇 慎点！</span>
         </button>
         <a-tooltip content="刷新" position="top">
           <button class="ghost" type="button" @click="connect">
@@ -260,15 +260,43 @@
     </transition>
 
     <transition name="egg-fade">
-      <div v-if="eggOpen" class="egg-overlay" role="dialog" aria-modal="true" aria-label="彩蛋照片" @click.self="closeEgg">
-        <figure class="egg-card" :class="{ settled: eggSettled }" @animationend="onEggAnimationEnd">
-          <img :src="eggPhoto" alt="彩蛋照片" draggable="false" />
-          <button class="egg-close" type="button" aria-label="关闭" @click="closeEgg">
-            <svg viewBox="0 0 24 24" fill="none">
-              <path d="m7 7 10 10M17 7 7 17" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" />
-            </svg>
-          </button>
+      <div v-if="eggOpen" class="egg-overlay" role="dialog" aria-modal="true" aria-label="彩蛋" @click.self="closeEgg">
+        <span
+          v-for="word in eggWords"
+          :key="word.id"
+          class="egg-word"
+          aria-hidden="true"
+          :style="{
+            left: word.left + '%',
+            '--size': word.size + 'px',
+            '--rot': word.rot + 'deg',
+            '--delay': word.delay + 's',
+            '--dur': word.duration + 's',
+            '--alpha': word.alpha,
+          }"
+          >娇娇</span
+        >
+        <figure
+          v-for="item in eggPhotos"
+          :key="item.id"
+          class="egg-photo"
+          :style="{
+            left: item.left + '%',
+            top: item.top + '%',
+            '--w': item.width + 'px',
+            '--rot': item.rot + 'deg',
+            '--spin': item.spin + 'deg',
+            '--delay': item.delay + 's',
+            '--dur': item.duration + 's',
+          }"
+        >
+          <img :src="eggPhoto" alt="" draggable="false" />
         </figure>
+        <button class="egg-close" type="button" aria-label="关闭" @click="closeEgg">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="m7 7 10 10M17 7 7 17" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" />
+          </svg>
+        </button>
       </div>
     </transition>
   </div>
@@ -304,7 +332,27 @@ const touchMode = ref(false)
 const infoOpen = ref(false)
 // 彩蛋
 const eggOpen = ref(false)
-const eggSettled = ref(false)
+interface EggPhotoItem {
+  id: number
+  left: number
+  top: number
+  width: number
+  rot: number
+  spin: number
+  delay: number
+  duration: number
+}
+interface EggWordItem {
+  id: number
+  left: number
+  size: number
+  rot: number
+  delay: number
+  duration: number
+  alpha: number
+}
+const eggPhotos = ref<EggPhotoItem[]>([])
+const eggWords = ref<EggWordItem[]>([])
 
 const isLive = computed(() => status.value === 'playing')
 const fullActive = computed(() => isFullscreen.value || pseudoFullscreen.value)
@@ -778,20 +826,76 @@ function onKeydown(event: KeyboardEvent) {
 }
 
 // ==================== 彩蛋 ====================
+function rand(min: number, max: number) {
+  return min + Math.random() * (max - min)
+}
+
+function buildEggScene() {
+  const vw = window.innerWidth
+  const vh = window.innerHeight
+  const mobile = vw <= 720
+  const cols = mobile ? 3 : 4
+  const rows = 3
+  const cellW = vw / cols
+  const cellH = vh / rows
+  const stamp = Date.now()
+  const photos: EggPhotoItem[] = []
+
+  for (let row = 0; row < rows; row++) {
+    for (let col = 0; col < cols; col++) {
+      const width = Math.round(mobile ? rand(96, 142) : rand(136, 200))
+      const cardH = (width - 12) * (1100 / 825) + 12
+      const rot = Math.round(rand(-24, 24))
+      const rad = (rot * Math.PI) / 180
+      const bboxW = Math.abs(width * Math.cos(rad)) + Math.abs(cardH * Math.sin(rad))
+      const bboxH = Math.abs(width * Math.sin(rad)) + Math.abs(cardH * Math.cos(rad))
+      const cx = cellW * (col + 0.5) + rand(-cellW * 0.24, cellW * 0.24)
+      const cy = cellH * (row + 0.5) + rand(-cellH * 0.18, cellH * 0.18)
+      const x = Math.min(Math.max(cx, bboxW / 2 + 6), vw - bboxW / 2 - 6)
+      const y = Math.min(Math.max(cy, bboxH / 2 + 6), vh - bboxH / 2 - 6)
+      const index = row * cols + col
+
+      photos.push({
+        id: stamp + index,
+        left: Math.round((x / vw) * 1000) / 10,
+        top: Math.round((y / vh) * 1000) / 10,
+        width,
+        rot,
+        spin: (2 + Math.floor(Math.random() * 2)) * 360,
+        delay: Math.round(rand(0, 0.3) * 100) / 100,
+        duration: Math.round(rand(1.3, 2) * 100) / 100,
+      })
+    }
+  }
+  eggPhotos.value = photos
+
+  const count = mobile ? 52 : 86
+  eggWords.value = Array.from({ length: count }, (_, index) => {
+    const duration = Math.round(rand(2.8, 6) * 100) / 100
+    return {
+      id: stamp + 500 + index,
+      left: Math.round(rand(0, 96)),
+      size: Math.round(mobile ? rand(13, 28) : rand(15, 42)),
+      rot: Math.round(rand(-32, 32)),
+      // 负延迟让文字一打开就已经铺满整个屏幕，避免出现空档
+      delay: -Math.round(rand(0, duration) * 100) / 100,
+      duration,
+      alpha: Math.round(rand(0.32, 0.72) * 100) / 100,
+    }
+  })
+}
+
 function openEgg() {
-  eggSettled.value = false
+  buildEggScene()
   eggOpen.value = true
   lockScroll(true)
 }
 
 function closeEgg() {
   eggOpen.value = false
-  eggSettled.value = false
+  eggPhotos.value = []
+  eggWords.value = []
   if (!pseudoFullscreen.value) lockScroll(false)
-}
-
-function onEggAnimationEnd(event: AnimationEvent) {
-  if (event.target === event.currentTarget) eggSettled.value = true
 }
 
 function onViewportResize() {
@@ -1780,26 +1884,59 @@ onBeforeUnmount(() => {
 
 /* ==================== 右下角彩蛋 ==================== */
 .egg-btn {
+  position: relative;
   flex: none;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  height: 26px;
-  padding: 0 10px 0 8px;
+  gap: 6px;
+  height: 30px;
+  padding: 0 13px 0 10px;
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.92);
-  color: #c2185b;
-  background: linear-gradient(135deg, #fff3f8, #ffdcea);
+  color: #e91e63;
+  background: linear-gradient(135deg, #fff4f9, #ffd9e8 62%, #ffe4d6);
   box-shadow:
-    0 6px 14px -10px rgba(194, 24, 91, 0.8),
+    0 8px 18px -12px rgba(194, 24, 91, 0.9),
     inset 0 1px 0 #fff;
   font-family: inherit;
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.01em;
   white-space: nowrap;
   cursor: pointer;
   transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.egg-btn::after {
+  content: '✦';
+  position: absolute;
+  top: -7px;
+  right: -3px;
+  font-size: 9px;
+  line-height: 1;
+  color: #ff9ec4;
+  text-shadow: 0 0 7px rgba(255, 158, 196, 0.95);
+  pointer-events: none;
+  animation: eggTwinkle 2.2s ease-in-out infinite;
+}
+
+@keyframes eggTwinkle {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.75) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2) rotate(24deg);
+  }
+}
+
+.egg-btn > span {
+  color: transparent;
+  background-image: linear-gradient(115deg, #d81b60 0%, #ff6f61 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
 }
 
 .egg-btn:hover {
@@ -1844,89 +1981,128 @@ onBeforeUnmount(() => {
   position: fixed;
   inset: 0;
   z-index: 80;
-  display: grid;
-  place-items: center;
-  padding: 24px;
-  background: rgba(7, 11, 19, 0.56);
-  backdrop-filter: blur(10px) saturate(140%);
-  -webkit-backdrop-filter: blur(10px) saturate(140%);
+  overflow: hidden;
+  background: radial-gradient(120% 100% at 50% 0%, rgba(28, 18, 34, 0.52), rgba(7, 11, 19, 0.68));
+  backdrop-filter: blur(10px) saturate(135%);
+  -webkit-backdrop-filter: blur(10px) saturate(135%);
 }
 
-.egg-card {
-  position: relative;
-  margin: 0;
-  padding: 8px;
-  border-radius: 24px;
-  background: linear-gradient(160deg, #fffdfd, #ffeef4);
-  border: 1px solid rgba(255, 255, 255, 0.92);
-  box-shadow:
-    0 40px 90px -30px rgba(0, 0, 0, 0.6),
-    0 0 0 1px rgba(194, 24, 91, 0.08);
-  will-change: transform;
-  animation: eggFly 2.6s cubic-bezier(0.18, 0.72, 0.22, 1) both;
-}
-
-.egg-card img {
-  display: block;
-  width: min(80vw, 440px);
-  max-height: 72vh;
-  object-fit: cover;
-  border-radius: 18px;
+.egg-word {
+  position: absolute;
+  top: -6vh;
+  z-index: 3;
+  font-size: var(--size);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  color: transparent;
+  background-image: linear-gradient(150deg, #ffd3e7 0%, #ff8fbe 45%, #ff7b6b 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  filter: drop-shadow(0 6px 14px rgba(255, 95, 153, 0.45));
+  opacity: 0;
+  transform: rotate(var(--rot));
+  animation: eggWordFall var(--dur) linear var(--delay) infinite;
+  pointer-events: none;
   user-select: none;
 }
 
-@keyframes eggFly {
+@keyframes eggWordFall {
   0% {
     opacity: 0;
-    transform: translate(46vw, 42vh) scale(0.08) rotate(-30deg);
+    transform: translateY(-10vh) rotate(var(--rot));
   }
-  10% {
+  12% {
+    opacity: var(--alpha);
+  }
+  82% {
+    opacity: calc(var(--alpha) * 0.85);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(112vh) rotate(calc(var(--rot) + 36deg));
+  }
+}
+
+.egg-photo {
+  position: absolute;
+  z-index: 2;
+  width: var(--w);
+  margin: 0;
+  padding: 6px;
+  border-radius: 16px;
+  background: linear-gradient(160deg, #fffdfd, #ffeef4);
+  border: 1px solid rgba(255, 255, 255, 0.92);
+  box-shadow:
+    0 26px 54px -26px rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(194, 24, 91, 0.06);
+  transform: translate(-50%, -50%) rotate(var(--rot));
+  animation: eggPhotoIn var(--dur) cubic-bezier(0.18, 0.72, 0.22, 1) var(--delay) both;
+  will-change: transform;
+}
+
+.egg-photo img {
+  display: block;
+  width: 100%;
+  border-radius: 11px;
+  user-select: none;
+}
+
+@keyframes eggPhotoIn {
+  0% {
+    opacity: 0;
+    transform: translate(calc(-50% + 46vw), calc(-50% + 52vh)) scale(0.12) rotate(calc(var(--rot) - var(--spin)));
+  }
+  12% {
     opacity: 1;
   }
-  62% {
-    transform: translate(0, 0) scale(1.04) rotate(1080deg);
-  }
-  80% {
-    transform: translate(0, -6px) scale(0.985) rotate(1080deg);
+  72% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.03) rotate(var(--rot));
   }
   100% {
     opacity: 1;
-    transform: translate(0, 0) scale(1) rotate(1080deg);
+    transform: translate(-50%, -50%) scale(1) rotate(var(--rot));
   }
 }
 
 .egg-close {
   position: absolute;
-  top: -12px;
-  right: -12px;
+  top: 18px;
+  right: 18px;
+  z-index: 4;
   display: grid;
   place-items: center;
-  width: 34px;
-  height: 34px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.86);
-  background: rgba(22, 26, 34, 0.72);
-  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.92);
+  color: #d81b60;
   cursor: pointer;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.24s ease, transform 0.2s ease;
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
+  box-shadow: 0 12px 28px -14px rgba(0, 0, 0, 0.7);
+  transition: transform 0.2s ease, background 0.2s ease;
+  animation: eggCloseIn 0.4s ease 0.5s both;
 }
 
 .egg-close svg {
-  width: 16px;
-  height: 16px;
-}
-
-.egg-card.settled .egg-close {
-  opacity: 1;
-  pointer-events: auto;
+  width: 18px;
+  height: 18px;
 }
 
 .egg-close:hover {
-  transform: scale(1.08);
+  transform: scale(1.08) rotate(90deg);
+  background: #fff;
+}
+
+@keyframes eggCloseIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .egg-fade-enter-active,
@@ -2041,30 +2217,19 @@ onBeforeUnmount(() => {
     right: 14px;
     bottom: calc(14px + env(safe-area-inset-bottom, 0px));
     z-index: 25;
-    height: 26px;
-    padding: 0 10px 0 8px;
-    font-size: 11px;
+    height: 30px;
+    padding: 0 13px 0 10px;
+    font-size: 12px;
     box-shadow:
-      0 12px 26px -12px rgba(194, 24, 91, 0.8),
+      0 14px 28px -14px rgba(194, 24, 91, 0.85),
       inset 0 1px 0 #fff;
   }
 
-  .egg-card {
-    padding: 7px;
-    border-radius: 20px;
-  }
-
-  .egg-card img {
-    width: min(84vw, 340px);
-    max-height: 68vh;
-    border-radius: 15px;
-  }
-
   .egg-close {
-    top: -10px;
-    right: -10px;
-    width: 32px;
-    height: 32px;
+    top: 12px;
+    right: 12px;
+    width: 38px;
+    height: 38px;
   }
 
   .info {
