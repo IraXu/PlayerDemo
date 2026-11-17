@@ -185,35 +185,40 @@
       </div>
     </section>
 
-    <section class="info">
-      <div class="info-head">
+    <section class="info" :class="{ open: infoOpen }">
+      <button class="info-head" type="button" :aria-expanded="infoOpen" @click="infoOpen = !infoOpen">
         <span class="info-name">{{ device?.name || '设备名称' }}</span>
         <span v-if="device" class="info-state" :class="device.online ? 'on' : 'off'">
           <i></i>{{ device.online ? '在线' : '离线' }}
         </span>
+        <svg class="info-chevron" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="m7 10 5 5 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </button>
+      <div class="info-body">
+        <dl class="info-list">
+          <div class="info-cell">
+            <dt>DID</dt>
+            <dd class="mono">{{ device?.did || did }}</dd>
+          </div>
+          <div class="info-cell">
+            <dt>License</dt>
+            <dd class="mono">{{ device?.license || '—' }}</dd>
+          </div>
+          <div class="info-cell">
+            <dt>固件版本</dt>
+            <dd>{{ device?.version || '—' }}</dd>
+          </div>
+          <div class="info-cell">
+            <dt>MAC</dt>
+            <dd class="mono">{{ device?.mac || '—' }}</dd>
+          </div>
+          <div class="info-cell">
+            <dt>所连WiFi</dt>
+            <dd>{{ device?.ssid || '—' }}</dd>
+          </div>
+        </dl>
       </div>
-      <dl class="info-list">
-        <div class="info-cell">
-          <dt>DID</dt>
-          <dd class="mono">{{ device?.did || did }}</dd>
-        </div>
-        <div class="info-cell">
-          <dt>License</dt>
-          <dd class="mono">{{ device?.license || '—' }}</dd>
-        </div>
-        <div class="info-cell">
-          <dt>固件版本</dt>
-          <dd>{{ device?.version || '—' }}</dd>
-        </div>
-        <div class="info-cell">
-          <dt>MAC</dt>
-          <dd class="mono">{{ device?.mac || '—' }}</dd>
-        </div>
-        <div class="info-cell">
-          <dt>所连WiFi</dt>
-          <dd>{{ device?.ssid || '—' }}</dd>
-        </div>
-      </dl>
     </section>
 
     <footer class="meta">
@@ -269,6 +274,8 @@ const device = ref<DeviceInfo | null>(null)
 const interacting = ref(false)
 // 触屏设备不展示悬浮提示，避免提示浮层干扰点击
 const touchMode = ref(false)
+// 设备信息默认折叠
+const infoOpen = ref(false)
 
 const isLive = computed(() => status.value === 'playing')
 const fullActive = computed(() => isFullscreen.value || pseudoFullscreen.value)
@@ -1451,7 +1458,7 @@ onBeforeUnmount(() => {
 .info {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 0;
   padding: 16px 18px;
   border-radius: 20px;
   border: 1px solid rgba(255, 255, 255, 0.7);
@@ -1467,7 +1474,55 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   gap: 10px;
+  width: 100%;
   min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.info-chevron {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin-left: auto;
+  color: #8d98a8;
+  transition: transform 0.24s ease, color 0.2s ease;
+}
+
+.info-head:hover .info-chevron {
+  color: #4e5969;
+}
+
+.info.open .info-chevron {
+  transform: rotate(180deg);
+}
+
+.info-body {
+  display: grid;
+  grid-template-rows: 0fr;
+  margin-top: 0;
+  transition: grid-template-rows 0.26s ease, margin-top 0.26s ease;
+}
+
+.info.open .info-body {
+  grid-template-rows: 1fr;
+  margin-top: 12px;
+}
+
+.info-body > .info-list {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.info-head:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 55%, #fff);
+  outline-offset: 6px;
+  border-radius: 8px;
 }
 
 .info-name {
@@ -1764,8 +1819,12 @@ onBeforeUnmount(() => {
   .info {
     margin: 0 12px;
     padding: 14px 16px;
-    gap: 10px;
+    gap: 0;
     border-radius: 18px;
+  }
+
+  .info.open .info-body {
+    margin-top: 10px;
   }
 
   .info-name {
