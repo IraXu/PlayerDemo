@@ -144,6 +144,108 @@ body {
   box-shadow: 0 0 0 3px rgba(25, 200, 185, 0.15);
 }
 
+.tree-file-input {
+  display: none;
+}
+
+.tree-image-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border: 1.5px dashed #d4c4a8;
+  border-radius: 12px;
+  background: rgba(255, 250, 240, 0.7);
+  color: #8f734f;
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    color 0.16s ease,
+    border-color 0.16s ease,
+    background 0.16s ease;
+}
+
+.tree-image-add:hover {
+  color: #0e7f75;
+  border-color: #19c8b9;
+  background: #f1fbfa;
+}
+
+.tree-image-state {
+  padding: 8px 2px;
+  font-size: 12px;
+  color: #9f927d;
+}
+
+.tree-image-preview {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px;
+  border: 1px solid #e8dcc8;
+  border-radius: 14px;
+  background: #fffaf0;
+}
+
+.tree-image-preview img {
+  flex: none;
+  width: 54px;
+  height: 54px;
+  border-radius: 9px;
+  object-fit: cover;
+}
+
+.tree-image-info {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.tree-image-info strong {
+  font-size: 12px;
+  font-weight: 700;
+  color: #5a4227;
+}
+
+.tree-image-info span {
+  font-size: 11px;
+  color: #9f927d;
+}
+
+.tree-image-remove {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: #f3ebdc;
+  color: #8f734f;
+  font-family: inherit;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    color 0.16s ease,
+    background 0.16s ease;
+}
+
+.tree-image-remove:hover {
+  color: #c65a3a;
+  background: #ffe9e2;
+}
+
+.tree-image-error {
+  margin: 6px 0 0;
+  font-size: 11px;
+}
+
 .tree-meta {
   display: flex;
   align-items: center;

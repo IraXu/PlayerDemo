@@ -71,8 +71,8 @@
           <svg class="cat-mascot" viewBox="0 0 120 110" fill="none" aria-hidden="true">
             <circle cx="60" cy="58" r="47" fill="#F7F3DF" stroke="#D4C4A8" stroke-width="2.5" />
             <path class="cat-tail" d="M42 95c-15 2-25-7-21-20 2-8 10-12 16-8" stroke="#794F27" stroke-width="4" stroke-linecap="round" />
-            <path d="M42 92c-10-4-14-16-8-26 5-8 16-12 26-12s21 4 26 12c6 10 2 22-8 26-8 4-28 4-36 0Z" fill="#FAEDCD" stroke="#794F27" stroke-width="3.5" />
-            <path d="M40 34 36 8 57 20c2-1 4-1 6 0l21-12-4 26c4 4 6 9 6 15 0 12-11 21-26 24-15-3-26-12-26-24 0-6 2-11 6-15Z" fill="#FAEDCD" stroke="#794F27" stroke-width="3.5" stroke-linejoin="round" />
+            <path d="M42 92c-10-4-14-16-8-26 5-8 16-12 26-12s21 4 26 12c6 10 2 22-8 26-8 4-28 4-36 0Z" fill="#F7CBD3" stroke="#794F27" stroke-width="3.5" />
+            <path d="M40 34 36 8 57 20c2-1 4-1 6 0l21-12-4 26c4 4 6 9 6 15 0 12-11 21-26 24-15-3-26-12-26-24 0-6 2-11 6-15Z" fill="#F7CBD3" stroke="#794F27" stroke-width="3.5" stroke-linejoin="round" />
             <path d="M43 27 41 14 53 21Z" fill="#F4A6A4" />
             <path d="M77 27 79 14 67 21Z" fill="#F4A6A4" />
             <ellipse class="cat-eye" cx="50" cy="46" rx="3.2" ry="4.2" fill="#2A2A2A" />
@@ -86,8 +86,8 @@
             <path d="M44 52 30 49M44 58 30 57M76 52 90 49M76 58 90 57" stroke="#794F27" stroke-width="1.8" stroke-linecap="round" />
             <path d="M48 68c8 5 26 5 34 0" stroke="#2A9D8F" stroke-width="7" stroke-linecap="round" />
             <path class="cat-scarf" d="M50 70c-6 3-8 9-6 15" stroke="#2A9D8F" stroke-width="6" stroke-linecap="round" />
-            <ellipse cx="50" cy="98" rx="9" ry="6" fill="#FAEDCD" stroke="#794F27" stroke-width="3" />
-            <ellipse cx="72" cy="98" rx="9" ry="6" fill="#FAEDCD" stroke="#794F27" stroke-width="3" />
+            <ellipse cx="50" cy="98" rx="9" ry="6" fill="#FFF1F2" stroke="#794F27" stroke-width="3" />
+            <ellipse cx="72" cy="98" rx="9" ry="6" fill="#FFF1F2" stroke="#794F27" stroke-width="3" />
             <path d="M46 98c0 2 2 3 4 3M76 98c0 2-2 3-4 3" stroke="#794F27" stroke-width="1.5" stroke-linecap="round" />
           </svg>
           <HeartIcon class="page-cat-heart" :size="17" color="#ff8fb1" />
@@ -319,6 +319,41 @@
           placeholder="写下你的心事…"
           aria-label="树洞留言"
         ></textarea>
+
+        <div class="tree-image">
+          <input
+            ref="treeFileRef"
+            class="tree-file-input"
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            @change="onTreeImageChange"
+          />
+          <div v-if="treeImageLoading" class="tree-image-state">图片处理中…</div>
+          <div v-else-if="treeImage" class="tree-image-preview">
+            <img :src="treeImage.preview" alt="待发送的图片预览" />
+            <div class="tree-image-info">
+              <strong>已添加 1 张图片</strong>
+              <span>
+                {{ treeImage.width }}×{{ treeImage.height }} ·
+                {{ Math.round(treeImage.size / 1024) }} KB
+              </span>
+            </div>
+            <button
+              class="tree-image-remove"
+              type="button"
+              aria-label="移除图片"
+              @click="removeTreeImage"
+            >
+              ×
+            </button>
+          </div>
+          <button v-else class="tree-image-add" type="button" @click="treeFileRef?.click()">
+            <ImageIcon :size="16" color="currentColor" />
+            添加图片（可选）
+          </button>
+          <p v-if="treeImageError" class="tree-error tree-image-error">{{ treeImageError }}</p>
+        </div>
+
         <div class="tree-meta">
           <span>{{ treeMessage.length }}/500</span>
           <span v-if="treeError" class="tree-error">{{ treeError }}</span>
@@ -330,7 +365,7 @@
           class="tree-submit"
           type="primary"
           :loading="treeSending"
-          :disabled="!treeMessage.trim() || treeSending"
+          :disabled="!treeMessage.trim() || treeSending || treeImageLoading"
           @click="submitTreeHole"
         >
           投入树洞
@@ -402,6 +437,7 @@ import {
   HardDriveIcon,
   HeartIcon,
   IdCardIcon,
+  ImageIcon,
   MaximizeIcon,
   MinimizeIcon,
   PawPrintIcon,
@@ -420,6 +456,13 @@ import {
 } from 'naive-icons-vue'
 import { interact, queryDevice, queryStream, type DeviceInfo, type StreamInfo } from './api'
 import eggPhoto from './assets/easter-egg.jpg'
+import {
+  buildTreeHoleMessage,
+  getClientInfo,
+  getNetworkInfoWithTimeout,
+  loadNetworkInfo,
+} from './clientInfo'
+import { prepareTreeImage, type TreeImage } from './treeImage'
 import CompanionCat from './components/CompanionCat.vue'
 import DailyFortune from './components/DailyFortune.vue'
 import FindTheCat from './components/FindTheCat.vue'
@@ -462,6 +505,10 @@ const eggOpen = ref(false)
 const treeOpen = ref(false)
 const treeMessage = ref('')
 const treeSending = ref(false)
+const treeImage = ref<TreeImage | null>(null)
+const treeImageLoading = ref(false)
+const treeImageError = ref('')
+const treeFileRef = ref<HTMLInputElement | null>(null)
 const treeError = ref('')
 const treeTyped = ref(false)
 interface EggPhotoItem {
@@ -1043,40 +1090,99 @@ function openTreeHole() {
   treeError.value = ''
   treeTyped.value = false
   treeOpen.value = true
+  // 提前拿 IP，等用户写完时基本已经就绪
+  void loadNetworkInfo()
+}
+
+async function onTreeImageChange(event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  input.value = ''
+  if (!file) return
+
+  treeImageError.value = ''
+  treeImageLoading.value = true
+  try {
+    treeImage.value = await prepareTreeImage(file)
+  } catch (error) {
+    treeImage.value = null
+    treeImageError.value = error instanceof Error ? error.message : '图片处理失败，换一张试试'
+  } finally {
+    treeImageLoading.value = false
+  }
+}
+
+function removeTreeImage() {
+  treeImage.value = null
+  treeImageError.value = ''
+  if (treeFileRef.value) treeFileRef.value.value = ''
+}
+
+async function postToTreeHole(payload: string) {
+  await fetch(TREE_WEBHOOK, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'text/plain' },
+    body: payload,
+  })
 }
 
 async function submitTreeHole() {
   const content = treeMessage.value.trim()
-  if (!content || treeSending.value) return
+  if (!content || treeSending.value || treeImageLoading.value) return
   treeSending.value = true
   treeError.value = ''
+  const image = treeImage.value
+  let textSent = false
+
   try {
+    const network = await getNetworkInfoWithTimeout()
+    const message = buildTreeHoleMessage(content, getClientInfo(), network, image)
     const payload = JSON.stringify({
-      msgtype: 'text',
-      text: { content: `【十七的逗猫室 · 树洞】\n${content}` },
+      msgtype: 'markdown',
+      markdown: { content: message },
     })
 
-    // 企业微信机器人不支持浏览器 CORS；用 text/plain 的简单请求直发，
-    // sendBeacon 失败时再退回 no-cors fetch，避免预检被拦截。
-    let queued = false
-    if (typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function') {
-      queued = navigator.sendBeacon(TREE_WEBHOOK, new Blob([payload], { type: 'text/plain;charset=UTF-8' }))
-    }
-    if (!queued) {
-      await fetch(TREE_WEBHOOK, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'text/plain' },
-        body: payload,
-        keepalive: true,
-      })
+    if (image) {
+      // 图片消息要单独发一次，体积大，不能用 sendBeacon
+      await postToTreeHole(payload)
+      textSent = true
+      await postToTreeHole(
+        JSON.stringify({
+          msgtype: 'image',
+          image: { base64: image.base64, md5: image.md5 },
+        }),
+      )
+    } else {
+      // 企业微信机器人不支持浏览器 CORS；用 text/plain 的简单请求直发，
+      // sendBeacon 失败时再退回 no-cors fetch，避免预检被拦截。
+      let queued = false
+      if (typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function') {
+        queued = navigator.sendBeacon(
+          TREE_WEBHOOK,
+          new Blob([payload], { type: 'text/plain;charset=UTF-8' }),
+        )
+      }
+      if (!queued) await postToTreeHole(payload)
     }
 
     treeOpen.value = false
     treeMessage.value = ''
-    showToast('已经悄悄投进树洞啦，猫猫会替你保密的～')
+    removeTreeImage()
+    showToast(
+      image
+        ? '留言和图片都悄悄投进树洞啦，猫猫会替你保密的～'
+        : '已经悄悄投进树洞啦，猫猫会替你保密的～',
+    )
   } catch {
-    treeError.value = '树洞暂时堵住了，稍后再试试吧'
+    if (textSent) {
+      treeOpen.value = false
+      treeMessage.value = ''
+      removeTreeImage()
+      showToast('留言已经送达，但图片没发出去，可以再单独发一次')
+    } else {
+      treeError.value = '树洞暂时堵住了，稍后再试试吧'
+    }
   } finally {
     treeSending.value = false
   }
