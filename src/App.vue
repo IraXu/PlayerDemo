@@ -1,6 +1,103 @@
 <template>
-  <div class="page" :class="{ immersive: pseudoFullscreen || isFullscreen }">
-    <section class="player">
+  <div class="page" :class="{ immersive: pseudoFullscreen || isFullscreen, touch: touchMode }">
+    <div class="bg-decor" aria-hidden="true">
+      <svg class="deco-sprite" width="0" height="0">
+        <defs>
+          <symbol id="cute-cat-sit" viewBox="0 0 120 120">
+            <g fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M86 96c10 1 15-5 13-13-1-5-5-8-10-8" />
+              <path d="M46 78c-9 3-15 11-15 20 0 7 5 11 13 11h30c8 0 13-4 13-11 0-9-6-17-15-20" />
+              <path d="M49 78c7 4 15 4 22 0" />
+              <path d="M38 54c0-14 10-24 22-24s22 10 22 24c0 13-10 22-22 22S38 67 38 54Z" />
+              <path d="M42 39 38 23 55 33" />
+              <path d="M78 33 95 23 91 39" />
+              <path d="M49 54c2-3 5-3 7 0" />
+              <path d="M64 54c2-3 5-3 7 0" />
+              <path d="M58 60 62 60 60 63Z" />
+              <path d="M60 63c0 2-3 2-4 1M60 63c0 2 3 2 4 1" />
+              <path d="M47 60 37 58M47 65 37 66M73 60 83 58M73 65 83 66" />
+              <path d="M52 109v-7M68 109v-7" />
+            </g>
+          </symbol>
+          <symbol id="cute-cat-peek" viewBox="0 0 120 120">
+            <g fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M10 92h100" />
+              <path d="M91 92c10-1 14-8 11-16" />
+              <path d="M36 88c0-18 11-30 24-30s24 12 24 30" />
+              <path d="M41 64 37 47 54 58" />
+              <path d="M66 58 83 47 79 64" />
+              <path d="M48 72c2-3 5-3 7 0" />
+              <path d="M65 72c2-3 5-3 7 0" />
+              <path d="M58 78 62 78 60 81Z" />
+              <path d="M60 81c0 2-3 2-4 1M60 81c0 2 3 2 4 1" />
+              <path d="M47 78 38 76M47 82 38 84M73 78 82 76M73 82 82 84" />
+              <path d="M43 92c0-5 4-8 8-8s8 3 8 8" />
+              <path d="M61 92c0-5 4-8 8-8s8 3 8 8" />
+            </g>
+          </symbol>
+        </defs>
+      </svg>
+      <svg class="deco deco-cat deco-cat-main" viewBox="0 0 120 120"><use href="#cute-cat-peek" /></svg>
+      <svg class="deco deco-cat deco-cat-side" viewBox="0 0 120 120"><use href="#cute-cat-sit" /></svg>
+      <svg class="deco deco-cat deco-cat-top" viewBox="0 0 120 120"><use href="#cute-cat-peek" /></svg>
+      <PawPrintIcon class="deco deco-paw deco-paw-1" :size="34" color="currentColor" />
+      <PawPrintIcon class="deco deco-paw deco-paw-2" :size="30" color="currentColor" />
+      <PawPrintIcon class="deco deco-paw deco-paw-3" :size="28" color="currentColor" />
+      <PawPrintIcon class="deco deco-paw deco-paw-4" :size="26" color="currentColor" />
+      <PawPrintIcon class="deco deco-paw deco-paw-5" :size="24" color="currentColor" />
+      <PawPrintIcon class="deco deco-paw deco-paw-6" :size="22" color="currentColor" />
+      <PawPrintIcon class="deco deco-paw deco-paw-7" :size="20" color="currentColor" />
+      <FishIcon class="deco deco-fish deco-fish-1" :size="50" color="currentColor" />
+      <FishIcon class="deco deco-fish deco-fish-2" :size="34" color="currentColor" />
+      <BoneIcon class="deco deco-bone deco-bone-1" :size="28" color="currentColor" />
+      <BoneIcon class="deco deco-bone deco-bone-2" :size="22" color="currentColor" />
+      <HeartIcon class="deco deco-heart deco-heart-1" :size="26" color="currentColor" />
+      <HeartIcon class="deco deco-heart deco-heart-2" :size="20" color="currentColor" />
+      <StarIcon class="deco deco-star deco-star-1" :size="24" color="currentColor" />
+      <CloudIcon class="deco deco-cloud deco-cloud-1" :size="120" color="currentColor" />
+      <CloudIcon class="deco deco-cloud deco-cloud-2" :size="88" color="currentColor" />
+    </div>
+
+    <header class="masthead">
+      <div class="brand">
+        <Title class="brand-title" size="middle" color="app-teal">十七的逗猫室</Title>
+        <p class="brand-sub">
+          <PawPrintIcon :size="14" color="currentColor" />
+          一只猫，一台摄像头，和想来看他的人
+        </p>
+      </div>
+      <Tooltip title="摸摸小猫" placement="bottom-end" variant="island">
+        <button class="page-cat" type="button" aria-label="摸摸小猫" @click="openEgg">
+          <svg class="cat-mascot" viewBox="0 0 120 110" fill="none" aria-hidden="true">
+            <circle cx="60" cy="58" r="47" fill="#F7F3DF" stroke="#D4C4A8" stroke-width="2.5" />
+            <path class="cat-tail" d="M42 95c-15 2-25-7-21-20 2-8 10-12 16-8" stroke="#794F27" stroke-width="4" stroke-linecap="round" />
+            <path d="M42 92c-10-4-14-16-8-26 5-8 16-12 26-12s21 4 26 12c6 10 2 22-8 26-8 4-28 4-36 0Z" fill="#FAEDCD" stroke="#794F27" stroke-width="3.5" />
+            <path d="M34 48c0-16 11-27 26-27s26 11 26 27c0 15-11 25-26 25S34 63 34 48Z" fill="#FAEDCD" stroke="#794F27" stroke-width="3.5" />
+            <path d="M42 28 36 8 56 20Z" fill="#FAEDCD" stroke="#794F27" stroke-width="3.5" stroke-linejoin="round" />
+            <path d="M78 20 98 8 92 28Z" fill="#FAEDCD" stroke="#794F27" stroke-width="3.5" stroke-linejoin="round" />
+            <path d="M44 24 41 13 51 20Z" fill="#F4A6A4" />
+            <path d="M81 20 91 13 88 24Z" fill="#F4A6A4" />
+            <ellipse class="cat-eye" cx="52" cy="46" rx="3.2" ry="4.2" fill="#2A2A2A" />
+            <ellipse class="cat-eye" cx="76" cy="46" rx="3.2" ry="4.2" fill="#2A2A2A" />
+            <circle cx="53" cy="44.5" r="1" fill="#fff" />
+            <circle cx="77" cy="44.5" r="1" fill="#fff" />
+            <circle cx="45" cy="54" r="3" fill="#F4A6A4" opacity=".55" />
+            <circle cx="83" cy="54" r="3" fill="#F4A6A4" opacity=".55" />
+            <path d="M61 54 69 54 65 58Z" fill="#F4A6A4" />
+            <path d="M65 58c0 3-4 3-5 1M65 58c0 3 4 3 5 1" stroke="#794F27" stroke-width="1.8" stroke-linecap="round" />
+            <path d="M44 52 30 49M44 58 30 57M86 52 100 49M86 58 100 57" stroke="#794F27" stroke-width="1.8" stroke-linecap="round" />
+            <path d="M48 68c8 5 26 5 34 0" stroke="#2A9D8F" stroke-width="7" stroke-linecap="round" />
+            <path class="cat-scarf" d="M50 70c-6 3-8 9-6 15" stroke="#2A9D8F" stroke-width="6" stroke-linecap="round" />
+            <ellipse cx="50" cy="98" rx="9" ry="6" fill="#FAEDCD" stroke="#794F27" stroke-width="3" />
+            <ellipse cx="72" cy="98" rx="9" ry="6" fill="#FAEDCD" stroke="#794F27" stroke-width="3" />
+            <path d="M46 98c0 2 2 3 4 3M76 98c0 2-2 3-4 3" stroke="#794F27" stroke-width="1.5" stroke-linecap="round" />
+          </svg>
+          <HeartIcon class="page-cat-heart" :size="17" color="#ff8fb1" />
+        </button>
+      </Tooltip>
+    </header>
+
+    <Card class="player">
       <div
         ref="stageRef"
         :class="['stage', { live: isLive, pseudo: pseudoFullscreen, rotated }]"
@@ -9,258 +106,202 @@
       >
         <div ref="containerRef" class="video"></div>
 
-        <div v-if="isLive" class="cat-chip" aria-hidden="true">
-          <svg class="cat" viewBox="0 0 64 44" fill="none">
-            <g class="cat-bob">
-              <path
-                d="M7.4 32.4h5.6M3.6 36.2h4.4"
-                class="cat-dust"
-                stroke="currentColor"
-                stroke-width="1.8"
-                stroke-linecap="round"
-                opacity=".45"
-              />
-              <path
-                class="cat-tail"
-                d="M16.8 22c-5 1.4-9-1.2-10.2-5.4"
-                stroke="currentColor"
-                stroke-width="2.8"
-                stroke-linecap="round"
-              />
-              <ellipse cx="28.6" cy="25" rx="13.2" ry="7.2" fill="currentColor" transform="rotate(-8 28.6 25)" />
-              <circle cx="46.4" cy="17" r="8.2" fill="currentColor" />
-              <path
-                d="M39.6 12.8 42.4 5.4 47 11.2Z"
-                fill="currentColor"
-                stroke="currentColor"
-                stroke-width="2.4"
-                stroke-linejoin="round"
-              />
-              <path
-                d="M47.6 10.6 51.6 3.6 53.4 12.8Z"
-                fill="currentColor"
-                stroke="currentColor"
-                stroke-width="2.2"
-                stroke-linejoin="round"
-              />
-              <circle cx="49" cy="19" r="1.6" fill="#0b0f18" />
-              <circle cx="49.55" cy="18.4" r=".55" fill="#fff" />
-              <path
-                d="M50.6 21.9c.7.7 1.7.7 2.2 0"
-                stroke="#0b0f18"
-                stroke-width="1.2"
-                stroke-linecap="round"
-              />
-              <path
-                class="cat-leg leg1"
-                d="M19.8 28.8 17 35.8"
-                stroke="currentColor"
-                stroke-width="2.5"
-                stroke-linecap="round"
-              />
-              <path
-                class="cat-leg leg2"
-                d="M24.8 29.6 24.4 36.8"
-                stroke="currentColor"
-                stroke-width="2.5"
-                stroke-linecap="round"
-              />
-              <path
-                class="cat-leg leg3"
-                d="M38.4 28.6 37.2 35.6"
-                stroke="currentColor"
-                stroke-width="2.5"
-                stroke-linecap="round"
-              />
-              <path
-                class="cat-leg leg4"
-                d="M40.4 27.4 42 34.6"
-                stroke="currentColor"
-                stroke-width="2.5"
-                stroke-linecap="round"
-              />
-            </g>
-          </svg>
-        </div>
-
         <div v-if="rotateHint" class="rotate-hint">
-          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <rect x="7.6" y="2.8" width="8.8" height="18.4" rx="2.4" stroke="currentColor" stroke-width="1.5" />
-            <path d="M4.2 9.4A8.2 8.2 0 0 0 4.2 15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
-          </svg>
+          <SmartphoneIcon :size="16" color="currentColor" />
           <span>请将手机横过来观看</span>
         </div>
 
         <div v-if="!isLive" class="placeholder">
           <span v-if="status === 'error'" class="glyph">
-            <svg viewBox="0 0 24 24" fill="none">
-              <rect x="3" y="6.6" width="12.4" height="10.8" rx="3" stroke="currentColor" stroke-width="1.5" />
-              <path d="m15.4 11 4.2-2.3a.7.7 0 0 1 1.1.6v5.4a.7.7 0 0 1-1.1.6l-4.2-2.3" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" />
-              <path d="m9 10.4 6.2 6.2M15.2 10.4 9 16.6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity=".5" />
-            </svg>
+            <VideoOffIcon :size="32" color="currentColor" />
           </span>
-          <span v-else class="spinner"></span>
+          <SpinnerIcon v-else class="spinner" :size="34" color="#19c8b9" />
 
           <h1>{{ placeholderTitle }}</h1>
           <p>{{ placeholderText }}</p>
 
-          <a-button v-if="status === 'error'" type="primary" size="small" class="retry" @click="connect">
+          <Button v-if="status === 'error'" type="primary" size="small" class="retry" @click="connect">
+            <template #icon><RefreshIcon :size="16" color="currentColor" /></template>
             重新连接
-          </a-button>
+          </Button>
         </div>
 
         <div class="toolbar" @click.stop>
-          <div class="seg" role="group" aria-label="清晰度">
-            <button type="button" :class="{ on: stream === 0 }" @click="switchStream(0)">超清</button>
-            <button type="button" :class="{ on: stream === 1 }" @click="switchStream(1)">高清</button>
-          </div>
+          <Tabs
+            class="quality-tabs"
+            :items="qualityItems"
+            :model-value="String(stream)"
+            :leaf-animation="false"
+            :shadow="false"
+            aria-label="清晰度"
+            @change="onQualityChange"
+          />
 
           <span class="divider"></span>
 
-          <a-tooltip :content="muted ? '开启声音' : '静音'" position="top" :disabled="touchMode">
-            <button class="icon" type="button" aria-label="音量" @click="toggleMute">
-              <svg v-if="!muted" viewBox="0 0 24 24" fill="none">
-                <path d="M4.5 9.7v4.6h2.7L10.8 17.4V6.6L7.2 9.7H4.5Z" fill="currentColor" />
-                <path d="M14.2 9.4a3.8 3.8 0 0 1 0 5.2M16.8 7a7.1 7.1 0 0 1 0 10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
-              </svg>
-              <svg v-else viewBox="0 0 24 24" fill="none">
-                <path d="M4.5 9.7v4.6h2.7L10.8 17.4V6.6L7.2 9.7H4.5Z" fill="currentColor" />
-                <path d="m14.9 10.2 3.9 3.6m0-3.6-3.9 3.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
-              </svg>
-            </button>
-          </a-tooltip>
+          <Tooltip :title="muted ? '开启声音' : '静音'" placement="top" variant="island">
+            <Button
+              class="icon"
+              type="text"
+              size="small"
+              :aria-label="muted ? '开启声音' : '静音'"
+              @click="toggleMute"
+            >
+              <template #icon>
+                <VolumeXIcon v-if="muted" :size="19" color="currentColor" />
+                <Volume2Icon v-else :size="19" color="currentColor" />
+              </template>
+            </Button>
+          </Tooltip>
 
-          <a-slider
+          <input
             class="slider"
-            :model-value="volumePercent"
-            :show-tooltip="false"
-            @change="onVolumeChange"
+            type="range"
+            min="0"
+            max="100"
+            step="1"
+            aria-label="音量"
+            :value="volumePercent"
+            :style="{ '--fill': `${volumePercent}%` }"
+            @input="onVolumeInput"
           />
 
-          <a-tooltip content="截图" position="top" :disabled="touchMode">
-            <button class="icon" type="button" aria-label="截图" @click="takeScreenshot">
-              <svg viewBox="0 0 24 24" fill="none">
-                <path d="M4 8.8h3l1-1.9h8l1 1.9h3v9.4H4V8.8Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" />
-                <circle cx="12" cy="13.2" r="2.9" stroke="currentColor" stroke-width="1.5" />
-              </svg>
-            </button>
-          </a-tooltip>
+          <Tooltip title="截图" placement="top" variant="island">
+            <Button class="icon" type="text" size="small" aria-label="截图" @click="takeScreenshot">
+              <template #icon><CameraIcon :size="19" color="currentColor" /></template>
+            </Button>
+          </Tooltip>
 
-          <a-tooltip content="猫猫要和你互动咯～" position="top" :disabled="touchMode">
-            <button
+          <Tooltip title="猫猫要和你互动咯～" placement="top" variant="island">
+            <Button
               class="action"
-              type="button"
+              size="small"
               :class="{ busy: interacting }"
               :disabled="interacting"
               @click="triggerInteract"
             >
-              <svg class="wand" viewBox="0 0 24 24" fill="none">
-                <path d="M3.4 20.8 13 10.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
-                <path d="M3.4 20.8 6 18" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" opacity=".55" />
-                <g class="wand-tip">
-                  <path d="M13 10.6c1.3 1.1 2.1 2.4 2.4 3.9" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" />
-                  <circle cx="16.1" cy="15.6" r="1.5" fill="currentColor" />
-                  <path
-                    d="M17 17.9c1.8 1.2 2.7 3 2.7 5.1 0 .5-.1 1-.3 1.4-1.8-1-2.8-2.8-3-4.9-.1-.6 0-1.2.6-1.6Z"
-                    fill="currentColor"
-                    fill-opacity=".92"
-                  />
-                </g>
-              </svg>
+              <template #icon>
+                <svg class="wand" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M3.2 20.8 12.6 11.4" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                  <g class="wand-tip">
+                    <path d="M12.6 11.4c1.6-2.6 3.8-4.2 6.4-4.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                    <path d="M16.4 4.2c1.8 1.4 2.6 3.2 2.4 5.4-.2 2-1.4 3.5-3.6 4.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                    <circle cx="18.4" cy="13.4" r="1.5" fill="currentColor" />
+                    <path d="M20.2 15.2c1.2 1.4 1.6 3 1.2 4.8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
+                  </g>
+                </svg>
+              </template>
               <span>{{ interacting ? '逗猫中' : '逗猫棒' }}</span>
-            </button>
-          </a-tooltip>
+            </Button>
+          </Tooltip>
 
-          <a-tooltip :content="fullActive ? '退出全屏' : '全屏'" position="top" :disabled="touchMode">
-            <button class="icon" type="button" aria-label="全屏" @click="toggleFullscreen">
-              <svg v-if="!fullActive" viewBox="0 0 24 24" fill="none">
-                <path d="M9.4 4.6H4.6v4.8m10-4.8h4.8v4.8m0 5.2v4.8h-4.8M9.4 19.4H4.6v-4.8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
-              </svg>
-              <svg v-else viewBox="0 0 24 24" fill="none">
-                <path d="M4.6 9.4h4.8V4.6m5.2 0v4.8h4.8M19.4 14.6h-4.8v4.8M9.4 19.4v-4.8H4.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
-              </svg>
-            </button>
-          </a-tooltip>
+          <Tooltip :title="fullActive ? '退出全屏' : '全屏'" placement="top" variant="island">
+            <Button class="icon" type="text" size="small" aria-label="全屏" @click="toggleFullscreen">
+              <template #icon>
+                <MinimizeIcon v-if="fullActive" :size="19" color="currentColor" />
+                <MaximizeIcon v-else :size="19" color="currentColor" />
+              </template>
+            </Button>
+          </Tooltip>
         </div>
       </div>
-    </section>
+    </Card>
 
-    <section class="info" :class="{ open: infoOpen }">
-      <button class="info-head" type="button" :aria-expanded="infoOpen" @click="infoOpen = !infoOpen">
-        <span class="info-name">{{ device?.name || '设备名称' }}</span>
-        <span v-if="device" class="info-state" :class="device.online ? 'on' : 'off'">
-          <i></i>{{ device.online ? '在线' : '离线' }}
+    <Collapse v-model:expanded="infoOpen" class="info">
+      <template #question>
+        <span class="info-question">
+          <PawPrintIcon class="info-cat" :size="20" color="#19c8b9" />
+          <span class="info-name">{{ device?.name || '设备信息' }}</span>
         </span>
-        <svg class="info-chevron" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="m7 10 5 5 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-        </svg>
-      </button>
-      <div class="info-body">
-        <dl class="info-list">
-          <div class="info-cell">
-            <dt>DID</dt>
-            <dd class="mono">{{ device?.did || did }}</dd>
-          </div>
-          <div class="info-cell">
-            <dt>License</dt>
-            <dd class="mono">{{ device?.license || '—' }}</dd>
-          </div>
-          <div class="info-cell">
-            <dt>固件版本</dt>
-            <dd>{{ device?.version || '—' }}</dd>
-          </div>
-          <div class="info-cell">
-            <dt>MAC</dt>
-            <dd class="mono">{{ device?.mac || '—' }}</dd>
-          </div>
-          <div class="info-cell">
-            <dt>所连WiFi</dt>
-            <dd>{{ device?.ssid || '—' }}</dd>
-          </div>
-        </dl>
-      </div>
-    </section>
+      </template>
+      <dl class="info-list">
+        <div class="info-cell">
+          <dt><QrCodeIcon :size="14" color="currentColor" /> DID</dt>
+          <dd class="mono">{{ device?.did || did }}</dd>
+        </div>
+        <div class="info-cell">
+          <dt><IdCardIcon :size="14" color="currentColor" /> License</dt>
+          <dd class="mono">{{ device?.license || '—' }}</dd>
+        </div>
+        <div class="info-cell">
+          <dt><CpuIcon :size="14" color="currentColor" /> 固件版本</dt>
+          <dd>{{ device?.version || '—' }}</dd>
+        </div>
+        <div class="info-cell">
+          <dt><HardDriveIcon :size="14" color="currentColor" /> MAC</dt>
+          <dd class="mono">{{ device?.mac || '—' }}</dd>
+        </div>
+        <div class="info-cell">
+          <dt><WifiIcon :size="14" color="currentColor" /> 所连 WiFi</dt>
+          <dd>{{ device?.ssid || '—' }}</dd>
+        </div>
+      </dl>
+    </Collapse>
 
     <footer class="meta">
       <span class="dot" :class="statusKey"></span>
       <span class="state">{{ statusLabel }}</span>
-      <template v-if="isLive">
-        <span class="sep"></span>
-        <span class="mono">{{ resolutionLabel }}</span>
-        <span class="sep">·</span>
-        <span class="mono">{{ fpsLabel }}</span>
-        <span class="sep">·</span>
-        <span>{{ videoCodec }}</span>
-      </template>
       <span class="grow"></span>
-      <div class="meta-actions">
-        <button class="egg-btn" type="button" @click="openEgg">
-          <svg class="egg-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <ellipse cx="12" cy="15.6" rx="4.5" ry="3.7" fill="currentColor" />
-            <circle cx="6.7" cy="11.2" r="1.8" fill="currentColor" />
-            <circle cx="9.8" cy="8.6" r="1.8" fill="currentColor" />
-            <circle cx="14.2" cy="8.6" r="1.8" fill="currentColor" />
-            <circle cx="17.3" cy="11.2" r="1.8" fill="currentColor" />
-          </svg>
-          <span>很娇 慎点！</span>
-        </button>
-        <a-tooltip content="刷新" position="top">
-          <button class="ghost" type="button" @click="connect">
-            <svg viewBox="0 0 24 24" fill="none">
-              <path d="M19.2 12a7.2 7.2 0 1 1-2.1-5.1" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
-              <path d="M19.4 4.8v4.4h-4.4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
-            </svg>
-          </button>
-        </a-tooltip>
-      </div>
+      <Tooltip title="刷新画面" placement="top" variant="island">
+        <Button class="ghost" type="text" size="small" aria-label="刷新" @click="connect">
+          <template #icon><RefreshIcon :size="17" color="currentColor" /></template>
+        </Button>
+      </Tooltip>
     </footer>
+
+    <Footer class="page-footer" text="十七的逗猫室 · 猫猫万岁" />
+
+    <div class="tree-fab-slot">
+      <Tooltip title="把心事悄悄投进树洞" placement="top-end" variant="island">
+        <Button class="tree-fab" @click="openTreeHole">
+          <template #icon><TreeIcon :size="20" color="currentColor" /></template>
+          树洞
+        </Button>
+      </Tooltip>
+    </div>
+
+    <Modal v-model:open="treeOpen" :typewriter="false" :width="460">
+      <div class="tree-hole">
+        <div class="tree-head">
+          <TreeIcon :size="38" color="#19c8b9" />
+          <h2>树洞</h2>
+          <Typewriter :speed="55" :trigger="treeOpen" @done="treeTyped = true">
+            <p :class="{ typed: treeTyped }">把想说的话悄悄放进树洞吧，只有树和猫会听到。</p>
+          </Typewriter>
+        </div>
+        <textarea
+          v-model="treeMessage"
+          class="tree-input"
+          maxlength="500"
+          rows="5"
+          placeholder="写下你的心事…"
+          aria-label="树洞留言"
+        ></textarea>
+        <div class="tree-meta">
+          <span>{{ treeMessage.length }}/500</span>
+          <span v-if="treeError" class="tree-error">{{ treeError }}</span>
+        </div>
+      </div>
+      <template #footer>
+        <Button type="default" @click="treeOpen = false">先不投了</Button>
+        <Button
+          class="tree-submit"
+          type="primary"
+          :loading="treeSending"
+          :disabled="!treeMessage.trim() || treeSending"
+          @click="submitTreeHole"
+        >
+          投入树洞
+        </Button>
+      </template>
+    </Modal>
 
     <transition name="fade">
       <div v-if="toast" class="toast">{{ toast }}</div>
     </transition>
 
     <transition name="egg-fade">
-      <div v-if="eggOpen" class="egg-overlay" role="dialog" aria-modal="true" aria-label="彩蛋" @click.self="closeEgg">
+      <div v-if="eggOpen" class="egg-overlay" role="dialog" aria-modal="true" aria-label="给十七的彩蛋" @click.self="closeEgg">
         <span
           v-for="word in eggWords"
           :key="word.id"
@@ -292,10 +333,12 @@
         >
           <img :src="eggPhoto" alt="" draggable="false" />
         </figure>
+        <div class="egg-note">
+          <HeartIcon :size="30" color="#ff8fb1" />
+          <p>给十七：<br />愿你每天都被小猫治愈。每天保持好心情～</p>
+        </div>
         <button class="egg-close" type="button" aria-label="关闭" @click="closeEgg">
-          <svg viewBox="0 0 24 24" fill="none">
-            <path d="m7 7 10 10M17 7 7 17" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" />
-          </svg>
+          <CloseIcon :size="20" color="currentColor" />
         </button>
       </div>
     </transition>
@@ -304,16 +347,46 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
+import { Button, Card, Collapse, Footer, Modal, Tabs, Title, Tooltip, Typewriter } from 'animal-island-vue'
+import {
+  BoneIcon,
+  CameraIcon,
+  CloseIcon,
+  CloudIcon,
+  CpuIcon,
+  FishIcon,
+  HardDriveIcon,
+  HeartIcon,
+  IdCardIcon,
+  MaximizeIcon,
+  MinimizeIcon,
+  PawPrintIcon,
+  QrCodeIcon,
+  RefreshIcon,
+  SmartphoneIcon,
+  SpinnerIcon,
+  StarIcon,
+  TreeIcon,
+  VideoOffIcon,
+  Volume2Icon,
+  VolumeXIcon,
+  WifiIcon,
+} from 'naive-icons-vue'
 import { interact, queryDevice, queryStream, type DeviceInfo, type StreamInfo } from './api'
 import eggPhoto from './assets/easter-egg.jpg'
 
 const did = '1200010180ee9bea'
+const TREE_WEBHOOK = 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=ab1da84d-6f0f-4d9f-8f7b-73ea0dc9db3b'
 
 const containerRef = ref<HTMLElement>()
 const stageRef = ref<HTMLElement>()
 const status = ref<'loading' | 'switching' | 'playing' | 'error'>('loading')
 const errorMsg = ref('')
 const stream = ref<0 | 1>(0)
+const qualityItems = [
+  { key: '0', label: '超清' },
+  { key: '1', label: '高清' },
+]
 const muted = ref(true)
 const volumePercent = ref(60)
 const fps = ref(0)
@@ -332,6 +405,12 @@ const touchMode = ref(false)
 const infoOpen = ref(false)
 // 彩蛋
 const eggOpen = ref(false)
+// 树洞
+const treeOpen = ref(false)
+const treeMessage = ref('')
+const treeSending = ref(false)
+const treeError = ref('')
+const treeTyped = ref(false)
 interface EggPhotoItem {
   id: number
   left: number
@@ -360,7 +439,7 @@ const statusKey = computed(() =>
   status.value === 'playing' ? 'ok' : status.value === 'error' ? 'bad' : 'wait',
 )
 const statusLabel = computed(() => {
-  if (status.value === 'playing') return '丧丧の工作中，尝试逗逗吧～'
+  if (status.value === 'playing') return '猫猫丧丧の，尝试逗逗吧～'
   if (status.value === 'error') return '未连接'
   return status.value === 'switching' ? '切换中' : '连接中'
 })
@@ -372,10 +451,6 @@ const placeholderText = computed(() => {
   if (status.value === 'error') return errorMsg.value || '请稍后重试'
   return '正在建立加密视频通道'
 })
-const resolutionLabel = computed(() =>
-  resolution.value ? `${resolution.value.width}×${resolution.value.height}` : '—',
-)
-const fpsLabel = computed(() => (fps.value > 0 ? `${fps.value} fps` : '—'))
 
 let player: HMPlayerInstance | null = null
 let cachedStream: StreamInfo | null = null
@@ -659,6 +734,10 @@ async function switchStream(target: 0 | 1) {
   }
 }
 
+function onQualityChange(key: string) {
+  void switchStream(Number(key) === 1 ? 1 : 0)
+}
+
 // ==================== 设备信息 / 互动 ====================
 async function loadDevice() {
   try {
@@ -719,6 +798,10 @@ function onVolumeChange(value: number | number[]) {
   } catch {
     /* ignore */
   }
+}
+
+function onVolumeInput(event: Event) {
+  onVolumeChange(Number((event.target as HTMLInputElement).value))
 }
 
 function takeScreenshot() {
@@ -801,7 +884,7 @@ async function toggleFullscreen() {
 
 function isToolbarEvent(event: Event) {
   const target = event.target as Element | null
-  return Boolean(target?.closest?.('.toolbar, button, a, input, .arco-slider, .arco-tooltip'))
+  return Boolean(target?.closest?.('.toolbar, button, a, input, .animal-tooltip'))
 }
 
 function onStageTap(event: MouseEvent) {
@@ -898,6 +981,50 @@ function closeEgg() {
   if (!pseudoFullscreen.value) lockScroll(false)
 }
 
+// ==================== 树洞 ====================
+function openTreeHole() {
+  treeError.value = ''
+  treeTyped.value = false
+  treeOpen.value = true
+}
+
+async function submitTreeHole() {
+  const content = treeMessage.value.trim()
+  if (!content || treeSending.value) return
+  treeSending.value = true
+  treeError.value = ''
+  try {
+    const payload = JSON.stringify({
+      msgtype: 'text',
+      text: { content: `【十七的逗猫室 · 树洞】\n${content}` },
+    })
+
+    // 企业微信机器人不支持浏览器 CORS；用 text/plain 的简单请求直发，
+    // sendBeacon 失败时再退回 no-cors fetch，避免预检被拦截。
+    let queued = false
+    if (typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function') {
+      queued = navigator.sendBeacon(TREE_WEBHOOK, new Blob([payload], { type: 'text/plain;charset=UTF-8' }))
+    }
+    if (!queued) {
+      await fetch(TREE_WEBHOOK, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain' },
+        body: payload,
+        keepalive: true,
+      })
+    }
+
+    treeOpen.value = false
+    treeMessage.value = ''
+    showToast('已经悄悄投进树洞啦，猫猫会替你保密的～')
+  } catch {
+    treeError.value = '树洞暂时堵住了，稍后再试试吧'
+  } finally {
+    treeSending.value = false
+  }
+}
+
 function onViewportResize() {
   if (!pseudoFullscreen.value) return
   const shouldRotate = isTouchDevice() && window.innerHeight > window.innerWidth
@@ -949,1341 +1076,4 @@ onBeforeUnmount(() => {
 })
 </script>
 
-<style scoped>
-.page {
-  /* 同时受宽、高约束：横屏大屏时也能把 16:9 画面顶到视口极限 */
-  width: min(100%, 1760px, calc((100svh - 214px) * 16 / 9 + 48px));
-  min-height: 100vh;
-  min-height: 100svh;
-  margin: 0 auto;
-  padding: 24px;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 14px;
-}
-
-/* ==================== 播放器 ==================== */
-.player {
-  position: relative;
-  border-radius: 28px;
-  padding: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.72);
-  background: linear-gradient(
-    155deg,
-    rgba(255, 255, 255, 0.46) 0%,
-    rgba(255, 255, 255, 0.14) 46%,
-    rgba(255, 255, 255, 0.3) 100%
-  );
-  backdrop-filter: blur(30px) saturate(180%);
-  -webkit-backdrop-filter: blur(30px) saturate(180%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.95),
-    inset 0 -1px 0 rgba(255, 255, 255, 0.42),
-    inset 1px 0 0 rgba(255, 255, 255, 0.6),
-    inset -1px 0 0 rgba(255, 255, 255, 0.6),
-    0 40px 80px -40px rgba(35, 52, 92, 0.45),
-    0 10px 24px -18px rgba(35, 52, 92, 0.28);
-  animation: rise 0.55s cubic-bezier(0.22, 0.9, 0.3, 1) both;
-}
-
-.stage {
-  position: relative;
-  aspect-ratio: 16 / 9;
-  border-radius: 21px;
-  overflow: hidden;
-  isolation: isolate;
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  background:
-    radial-gradient(120% 90% at 50% -25%, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0) 58%),
-    linear-gradient(
-      150deg,
-      rgba(255, 255, 255, 0.44) 0%,
-      rgba(233, 240, 252, 0.3) 45%,
-      rgba(213, 227, 247, 0.4) 100%
-    );
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.95),
-    inset 0 40px 70px -60px rgba(96, 138, 224, 0.65),
-    inset 0 -24px 48px -34px rgba(35, 52, 92, 0.28);
-}
-
-/* 玻璃表面的高光与色散 */
-.stage::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(64% 52% at 16% 2%, rgba(255, 255, 255, 0.9), transparent 62%),
-    radial-gradient(52% 48% at 102% 100%, rgba(122, 174, 255, 0.36), transparent 68%),
-    radial-gradient(48% 44% at -2% 100%, rgba(140, 218, 255, 0.34), transparent 70%);
-  mix-blend-mode: screen;
-}
-
-.stage.live {
-  background: #05070c;
-}
-
-.stage.live::before {
-  display: none;
-}
-
-.stage.pseudo {
-  position: fixed;
-  inset: 0;
-  z-index: 1000;
-  aspect-ratio: auto;
-  border-radius: 0;
-  border: none;
-}
-
-/* 全屏时隐藏页面其余内容，避免盖在画面之上 */
-.page.immersive .info,
-.page.immersive .meta {
-  display: none;
-}
-
-.page.immersive .player {
-  /* backdrop-filter 会让 fixed 子元素相对 .player 定位，全屏时必须关掉 */
-  padding: 0;
-  border: none;
-  background: transparent;
-  box-shadow: none;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-  animation: none;
-  z-index: 1000;
-}
-
-/* 移动端竖屏伪全屏：旋转 90° 变成横屏 */
-.stage.rotated {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  right: auto;
-  bottom: auto;
-  width: 100vh;
-  height: 100vw;
-  margin-top: -50vw;
-  margin-left: -50vh;
-  /* 用 dvh/dvw 贴合手机浏览器地址栏占位后的可视区 */
-  width: 100dvh;
-  height: 100dvw;
-  margin-top: -50dvw;
-  margin-left: -50dvh;
-  transform: rotate(90deg);
-  transform-origin: center center;
-  aspect-ratio: auto;
-  border-radius: 0;
-}
-
-.video {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.video :deep(video),
-.video :deep(canvas) {
-  width: 100% !important;
-  height: 100% !important;
-  display: block;
-  object-fit: contain;
-  background: #000;
-}
-
-/* ==================== 占位 / 状态 ==================== */
-.placeholder {
-  position: absolute;
-  inset: 0;
-  z-index: 3;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 24px 24px 76px;
-  text-align: center;
-}
-
-.glyph {
-  width: 52px;
-  height: 52px;
-  display: grid;
-  place-items: center;
-  border-radius: 16px;
-  color: #5f7089;
-  background: linear-gradient(155deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.42));
-  border: 1px solid rgba(255, 255, 255, 0.82);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.98),
-    inset 0 -1px 0 rgba(255, 255, 255, 0.4),
-    0 14px 26px -18px rgba(35, 52, 92, 0.6);
-  backdrop-filter: blur(12px) saturate(160%);
-  -webkit-backdrop-filter: blur(12px) saturate(160%);
-}
-
-.glyph svg {
-  width: 26px;
-  height: 26px;
-}
-
-.spinner {
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  border: 2px solid rgba(29, 33, 41, 0.1);
-  border-top-color: #165dff;
-  animation: spin 0.85s linear infinite;
-}
-
-.placeholder h1 {
-  margin: 6px 0 0;
-  font-size: 15px;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  color: #1d2129;
-}
-
-.placeholder p {
-  margin: 0;
-  max-width: 380px;
-  font-size: 12.5px;
-  line-height: 1.6;
-  color: #86909c;
-}
-
-.retry {
-  margin-top: 6px;
-}
-
-.placeholder .retry.arco-btn {
-  height: 34px;
-  padding: 0 18px;
-  border-radius: 999px;
-  font-size: 13px;
-  font-weight: 500;
-  color: #f2f6ff;
-  background: linear-gradient(155deg, rgba(24, 32, 48, 0.86), rgba(24, 32, 48, 0.66));
-  border: 1px solid rgba(255, 255, 255, 0.24);
-  backdrop-filter: blur(14px) saturate(160%);
-  -webkit-backdrop-filter: blur(14px) saturate(160%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.35),
-    0 14px 26px -16px rgba(23, 36, 66, 0.8);
-}
-
-.placeholder .retry.arco-btn:hover {
-  background: linear-gradient(155deg, rgba(42, 54, 78, 0.9), rgba(30, 40, 60, 0.7));
-}
-
-/* ==================== 右上角奔跑的小猫 ==================== */
-.cat-chip {
-  position: absolute;
-  z-index: 4;
-  top: 12px;
-  right: 12px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 34px;
-  padding: 0 10px;
-  border-radius: 999px;
-  color: #fff;
-  background-color: rgba(8, 12, 20, 0.52);
-  background-image: linear-gradient(160deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.05));
-  border: 1px solid rgba(255, 255, 255, 0.24);
-  backdrop-filter: blur(14px) saturate(180%);
-  -webkit-backdrop-filter: blur(14px) saturate(180%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.4),
-    0 10px 20px -14px rgba(0, 0, 0, 0.75);
-  pointer-events: none;
-}
-
-.cat-chip .cat {
-  width: 50px;
-  height: 34px;
-  display: block;
-  overflow: visible;
-}
-
-.cat-bob {
-  transform-box: view-box;
-  transform-origin: 50% 100%;
-  animation: catBob 0.52s ease-in-out infinite;
-}
-
-.cat-leg {
-  transform-box: fill-box;
-  transform-origin: 50% 0%;
-  animation: catLeg 0.52s ease-in-out infinite;
-}
-
-.leg2 {
-  animation-delay: -0.13s;
-}
-
-.leg3 {
-  animation-delay: -0.26s;
-}
-
-.leg4 {
-  animation-delay: -0.39s;
-}
-
-.cat-tail {
-  transform-box: fill-box;
-  transform-origin: 100% 60%;
-  animation: catTail 0.52s ease-in-out infinite;
-}
-
-.cat-dust {
-  transform-box: fill-box;
-  transform-origin: 50% 50%;
-  animation: catDust 0.52s ease-out infinite;
-}
-
-@keyframes catBob {
-  0%,
-  100% {
-    transform: translateY(0) rotate(0deg);
-  }
-  45% {
-    transform: translateY(-1.8px) rotate(-1.6deg);
-  }
-}
-
-@keyframes catLeg {
-  0%,
-  100% {
-    transform: rotate(26deg);
-  }
-  50% {
-    transform: rotate(-26deg);
-  }
-}
-
-@keyframes catTail {
-  0%,
-  100% {
-    transform: rotate(-14deg);
-  }
-  50% {
-    transform: rotate(16deg);
-  }
-}
-
-@keyframes catDust {
-  0% {
-    opacity: 0;
-    transform: translateX(4px) scaleX(0.6);
-  }
-  35% {
-    opacity: 0.5;
-  }
-  100% {
-    opacity: 0;
-    transform: translateX(-8px) scaleX(1.3);
-  }
-}
-
-/* ==================== 控制栏 ==================== */
-.toolbar {
-  position: absolute;
-  z-index: 5;
-  left: 50%;
-  bottom: 14px;
-  transform: translateX(-50%);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  height: 44px;
-  padding: 0 10px;
-  max-width: calc(100% - 28px);
-  border-radius: 999px;
-  background: linear-gradient(
-    160deg,
-    rgba(255, 255, 255, 0.82) 0%,
-    rgba(255, 255, 255, 0.4) 56%,
-    rgba(255, 255, 255, 0.62) 100%
-  );
-  border: 1px solid rgba(255, 255, 255, 0.72);
-  backdrop-filter: blur(24px) saturate(200%);
-  -webkit-backdrop-filter: blur(24px) saturate(200%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.95),
-    inset 0 -1px 0 rgba(255, 255, 255, 0.4),
-    0 16px 34px -18px rgba(35, 52, 92, 0.55);
-  transition: background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
-}
-
-.stage.live .toolbar {
-  /* 画面可能是强光场景，玻璃基底要压暗才看得清 */
-  background-color: rgba(8, 12, 20, 0.42);
-  background-image: linear-gradient(
-    160deg,
-    rgba(255, 255, 255, 0.22) 0%,
-    rgba(255, 255, 255, 0.06) 56%,
-    rgba(255, 255, 255, 0.14) 100%
-  );
-  border-color: rgba(255, 255, 255, 0.26);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.42),
-    inset 0 -1px 0 rgba(255, 255, 255, 0.12),
-    0 18px 36px -18px rgba(0, 0, 0, 0.72);
-}
-
-.divider {
-  width: 1px;
-  height: 16px;
-  flex: none;
-  background: rgba(29, 33, 41, 0.1);
-}
-
-.stage.live .divider {
-  background: rgba(255, 255, 255, 0.16);
-}
-
-.grow {
-  flex: 1;
-}
-
-.seg {
-  display: flex;
-  gap: 2px;
-  padding: 3px;
-  border-radius: 999px;
-  background: rgba(120, 136, 162, 0.16);
-  box-shadow:
-    inset 0 1px 2px rgba(35, 52, 92, 0.12),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.45);
-}
-
-.stage.live .seg {
-  background: rgba(0, 0, 0, 0.2);
-  box-shadow:
-    inset 0 1px 2px rgba(0, 0, 0, 0.35),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.16);
-}
-
-.seg button {
-  height: 26px;
-  padding: 0 12px;
-  border: none;
-  border-radius: 999px;
-  font-size: 12px;
-  color: #6b7789;
-  background: transparent;
-  cursor: pointer;
-  transition: color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
-}
-
-.seg button.on {
-  color: #101a2b;
-  background: linear-gradient(180deg, #ffffff 0%, rgba(255, 255, 255, 0.78) 100%);
-  box-shadow:
-    inset 0 1px 0 #ffffff,
-    inset 0 -1px 0 rgba(255, 255, 255, 0.5),
-    0 4px 12px -6px rgba(23, 36, 66, 0.6);
-}
-
-.stage.live .seg button {
-  color: rgba(255, 255, 255, 0.78);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
-}
-
-.stage.live .seg button.on {
-  color: #0d141f;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.8) 100%);
-  box-shadow:
-    inset 0 1px 0 #ffffff,
-    0 6px 14px -8px rgba(0, 0, 0, 0.8);
-}
-
-.icon {
-  width: 32px;
-  height: 32px;
-  flex: none;
-  display: grid;
-  place-items: center;
-  border: none;
-  border-radius: 9px;
-  color: #5c6779;
-  background: transparent;
-  cursor: pointer;
-  transition: color 0.15s ease, background 0.15s ease;
-}
-
-.icon:hover {
-  color: #101a2b;
-  background: rgba(255, 255, 255, 0.55);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.95),
-    0 6px 14px -10px rgba(35, 52, 92, 0.7);
-}
-
-.icon svg {
-  width: 17px;
-  height: 17px;
-}
-
-.icon:focus-visible,
-.seg button:focus-visible,
-.ghost:focus-visible {
-  outline: 2px solid #165dff;
-  outline-offset: 2px;
-}
-
-.stage.live .icon {
-  color: rgba(255, 255, 255, 0.9);
-  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.4));
-}
-
-.stage.live .icon:hover {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.14);
-}
-
-.slider {
-  width: 74px;
-  margin: 0 -2px;
-}
-
-.slider :deep(.arco-slider-road) {
-  background: rgba(120, 136, 162, 0.28);
-}
-
-.slider :deep(.arco-slider-bar) {
-  background: linear-gradient(90deg, #86adff, #3d7bff);
-}
-
-.slider :deep(.arco-slider-button) {
-  width: 11px;
-  height: 11px;
-  border: 2px solid #fff;
-  background: #165dff;
-  box-shadow: 0 2px 6px rgba(23, 36, 66, 0.28);
-}
-
-.stage.live .slider :deep(.arco-slider-road) {
-  background: rgba(255, 255, 255, 0.24);
-}
-
-.stage.live .slider :deep(.arco-slider-bar) {
-  background: #fff;
-}
-
-.stage.live .slider :deep(.arco-slider-button) {
-  background: #fff;
-  border-color: #165dff;
-}
-
-/* ==================== 横屏提示 ==================== */
-.rotate-hint {
-  position: absolute;
-  z-index: 6;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  height: 34px;
-  padding: 0 15px;
-  border-radius: 999px;
-  font-size: 12.5px;
-  color: #fff;
-  background-color: rgba(8, 12, 20, 0.5);
-  background-image: linear-gradient(160deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.05));
-  border: 1px solid rgba(255, 255, 255, 0.24);
-  backdrop-filter: blur(16px) saturate(180%);
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.36),
-    0 16px 30px -18px rgba(0, 0, 0, 0.8);
-  pointer-events: none;
-  animation: hintIn 0.28s ease both;
-}
-
-.rotate-hint svg {
-  width: 16px;
-  height: 16px;
-}
-
-@keyframes hintIn {
-  from {
-    opacity: 0;
-    transform: translate(-50%, -46%) scale(0.96);
-  }
-  to {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
-  }
-}
-
-/* ==================== 互动按钮 ==================== */
-.action {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 30px;
-  padding: 0 13px 0 10px;
-  flex: none;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.66);
-  color: #b3400a;
-  background: linear-gradient(160deg, rgba(255, 240, 232, 0.94), rgba(255, 213, 191, 0.72));
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  cursor: pointer;
-  transition: background 0.18s ease, box-shadow 0.18s ease, transform 0.12s ease;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.95),
-    0 8px 18px -12px rgba(194, 65, 12, 0.7);
-}
-
-.action svg {
-  width: 17px;
-  height: 17px;
-  overflow: visible;
-}
-
-/* 逗猫棒：羽毛和小铃铛绕着杆头来回甩 */
-.wand-tip {
-  transform-box: view-box;
-  transform-origin: 13px 10.6px;
-  animation: wandSwing 1.7s cubic-bezier(0.45, 0, 0.55, 1) infinite;
-}
-
-.action:hover .wand-tip {
-  animation-duration: 0.85s;
-}
-
-.action.busy .wand-tip {
-  animation-duration: 0.32s;
-}
-
-@keyframes wandSwing {
-  0%,
-  100% {
-    transform: rotate(-22deg);
-  }
-  50% {
-    transform: rotate(20deg);
-  }
-}
-
-.action:hover {
-  background: linear-gradient(160deg, rgba(255, 236, 226, 0.98), rgba(255, 202, 176, 0.86));
-}
-
-.action:active {
-  transform: scale(0.97);
-}
-
-.action:disabled {
-  cursor: default;
-  opacity: 0.8;
-}
-
-.stage.live .action {
-  color: #ffe0cd;
-  border-color: rgba(255, 178, 132, 0.42);
-  background: linear-gradient(160deg, rgba(255, 133, 76, 0.52), rgba(255, 96, 60, 0.34));
-  backdrop-filter: blur(12px) saturate(170%);
-  -webkit-backdrop-filter: blur(12px) saturate(170%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.34),
-    0 12px 24px -16px rgba(0, 0, 0, 0.85);
-}
-
-.stage.live .action:hover {
-  background: linear-gradient(160deg, rgba(255, 150, 92, 0.62), rgba(255, 108, 68, 0.44));
-}
-
-/* ==================== 设备信息 ==================== */
-.info {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  padding: 16px 18px;
-  border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.7);
-  background: linear-gradient(155deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.18) 60%, rgba(255, 255, 255, 0.3));
-  backdrop-filter: blur(24px) saturate(170%);
-  -webkit-backdrop-filter: blur(24px) saturate(170%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.92),
-    0 22px 44px -34px rgba(35, 52, 92, 0.45);
-}
-
-.info-head {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  min-width: 0;
-  padding: 0;
-  border: 0;
-  background: none;
-  color: inherit;
-  font-family: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-
-.info-chevron {
-  flex: none;
-  width: 16px;
-  height: 16px;
-  margin-left: auto;
-  color: #8d98a8;
-  transition: transform 0.24s ease, color 0.2s ease;
-}
-
-.info-head:hover .info-chevron {
-  color: #4e5969;
-}
-
-.info.open .info-chevron {
-  transform: rotate(180deg);
-}
-
-.info-body {
-  display: grid;
-  grid-template-rows: 0fr;
-  margin-top: 0;
-  transition: grid-template-rows 0.26s ease, margin-top 0.26s ease;
-}
-
-.info.open .info-body {
-  grid-template-rows: 1fr;
-  margin-top: 12px;
-}
-
-.info-body > .info-list {
-  min-height: 0;
-  overflow: hidden;
-}
-
-.info-head:focus-visible {
-  outline: 2px solid color-mix(in srgb, var(--accent) 55%, #fff);
-  outline-offset: 6px;
-  border-radius: 8px;
-}
-
-.info-name {
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  color: #16202f;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.info-state {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  height: 20px;
-  padding: 0 8px;
-  flex: none;
-  border-radius: 999px;
-  font-size: 11px;
-  color: #0b7a32;
-  background: rgba(0, 180, 42, 0.1);
-  border: 1px solid rgba(0, 180, 42, 0.18);
-}
-
-.info-state i {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: #00b42a;
-}
-
-.info-state.off {
-  color: #a8071a;
-  background: rgba(245, 63, 63, 0.1);
-  border-color: rgba(245, 63, 63, 0.2);
-}
-
-.info-state.off i {
-  background: #f53f3f;
-}
-
-.info-list {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 10px 20px;
-  margin: 0;
-}
-
-.info-cell {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-}
-
-.info-cell dt {
-  font-size: 11px;
-  color: #8d98a8;
-  letter-spacing: 0.02em;
-}
-
-.info-cell dd {
-  margin: 0;
-  font-size: 12.5px;
-  color: #2b3444;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* ==================== 页脚信息 ==================== */
-.meta {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 0 6px;
-  font-size: 12px;
-  color: #9aa4b4;
-}
-
-.meta-actions {
-  display: flex;
-  flex: none;
-  align-items: center;
-  gap: 4px;
-  margin-left: auto;
-}
-
-.dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #c9d0dc;
-}
-
-.dot.ok {
-  background: #00b42a;
-  box-shadow: 0 0 0 3px rgba(0, 180, 42, 0.12);
-  animation: pulse 2.4s ease-in-out infinite;
-}
-
-.dot.wait {
-  background: #ff7d00;
-  box-shadow: 0 0 0 3px rgba(255, 125, 0, 0.12);
-}
-
-.dot.bad {
-  background: #f53f3f;
-  box-shadow: 0 0 0 3px rgba(245, 63, 63, 0.12);
-}
-
-.state {
-  color: #4e5969;
-  font-weight: 500;
-}
-
-.sep {
-  color: #d5dbe4;
-}
-
-.ghost {
-  width: 28px;
-  height: 28px;
-  display: grid;
-  place-items: center;
-  border: none;
-  border-radius: 8px;
-  color: #86909c;
-  background: transparent;
-  cursor: pointer;
-  transition: color 0.15s ease, background 0.15s ease;
-}
-
-.ghost:hover {
-  color: #101a2b;
-  background: rgba(255, 255, 255, 0.6);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95);
-}
-
-.ghost svg {
-  width: 15px;
-  height: 15px;
-}
-
-/* ==================== 其他 ==================== */
-.toast {
-  position: fixed;
-  left: 50%;
-  bottom: 34px;
-  transform: translateX(-50%);
-  z-index: 1200;
-  padding: 8px 16px;
-  border-radius: 999px;
-  font-size: 12.5px;
-  color: #fff;
-  background: linear-gradient(160deg, rgba(30, 39, 57, 0.88), rgba(18, 25, 38, 0.74));
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  backdrop-filter: blur(18px) saturate(180%);
-  -webkit-backdrop-filter: blur(18px) saturate(180%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.22),
-    0 18px 36px -18px rgba(0, 0, 0, 0.55);
-}
-
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.18s ease, transform 0.18s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-  transform: translate(-50%, 6px);
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@keyframes rise {
-  from {
-    opacity: 0;
-    transform: translateY(12px) scale(0.994);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.3;
-  }
-}
-
-/* ==================== 右下角彩蛋 ==================== */
-.egg-btn {
-  position: relative;
-  flex: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 30px;
-  padding: 0 13px 0 10px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.92);
-  color: #e91e63;
-  background: linear-gradient(135deg, #fff4f9, #ffd9e8 62%, #ffe4d6);
-  box-shadow:
-    0 8px 18px -12px rgba(194, 24, 91, 0.9),
-    inset 0 1px 0 #fff;
-  font-family: inherit;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: transform 0.18s ease, box-shadow 0.18s ease;
-}
-
-.egg-btn::after {
-  content: '✦';
-  position: absolute;
-  top: -7px;
-  right: -3px;
-  font-size: 9px;
-  line-height: 1;
-  color: #ff9ec4;
-  text-shadow: 0 0 7px rgba(255, 158, 196, 0.95);
-  pointer-events: none;
-  animation: eggTwinkle 2.2s ease-in-out infinite;
-}
-
-@keyframes eggTwinkle {
-  0%,
-  100% {
-    opacity: 0.35;
-    transform: scale(0.75) rotate(0deg);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.2) rotate(24deg);
-  }
-}
-
-.egg-btn > span {
-  color: transparent;
-  background-image: linear-gradient(115deg, #d81b60 0%, #ff6f61 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-}
-
-.egg-btn:hover {
-  transform: translateY(-1px) scale(1.03);
-  box-shadow:
-    0 10px 18px -10px rgba(194, 24, 91, 0.8),
-    inset 0 1px 0 #fff;
-}
-
-.egg-btn:active {
-  transform: scale(0.97);
-}
-
-.egg-icon {
-  width: 14px;
-  height: 14px;
-  transform-origin: 50% 80%;
-  animation: eggPaw 3.4s ease-in-out infinite;
-}
-
-@keyframes eggPaw {
-  0%,
-  66%,
-  100% {
-    transform: rotate(0);
-  }
-  72% {
-    transform: rotate(-14deg);
-  }
-  78% {
-    transform: rotate(12deg);
-  }
-  84% {
-    transform: rotate(-7deg);
-  }
-  90% {
-    transform: rotate(3deg);
-  }
-}
-
-.egg-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 80;
-  overflow: hidden;
-  background: radial-gradient(120% 100% at 50% 0%, rgba(28, 18, 34, 0.52), rgba(7, 11, 19, 0.68));
-  backdrop-filter: blur(10px) saturate(135%);
-  -webkit-backdrop-filter: blur(10px) saturate(135%);
-}
-
-.egg-word {
-  position: absolute;
-  top: -6vh;
-  z-index: 3;
-  font-size: var(--size);
-  font-weight: 800;
-  line-height: 1;
-  letter-spacing: 0.04em;
-  white-space: nowrap;
-  color: transparent;
-  background-image: linear-gradient(150deg, #ffd3e7 0%, #ff8fbe 45%, #ff7b6b 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  filter: drop-shadow(0 6px 14px rgba(255, 95, 153, 0.45));
-  opacity: 0;
-  transform: rotate(var(--rot));
-  animation: eggWordFall var(--dur) linear var(--delay) infinite;
-  pointer-events: none;
-  user-select: none;
-}
-
-@keyframes eggWordFall {
-  0% {
-    opacity: 0;
-    transform: translateY(-10vh) rotate(var(--rot));
-  }
-  12% {
-    opacity: var(--alpha);
-  }
-  82% {
-    opacity: calc(var(--alpha) * 0.85);
-  }
-  100% {
-    opacity: 0;
-    transform: translateY(112vh) rotate(calc(var(--rot) + 36deg));
-  }
-}
-
-.egg-photo {
-  position: absolute;
-  z-index: 2;
-  width: var(--w);
-  margin: 0;
-  padding: 6px;
-  border-radius: 16px;
-  background: linear-gradient(160deg, #fffdfd, #ffeef4);
-  border: 1px solid rgba(255, 255, 255, 0.92);
-  box-shadow:
-    0 26px 54px -26px rgba(0, 0, 0, 0.7),
-    0 0 0 1px rgba(194, 24, 91, 0.06);
-  transform: translate(-50%, -50%) rotate(var(--rot));
-  animation: eggPhotoIn var(--dur) cubic-bezier(0.18, 0.72, 0.22, 1) var(--delay) both;
-  will-change: transform;
-}
-
-.egg-photo img {
-  display: block;
-  width: 100%;
-  border-radius: 11px;
-  user-select: none;
-}
-
-@keyframes eggPhotoIn {
-  0% {
-    opacity: 0;
-    transform: translate(calc(-50% + 46vw), calc(-50% + 52vh)) scale(0.12) rotate(calc(var(--rot) - var(--spin)));
-  }
-  12% {
-    opacity: 1;
-  }
-  72% {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1.03) rotate(var(--rot));
-  }
-  100% {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1) rotate(var(--rot));
-  }
-}
-
-.egg-close {
-  position: absolute;
-  top: 18px;
-  right: 18px;
-  z-index: 4;
-  display: grid;
-  place-items: center;
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.9);
-  background: rgba(255, 255, 255, 0.92);
-  color: #d81b60;
-  cursor: pointer;
-  box-shadow: 0 12px 28px -14px rgba(0, 0, 0, 0.7);
-  transition: transform 0.2s ease, background 0.2s ease;
-  animation: eggCloseIn 0.4s ease 0.5s both;
-}
-
-.egg-close svg {
-  width: 18px;
-  height: 18px;
-}
-
-.egg-close:hover {
-  transform: scale(1.08) rotate(90deg);
-  background: #fff;
-}
-
-@keyframes eggCloseIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-.egg-fade-enter-active,
-.egg-fade-leave-active {
-  transition: opacity 0.22s ease;
-}
-
-.egg-fade-enter-from,
-.egg-fade-leave-to {
-  opacity: 0;
-}
-
-/* ==================== 响应式 ==================== */
-@media (max-width: 720px) {
-  .page {
-    width: 100%;
-    min-height: 100svh;
-    padding: 0 0 max(14px, env(safe-area-inset-bottom));
-    gap: 12px;
-    justify-content: flex-start;
-  }
-
-  /* 手机端全幅播放器：去掉卡片留白、圆角与阴影，画面顶到屏幕两侧 */
-  .player {
-    padding: 0;
-    border: none;
-    border-radius: 0;
-    background: transparent;
-    box-shadow: none;
-    animation: none;
-  }
-
-  .stage {
-    border-radius: 0;
-  }
-
-  /* 手机端固定播放面板高度：16:9 画面上下留黑，出流时不跳动 */
-  .stage:not(.pseudo) {
-    aspect-ratio: auto;
-    height: clamp(260px, 38svh, 340px);
-  }
-
-  .toolbar {
-    left: 8px;
-    right: 8px;
-    bottom: 8px;
-    transform: none;
-    max-width: none;
-    height: 44px;
-    gap: 6px;
-    padding: 0 6px;
-  }
-
-  /* 分隔线在手机上退化成撑开左右两组的弹性空隙 */
-  .divider,
-  .stage.live .divider {
-    width: auto;
-    height: 1px;
-    flex: 1;
-    background: transparent;
-  }
-
-  .seg button {
-    padding: 0 10px;
-  }
-
-  .slider {
-    width: 54px;
-  }
-
-  .placeholder {
-    gap: 7px;
-    padding: 16px 18px 62px;
-  }
-
-  .glyph {
-    width: 32px;
-    height: 32px;
-    border-radius: 10px;
-  }
-
-  .glyph svg {
-    width: 18px;
-    height: 18px;
-  }
-
-  .placeholder h1 {
-    margin-top: 2px;
-    font-size: 13px;
-  }
-
-  .placeholder p {
-    font-size: 11.5px;
-    line-height: 1.5;
-  }
-
-  .placeholder .retry.arco-btn {
-    height: 30px;
-    margin-top: 2px;
-    padding: 0 14px;
-    font-size: 12.5px;
-  }
-
-  .meta {
-    flex-wrap: wrap;
-    gap: 6px;
-    padding: 0 16px;
-  }
-
-  .egg-btn {
-    position: fixed;
-    right: 14px;
-    bottom: calc(14px + env(safe-area-inset-bottom, 0px));
-    z-index: 25;
-    height: 30px;
-    padding: 0 13px 0 10px;
-    font-size: 12px;
-    box-shadow:
-      0 14px 28px -14px rgba(194, 24, 91, 0.85),
-      inset 0 1px 0 #fff;
-  }
-
-  .egg-close {
-    top: 12px;
-    right: 12px;
-    width: 38px;
-    height: 38px;
-  }
-
-  .info {
-    margin: 0 12px;
-    padding: 14px 16px;
-    gap: 0;
-    border-radius: 18px;
-  }
-
-  .info.open .info-body {
-    margin-top: 10px;
-  }
-
-  .info-name {
-    font-size: 13.5px;
-  }
-
-  .info-list {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px 14px;
-  }
-
-  .info-cell:last-child {
-    grid-column: 1 / -1;
-  }
-
-  .info-cell dd {
-    font-size: 12px;
-    white-space: normal;
-    overflow-wrap: anywhere;
-  }
-
-  .action {
-    height: 28px;
-    padding: 0 11px 0 9px;
-    font-size: 11.5px;
-  }
-}
-
-/* 窄屏控制条太挤，音量改由图标控制 */
-@media (max-width: 430px) {
-  .slider {
-    display: none;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .spinner,
-  .dot.ok {
-    animation: none;
-  }
-
-  .player {
-    animation: none;
-  }
-}
-</style>
+<style scoped src="./player.css"></style>
