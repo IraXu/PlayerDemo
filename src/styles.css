@@ -69,6 +69,7 @@ body {
 
 .tree-hole {
   display: flex;
+  flex: none;
   flex-direction: column;
   gap: 12px;
   width: 100%;
@@ -184,5 +185,49 @@ body {
 
   .tree-head h2 {
     font-size: 20px;
+  }
+}
+
+/* ==================== 今日猫签弹窗 ==================== */
+.animal-modal:has(.fortune) .animal-modal__body {
+  padding: 26px 26px 18px;
+}
+
+.animal-modal:has(.fortune) .animal-modal__content {
+  align-items: stretch;
+  padding-bottom: 12px;
+}
+
+@media (max-width: 520px) {
+  .animal-modal:has(.fortune) .animal-modal__body {
+    padding: 20px 18px 14px;
+  }
+}
+
+/* ==================== 弹窗矮屏适配 ==================== */
+/* 内容区滚动、底部按钮固定可见，避免手机上按钮被弹窗裁掉 */
+.animal-modal .animal-modal__body {
+  max-height: calc(100vh - 64px);
+  max-height: calc(100dvh - 64px);
+  min-height: 0;
+}
+
+.animal-modal .animal-modal__content {
+  min-height: 0;
+}
+
+.animal-modal .animal-modal__footer {
+  flex: none;
+}
+
+@media (max-width: 720px) {
+  .animal-modal {
+    max-height: calc(100vh - 32px);
+    max-height: calc(100dvh - 32px);
+  }
+
+  .animal-modal .animal-modal__body {
+    max-height: calc(100vh - 32px);
+    max-height: calc(100dvh - 32px);
   }
 }

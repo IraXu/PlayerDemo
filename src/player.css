@@ -287,7 +287,10 @@
 .page.immersive .info,
 .page.immersive .meta,
 .page.immersive .page-footer,
-.page.immersive .tree-fab-slot {
+.page.immersive .corner-slot,
+.page.immersive .companion,
+.page.immersive .hunt-cat,
+.page.immersive .hunt-burst {
   display: none;
 }
 
@@ -932,49 +935,166 @@
   height: 17px;
 }
 
-.tree-fab-slot {
+/* ==================== 右下角小角落 ==================== */
+.corner-slot {
   position: fixed;
   right: 22px;
   bottom: calc(20px + env(safe-area-inset-bottom, 0px));
   z-index: 30;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
 }
 
-.tree-fab {
-  height: 44px;
-  padding: 0 18px 0 14px;
+.corner-fab {
+  display: inline-flex;
+  align-items: center;
   gap: 7px;
-  border: 2px solid #0ea99d;
+  height: 46px;
+  padding: 0 18px 0 14px;
+  border: 2px solid #d4c4a8;
   border-radius: 999px;
-  color: #fff9e3;
-  background: #19c8b9;
+  background: rgba(255, 250, 240, 0.96);
+  color: #794f27;
+  font-family: inherit;
   font-size: 13px;
   font-weight: 700;
   box-shadow:
-    0 4px 0 #0b8f86,
-    0 16px 26px -14px rgba(11, 143, 134, 0.7);
+    0 4px 0 #d4c9b4,
+    0 16px 26px -14px rgba(121, 79, 39, 0.5);
+  cursor: pointer;
+  transition:
+    transform 0.16s ease,
+    background 0.16s ease,
+    color 0.16s ease,
+    border-color 0.16s ease,
+    box-shadow 0.16s ease;
 }
 
-.tree-fab:hover:not(:disabled) {
-  color: #fff9e3;
-  border-color: #0ea99d;
-  background: #3dd4c6;
-  box-shadow:
-    0 5px 0 #0b8f86,
-    0 18px 30px -14px rgba(11, 143, 134, 0.75);
+.corner-fab svg {
+  color: #19c8b9;
+  transition: color 0.16s ease;
+}
+
+.corner-fab:hover {
+  background: #fff;
   transform: translateY(-1px);
 }
 
-.tree-fab:active:not(:disabled) {
-  color: #fff9e3;
-  border-color: #0ea99d;
-  background: #0ea99d;
-  box-shadow: 0 1px 0 #0b8f86;
-  transform: translateY(2px);
+.corner-fab:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 0 #d4c9b4;
 }
 
-.tree-fab :deep(svg) {
-  width: 20px;
-  height: 20px;
+.corner-slot.open .corner-fab {
+  color: #fff9e3;
+  background: #19c8b9;
+  border-color: #0ea99d;
+  box-shadow:
+    0 4px 0 #0b8f86,
+    0 16px 26px -14px rgba(11, 143, 134, 0.65);
+}
+
+.corner-slot.open .corner-fab svg {
+  color: #fff9e3;
+}
+
+.corner-menu {
+  width: 220px;
+  padding: 10px;
+  border: 2px solid #d4c4a8;
+  border-radius: 22px;
+  background: #fffaf0;
+  box-shadow:
+    0 5px 0 #d4c9b4,
+    0 26px 44px -22px rgba(121, 79, 39, 0.55);
+  transform-origin: bottom right;
+}
+
+.corner-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 2px 6px 8px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #9f927d;
+}
+
+.corner-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 7px 8px;
+  border: none;
+  border-radius: 14px;
+  background: transparent;
+  color: #794f27;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.16s ease;
+}
+
+.corner-item:hover {
+  background: #f4efe1;
+}
+
+.corner-icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
+}
+
+.corner-icon.fortune {
+  color: #c58a00;
+  background: #fff2cf;
+}
+
+.corner-icon.hunt {
+  color: #0e7f75;
+  background: #e3f7f3;
+}
+
+.corner-icon.tree {
+  color: #2a9d8f;
+  background: #e7f4e8;
+}
+
+.corner-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.corner-text strong {
+  font-size: 13px;
+  font-weight: 700;
+  color: #5a4227;
+}
+
+.corner-text small {
+  font-size: 10.5px;
+  color: #9f927d;
+}
+
+.corner-enter-active,
+.corner-leave-active {
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.corner-enter-from,
+.corner-leave-to {
+  opacity: 0;
+  transform: translateY(8px) scale(0.97);
 }
 
 .page-footer {
@@ -1472,15 +1592,19 @@
     font-size: 12.5px;
   }
 
-  .tree-fab-slot {
+  .corner-slot {
     right: 14px;
     bottom: calc(70px + env(safe-area-inset-bottom, 0px));
   }
 
-  .tree-fab {
-    height: 40px;
-    padding: 0 15px 0 12px;
+  .corner-fab {
+    height: 44px;
+    padding: 0 16px 0 13px;
     font-size: 12.5px;
+  }
+
+  .corner-menu {
+    width: 212px;
   }
 
   .info.info {
@@ -1579,5 +1703,11 @@
 
   .player.player {
     animation: none;
+  }
+
+  .corner-fab,
+  .corner-enter-active,
+  .corner-leave-active {
+    transition: none;
   }
 }

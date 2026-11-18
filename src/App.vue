@@ -247,16 +247,62 @@
 
     <Footer class="page-footer" text="十七的逗猫室 · 猫猫万岁" />
 
-    <div class="tree-fab-slot">
-      <Tooltip title="把心事悄悄投进树洞" placement="top-end" variant="island">
-        <Button class="tree-fab" @click="openTreeHole">
-          <template #icon><TreeIcon :size="20" color="currentColor" /></template>
-          树洞
-        </Button>
-      </Tooltip>
+    <div class="corner-slot" :class="{ open: cornerOpen }">
+      <transition name="corner">
+        <div v-if="cornerOpen" class="corner-menu" role="menu" aria-label="猫猫的小角落">
+          <p class="corner-title">
+            <PawPrintIcon :size="14" color="#19c8b9" />
+            猫猫的小角落
+          </p>
+
+          <button class="corner-item" type="button" role="menuitem" @click="openFortuneFromMenu">
+            <span class="corner-icon fortune">
+              <StickyNoteIcon :size="17" color="currentColor" />
+            </span>
+            <span class="corner-text">
+              <strong>今日猫签</strong>
+              <small>抽一支今天的签</small>
+            </span>
+          </button>
+
+          <button class="corner-item" type="button" role="menuitem" @click="openHuntFromMenu">
+            <span class="corner-icon hunt">
+              <SearchIcon :size="17" color="currentColor" />
+            </span>
+            <span class="corner-text">
+              <strong>{{ huntFound ? '已找到猫猫' : '找猫' }}</strong>
+              <small>{{ huntFound ? '明天它还会换个地方' : '猫猫今天躲起来了' }}</small>
+            </span>
+          </button>
+
+          <button class="corner-item" type="button" role="menuitem" @click="openTreeFromMenu">
+            <span class="corner-icon tree">
+              <TreeIcon :size="17" color="currentColor" />
+            </span>
+            <span class="corner-text">
+              <strong>树洞</strong>
+              <small>把心事悄悄投进去</small>
+            </span>
+          </button>
+        </div>
+      </transition>
+
+      <button
+        class="corner-fab"
+        type="button"
+        :aria-expanded="cornerOpen"
+        aria-label="打开猫猫的小角落"
+        @click="toggleCorner"
+      >
+        <PawPrintIcon :size="19" color="currentColor" />
+        <span>小角落</span>
+      </button>
     </div>
 
-    <Modal v-model:open="treeOpen" :typewriter="false" :width="460">
+    <DailyFortune ref="fortuneRef" />
+    <FindTheCat v-model:found="huntFound" @found="onCatFound" />
+
+    <Modal v-model:open="treeOpen" variant="default" :typewriter="false" :width="460">
       <div class="tree-hole">
         <div class="tree-head">
           <TreeIcon :size="38" color="#19c8b9" />
@@ -338,6 +384,8 @@
         </button>
       </div>
     </transition>
+
+    <CompanionCat />
   </div>
 </template>
 
@@ -359,9 +407,11 @@ import {
   PawPrintIcon,
   QrCodeIcon,
   RefreshIcon,
+  SearchIcon,
   SmartphoneIcon,
   SpinnerIcon,
   StarIcon,
+  StickyNoteIcon,
   TreeIcon,
   VideoOffIcon,
   Volume2Icon,
@@ -370,6 +420,9 @@ import {
 } from 'naive-icons-vue'
 import { interact, queryDevice, queryStream, type DeviceInfo, type StreamInfo } from './api'
 import eggPhoto from './assets/easter-egg.jpg'
+import CompanionCat from './components/CompanionCat.vue'
+import DailyFortune from './components/DailyFortune.vue'
+import FindTheCat from './components/FindTheCat.vue'
 
 const did = '1200010180ee9bea'
 const TREE_WEBHOOK = 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=ab1da84d-6f0f-4d9f-8f7b-73ea0dc9db3b'
@@ -395,6 +448,10 @@ const rotated = ref(false)
 const rotateHint = ref(false)
 const device = ref<DeviceInfo | null>(null)
 const interacting = ref(false)
+// 右下角小角落菜单
+const cornerOpen = ref(false)
+const huntFound = ref(false)
+const fortuneRef = ref<{ openNote: () => void } | null>(null)
 // 触屏设备不展示悬浮提示，避免提示浮层干扰点击
 const touchMode = ref(false)
 // 设备信息默认折叠
@@ -901,6 +958,10 @@ function onKeydown(event: KeyboardEvent) {
     closeEgg()
     return
   }
+  if (cornerOpen.value) {
+    cornerOpen.value = false
+    return
+  }
   if (pseudoFullscreen.value) exitPseudoFullscreen()
 }
 
@@ -1046,10 +1107,63 @@ function onVisibilityChange() {
   }
 }
 
+// ==================== 找猫 ====================
+const HUNT_HINTS = [
+  '猫猫今天躲在页面的某个角落，仔细看看那些装饰～',
+  '提示：它会在画面的边缘，不太起眼的地方。',
+  '它比背景里的小猫稍微清楚一点点。',
+  '试试看页面的上方和下方，猫猫喜欢待在那儿。',
+]
+let huntHintIndex = 0
+
+function onHuntHint() {
+  showToast(HUNT_HINTS[huntHintIndex++ % HUNT_HINTS.length])
+}
+
+function onCatFound() {
+  showToast('找到猫猫啦！它今天躲在这儿，被你发现了～')
+}
+
+function onHuntDone() {
+  showToast('今天已经找到猫猫啦，明天它还会换个地方躲起来～')
+}
+
+// ==================== 小角落菜单 ====================
+function toggleCorner() {
+  cornerOpen.value = !cornerOpen.value
+}
+
+function closeCorner() {
+  cornerOpen.value = false
+}
+
+function openFortuneFromMenu() {
+  closeCorner()
+  fortuneRef.value?.openNote()
+}
+
+function openHuntFromMenu() {
+  closeCorner()
+  if (huntFound.value) onHuntDone()
+  else onHuntHint()
+}
+
+function openTreeFromMenu() {
+  closeCorner()
+  openTreeHole()
+}
+
+function onDocumentClick(event: MouseEvent) {
+  if (!cornerOpen.value) return
+  const target = event.target as Element | null
+  if (!target?.closest?.('.corner-slot')) cornerOpen.value = false
+}
+
 onMounted(() => {
   touchMode.value = isTouchDevice()
   document.addEventListener('fullscreenchange', onFullscreenChange)
   document.addEventListener('visibilitychange', onVisibilityChange)
+  document.addEventListener('click', onDocumentClick)
   window.addEventListener('resize', onViewportResize)
   window.addEventListener('orientationchange', onViewportResize)
   window.visualViewport?.addEventListener('resize', onViewportResize)
@@ -1062,6 +1176,7 @@ onBeforeUnmount(() => {
   if (toastTimer) clearTimeout(toastTimer)
   document.removeEventListener('fullscreenchange', onFullscreenChange)
   document.removeEventListener('visibilitychange', onVisibilityChange)
+  document.removeEventListener('click', onDocumentClick)
   window.removeEventListener('resize', onViewportResize)
   window.removeEventListener('orientationchange', onViewportResize)
   window.visualViewport?.removeEventListener('resize', onViewportResize)
