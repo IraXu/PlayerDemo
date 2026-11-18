@@ -533,53 +533,55 @@
   flex: 1;
 }
 
-/* 清晰度切换：animal-island Tabs 紧凑化 */
+/* 清晰度切换：animal-island Tabs 原生样式紧凑化 */
 .quality-tabs {
-  background: transparent;
-  border: none;
-  border-radius: 0;
-  overflow: visible;
   flex: none;
+  border: 2px solid #e8e2d6;
+  border-radius: 999px;
+  background: #f8f8f0;
+  overflow: visible;
 }
 
 .quality-tabs :deep(.animal-tabs__list) {
   display: flex;
   gap: 2px;
-  padding: 0;
-  background: transparent;
+  padding: 2px;
   border-bottom: none;
+  background: transparent;
 }
 
 .quality-tabs :deep(.animal-tabs__item) {
-  height: 28px;
-  padding: 0 11px;
-  border-radius: 999px;
+  height: 26px;
+  padding: 0 10px 0 7px;
+  gap: 4px;
   font-family: inherit;
   font-size: 12px;
-  font-weight: 600;
-  color: #8f734f;
-  transition: background 0.2s ease, color 0.2s ease;
+  font-weight: 500;
+  color: #794f27;
 }
 
-.quality-tabs :deep(.animal-tabs__item:hover) {
-  color: #5a4227;
-  background: #f0e8d8;
+.quality-tabs :deep(.animal-tabs__icon) {
+  font-size: 8px;
+  line-height: 1;
 }
 
 .quality-tabs :deep(.animal-tabs__item--active),
 .quality-tabs :deep(.animal-tabs__item--active:hover) {
   border-radius: 999px;
+  background: #0cc0b5;
   color: #fff9e3;
-  background: #19c8b9;
+  font-weight: 600;
 }
 
 .quality-tabs :deep(.animal-tabs__item--active-shadow) {
-  box-shadow: none;
+  box-shadow: 0 2px #3d342814;
 }
 
-.quality-tabs :deep(.animal-tabs__icon),
 .quality-tabs :deep(.animal-tabs__leaf) {
-  display: none;
+  top: -3px;
+  right: -1px;
+  width: 8px;
+  height: 8px;
 }
 
 .quality-tabs :deep(.animal-tabs__content) {

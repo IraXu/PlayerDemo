@@ -10,7 +10,7 @@
               <path d="M49 78c7 4 15 4 22 0" />
               <path d="M38 54c0-14 10-24 22-24s22 10 22 24c0 13-10 22-22 22S38 67 38 54Z" />
               <path d="M42 39 38 23 55 33" />
-              <path d="M78 33 95 23 91 39" />
+              <path d="M65 33 82 23 78 39" />
               <path d="M49 54c2-3 5-3 7 0" />
               <path d="M64 54c2-3 5-3 7 0" />
               <path d="M58 60 62 60 60 63Z" />
@@ -72,20 +72,18 @@
             <circle cx="60" cy="58" r="47" fill="#F7F3DF" stroke="#D4C4A8" stroke-width="2.5" />
             <path class="cat-tail" d="M42 95c-15 2-25-7-21-20 2-8 10-12 16-8" stroke="#794F27" stroke-width="4" stroke-linecap="round" />
             <path d="M42 92c-10-4-14-16-8-26 5-8 16-12 26-12s21 4 26 12c6 10 2 22-8 26-8 4-28 4-36 0Z" fill="#FAEDCD" stroke="#794F27" stroke-width="3.5" />
-            <path d="M34 48c0-16 11-27 26-27s26 11 26 27c0 15-11 25-26 25S34 63 34 48Z" fill="#FAEDCD" stroke="#794F27" stroke-width="3.5" />
-            <path d="M42 28 36 8 56 20Z" fill="#FAEDCD" stroke="#794F27" stroke-width="3.5" stroke-linejoin="round" />
-            <path d="M78 20 98 8 92 28Z" fill="#FAEDCD" stroke="#794F27" stroke-width="3.5" stroke-linejoin="round" />
-            <path d="M44 24 41 13 51 20Z" fill="#F4A6A4" />
-            <path d="M81 20 91 13 88 24Z" fill="#F4A6A4" />
-            <ellipse class="cat-eye" cx="52" cy="46" rx="3.2" ry="4.2" fill="#2A2A2A" />
-            <ellipse class="cat-eye" cx="76" cy="46" rx="3.2" ry="4.2" fill="#2A2A2A" />
-            <circle cx="53" cy="44.5" r="1" fill="#fff" />
-            <circle cx="77" cy="44.5" r="1" fill="#fff" />
+            <path d="M40 34 36 8 57 20c2-1 4-1 6 0l21-12-4 26c4 4 6 9 6 15 0 12-11 21-26 24-15-3-26-12-26-24 0-6 2-11 6-15Z" fill="#FAEDCD" stroke="#794F27" stroke-width="3.5" stroke-linejoin="round" />
+            <path d="M43 27 41 14 53 21Z" fill="#F4A6A4" />
+            <path d="M77 27 79 14 67 21Z" fill="#F4A6A4" />
+            <ellipse class="cat-eye" cx="50" cy="46" rx="3.2" ry="4.2" fill="#2A2A2A" />
+            <ellipse class="cat-eye" cx="70" cy="46" rx="3.2" ry="4.2" fill="#2A2A2A" />
+            <circle cx="51" cy="44.5" r="1" fill="#fff" />
+            <circle cx="71" cy="44.5" r="1" fill="#fff" />
             <circle cx="45" cy="54" r="3" fill="#F4A6A4" opacity=".55" />
-            <circle cx="83" cy="54" r="3" fill="#F4A6A4" opacity=".55" />
-            <path d="M61 54 69 54 65 58Z" fill="#F4A6A4" />
-            <path d="M65 58c0 3-4 3-5 1M65 58c0 3 4 3 5 1" stroke="#794F27" stroke-width="1.8" stroke-linecap="round" />
-            <path d="M44 52 30 49M44 58 30 57M86 52 100 49M86 58 100 57" stroke="#794F27" stroke-width="1.8" stroke-linecap="round" />
+            <circle cx="75" cy="54" r="3" fill="#F4A6A4" opacity=".55" />
+            <path d="M56 54 64 54 60 58Z" fill="#F4A6A4" />
+            <path d="M60 58c0 3-4 3-5 1M60 58c0 3 4 3 5 1" stroke="#794F27" stroke-width="1.8" stroke-linecap="round" />
+            <path d="M44 52 30 49M44 58 30 57M76 52 90 49M76 58 90 57" stroke="#794F27" stroke-width="1.8" stroke-linecap="round" />
             <path d="M48 68c8 5 26 5 34 0" stroke="#2A9D8F" stroke-width="7" stroke-linecap="round" />
             <path class="cat-scarf" d="M50 70c-6 3-8 9-6 15" stroke="#2A9D8F" stroke-width="6" stroke-linecap="round" />
             <ellipse cx="50" cy="98" rx="9" ry="6" fill="#FAEDCD" stroke="#794F27" stroke-width="3" />
@@ -131,8 +129,6 @@
             class="quality-tabs"
             :items="qualityItems"
             :model-value="String(stream)"
-            :leaf-animation="false"
-            :shadow="false"
             aria-label="清晰度"
             @change="onQualityChange"
           />
