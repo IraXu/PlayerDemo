@@ -294,8 +294,7 @@
         aria-label="打开猫猫的小角落"
         @click="toggleCorner"
       >
-        <PawPrintIcon :size="19" color="currentColor" />
-        <span>小角落</span>
+        <PawPrintIcon :size="30" color="currentColor" />
       </button>
     </div>
 

@@ -950,54 +950,41 @@
 .corner-fab {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  height: 46px;
-  padding: 0 18px 0 14px;
-  border: 2px solid #d4c4a8;
-  border-radius: 999px;
-  background: rgba(255, 250, 240, 0.96);
-  color: #794f27;
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 700;
-  box-shadow:
-    0 4px 0 #d4c9b4,
-    0 16px 26px -14px rgba(121, 79, 39, 0.5);
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: #19c8b9;
+  filter:
+    drop-shadow(0 0 2px #fffaf0)
+    drop-shadow(0 4px 6px rgba(121, 79, 39, 0.22));
   cursor: pointer;
   transition:
     transform 0.16s ease,
-    background 0.16s ease,
     color 0.16s ease,
-    border-color 0.16s ease,
-    box-shadow 0.16s ease;
+    filter 0.16s ease;
 }
 
-.corner-fab svg {
-  color: #19c8b9;
-  transition: color 0.16s ease;
+.corner-fab :deep(svg *) {
+  fill: currentColor;
 }
 
 .corner-fab:hover {
-  background: #fff;
-  transform: translateY(-1px);
+  color: #0ea99d;
+  filter:
+    drop-shadow(0 0 2px #fffaf0)
+    drop-shadow(0 6px 9px rgba(121, 79, 39, 0.26));
+  transform: translateY(-1px) scale(1.06);
 }
 
 .corner-fab:active {
-  transform: translateY(1px);
-  box-shadow: 0 2px 0 #d4c9b4;
+  transform: translateY(1px) scale(0.97);
 }
 
 .corner-slot.open .corner-fab {
-  color: #fff9e3;
-  background: #19c8b9;
-  border-color: #0ea99d;
-  box-shadow:
-    0 4px 0 #0b8f86,
-    0 16px 26px -14px rgba(11, 143, 134, 0.65);
-}
-
-.corner-slot.open .corner-fab svg {
-  color: #fff9e3;
+  color: #0b8f86;
 }
 
 .corner-menu {
@@ -1598,9 +1585,13 @@
   }
 
   .corner-fab {
-    height: 44px;
-    padding: 0 16px 0 13px;
-    font-size: 12.5px;
+    width: 58px;
+    height: 58px;
+  }
+
+  .corner-fab :deep(svg) {
+    width: 38px;
+    height: 38px;
   }
 
   .corner-menu {

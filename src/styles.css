@@ -21,6 +21,11 @@ body,
   min-height: 100%;
 }
 
+/* 背景装饰会溢出视口，裁掉横向滚动，避免 fixed 元素被推出屏幕 */
+html {
+  overflow-x: clip;
+}
+
 #app {
   position: relative;
   z-index: 1;
