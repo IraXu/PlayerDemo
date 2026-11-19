@@ -1,7 +1,9 @@
 <template>
   <div class="companion" :class="[mode, { leftward: facing < 0, invite: showInvite }]" :style="style">
-    <button class="companion-btn" type="button" aria-label="摸摸陪你待着的小猫" @click="pet">
-      <span v-if="showInvite" class="companion-bubble" aria-hidden="true">摸摸我～</span>
+    <button class="companion-btn" type="button" aria-label="摸摸陪你待着的小猫" @click="onCatClick">
+      <span v-if="bubbleHint" class="companion-bubble" :class="{ news: hasNews }" aria-hidden="true">
+        {{ bubbleHint }}
+      </span>
       <svg class="companion-cat" viewBox="0 0 100 100" fill="none" aria-hidden="true">
         <ellipse cx="50" cy="94" rx="24" ry="3.6" fill="rgba(121, 79, 39, 0.14)" />
 
@@ -66,6 +68,10 @@
           stroke-width="1.6"
           stroke-linecap="round"
         />
+        <g v-if="mode === 'speak'" class="companion-waves" aria-hidden="true">
+          <path d="M72 46c3.5 3 3.5 9 0 12" />
+          <path d="M78.5 40c6.5 5.6 6.5 17 0 22.6" />
+        </g>
         <path
           d="M34 52c-4-1-7-1-9 0M34 56.5c-4 0-7 .6-9 1.2M66 52c4-1 7-1 9 0M66 56.5c4 0 7 .6 9 1.2"
           stroke="#794F27"
@@ -115,13 +121,43 @@
       >♥</span
     >
   </div>
+
+  <Modal
+    v-model:open="messageOpen"
+    variant="default"
+    title="娇娇的留言"
+    :width="420"
+    :typewriter="false"
+    :show-footer="false"
+  >
+    <div ref="chatListRef" class="chat-list">
+      <div v-for="item in chatMessages" :key="item.id" class="chat-row">
+        <span class="chat-avatar" aria-hidden="true">
+          <PawPrintIcon :size="16" color="#19a99b" />
+        </span>
+        <div class="chat-body">
+          <span class="chat-name">徐娇娇</span>
+          <p class="chat-bubble">{{ item.text }}</p>
+          <span v-if="item.time" class="chat-time">{{ item.time }}</span>
+        </div>
+      </div>
+    </div>
+  </Modal>
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
-import { playMeow, playPurr } from '../sfx'
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
+import { Modal } from 'animal-island-vue'
+import { PawPrintIcon } from 'naive-icons-vue'
+import { playMeow, playPurr, playReveal } from '../sfx'
 
-type Mode = 'sit' | 'walk' | 'sleep' | 'happy'
+type Mode = 'sit' | 'walk' | 'sleep' | 'happy' | 'speak'
+
+interface OwnerMessage {
+  id: string
+  text: string
+  time?: string
+}
 
 interface Heart {
   id: number
@@ -137,15 +173,42 @@ const walkDuration = ref(3.6)
 const hearts = ref<Heart[]>([])
 const showInvite = ref(false)
 const hasPetted = ref(false)
+// 十七的留言：有未读时小猫进入说话模式，点击后打开信箱
+const messages = ref<OwnerMessage[]>([])
+const ownerMessage = ref<OwnerMessage | null>(null)
+const hasNews = ref(false)
+const messageOpen = ref(false)
+const chatListRef = ref<HTMLElement | null>(null)
 
 const style = computed<Record<string, string>>(() => ({
   transform: `translate3d(${pos.x}px, ${pos.y}px, 0)`,
   '--walk': `${walkDuration.value}s`,
 }))
 
+const bubbleHint = computed(() => {
+  if (hasNews.value) return '有话对你说'
+  return showInvite.value ? '摸摸我～' : ''
+})
+
+// 聊天记录按时间倒序，最新的留言排在最上面
+const chatMessages = computed(() => {
+  const list = [...messages.value]
+  if (list.every((item) => item.time)) {
+    return list.sort((a, b) => b.time!.localeCompare(a.time!))
+  }
+  return list.reverse()
+})
+
 let timer: ReturnType<typeof setTimeout> | null = null
 let inviteTimer: ReturnType<typeof setTimeout> | null = null
+let pollTimer: ReturnType<typeof setInterval> | null = null
 let heartId = 0
+
+// 十七的留言存在仓库的 public/messages.json 里，页面定时拉取
+const MESSAGE_URL = `${import.meta.env.BASE_URL}messages.json`
+const READ_KEY = 'cat-owner-message-read'
+const POLL_INTERVAL = 60_000
+let readId = ''
 
 const rand = (min: number, max: number) => min + Math.random() * (max - min)
 
@@ -182,7 +245,8 @@ function schedule(delay = rand(7000, 15000)) {
 }
 
 function next() {
-  if (document.hidden) {
+  // 有未读留言或正在看信箱时，老老实实待在原地
+  if (document.hidden || hasNews.value || messageOpen.value) {
     schedule()
     return
   }
@@ -240,16 +304,123 @@ function pet() {
 }
 
 function scheduleInvite(delay = 4000) {
-  if (hasPetted.value) return
+  if (hasPetted.value || hasNews.value) return
   if (inviteTimer) clearTimeout(inviteTimer)
   inviteTimer = setTimeout(() => {
-    if (hasPetted.value) return
+    if (hasPetted.value || hasNews.value) return
     showInvite.value = true
     inviteTimer = setTimeout(() => {
       showInvite.value = false
-      if (!hasPetted.value) scheduleInvite(30000)
+      if (!hasPetted.value && !hasNews.value) scheduleInvite(30000)
     }, 12000)
   }, delay)
+}
+
+function onCatClick() {
+  // 有未读留言时，打开信箱
+  if (hasNews.value && ownerMessage.value) {
+    openMessageDialog()
+    return
+  }
+  pet()
+}
+
+function markMessageRead(message: OwnerMessage) {
+  readId = message.id
+  try {
+    localStorage.setItem(READ_KEY, message.id)
+  } catch {
+    /* 隐私模式下忽略 */
+  }
+}
+
+async function scrollChatToTop() {
+  await nextTick()
+  const el = chatListRef.value
+  if (el) el.scrollTop = 0
+}
+
+function openMessageDialog() {
+  const message = ownerMessage.value
+  if (!message) return
+
+  hasNews.value = false
+  messageOpen.value = true
+  showInvite.value = false
+  mode.value = 'speak'
+  clearTimer()
+  if (inviteTimer) {
+    clearTimeout(inviteTimer)
+    inviteTimer = null
+  }
+  markMessageRead(message)
+  playReveal()
+}
+
+watch(messageOpen, (open) => {
+  if (open) {
+    void scrollChatToTop()
+    return
+  }
+  // 关掉信箱后小猫恢复走动
+  if (mode.value === 'speak') {
+    mode.value = 'sit'
+    schedule()
+  }
+})
+
+async function loadOwnerMessage() {
+  try {
+    const res = await fetch(`${MESSAGE_URL}?t=${Date.now()}`, { cache: 'no-store' })
+    if (!res.ok) return
+    const data = (await res.json()) as { messages?: OwnerMessage[] }
+    const list = Array.isArray(data?.messages) ? data.messages : []
+    const valid = list.filter(
+      (item) => item?.id && typeof item.text === 'string' && item.text.trim(),
+    )
+    messages.value = valid
+    const latest = valid.at(-1)
+    if (!latest) {
+      ownerMessage.value = null
+      hasNews.value = false
+      if (mode.value === 'speak' && !messageOpen.value) {
+        mode.value = 'sit'
+        schedule()
+      }
+      return
+    }
+
+    ownerMessage.value = latest
+    if (latest.id === readId) {
+      if (mode.value === 'speak' && !messageOpen.value) {
+        mode.value = 'sit'
+        schedule()
+      }
+      return
+    }
+
+    // 正在看信箱时来了新留言，直接续在聊天记录里
+    if (messageOpen.value) {
+      markMessageRead(latest)
+      void scrollChatToTop()
+      return
+    }
+
+    hasNews.value = true
+    showInvite.value = false
+    if (inviteTimer) {
+      clearTimeout(inviteTimer)
+      inviteTimer = null
+    }
+    mode.value = 'speak'
+    clearTimer()
+  } catch {
+    /* 网络抖动时静默失败，等下一次轮询 */
+  }
+}
+
+function onVisibilityChange() {
+  if (!document.hidden) void loadOwnerMessage()
 }
 
 function burstHearts() {
@@ -281,12 +452,25 @@ onMounted(() => {
   // 主动招呼人来摸摸它；没被摸的话每隔一段时间再提醒一次
   scheduleInvite(4000)
 
+  try {
+    readId = localStorage.getItem(READ_KEY) || ''
+  } catch {
+    /* 隐私模式下忽略 */
+  }
+  void loadOwnerMessage()
+  pollTimer = setInterval(() => {
+    if (!document.hidden) void loadOwnerMessage()
+  }, POLL_INTERVAL)
+  document.addEventListener('visibilitychange', onVisibilityChange)
+
   window.addEventListener('resize', onResize)
 })
 
 onBeforeUnmount(() => {
   clearTimer()
   if (inviteTimer) clearTimeout(inviteTimer)
+  if (pollTimer) clearInterval(pollTimer)
+  document.removeEventListener('visibilitychange', onVisibilityChange)
   window.removeEventListener('resize', onResize)
 })
 </script>
@@ -363,6 +547,95 @@ onBeforeUnmount(() => {
   transform: rotate(45deg);
 }
 
+.companion-bubble.news {
+  color: #1d7f75;
+  border-color: #b7e3dd;
+  box-shadow: 0 3px 0 #cbe7e3;
+}
+
+.chat-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-height: min(360px, 52vh);
+  overflow-y: auto;
+  padding: 2px 2px 4px;
+}
+
+.chat-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+}
+
+.chat-avatar {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  margin-top: 17px;
+  border-radius: 50%;
+  border: 2px solid #b7e3dd;
+  background: #e5f8f5;
+}
+
+.chat-body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  max-width: 82%;
+}
+
+.chat-name {
+  margin-bottom: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  color: #2a9d8f;
+}
+
+.chat-bubble {
+  margin: 0;
+  padding: 9px 12px;
+  border-radius: 4px 14px 14px 14px;
+  border: 2px solid #d4c4a8;
+  background: #fffaf0;
+  color: #794f27;
+  font-size: 13.5px;
+  font-weight: 400;
+  line-height: 1.6;
+  text-align: left;
+  white-space: pre-wrap;
+  word-break: break-word;
+  box-shadow: 0 3px 0 #e9e0cd;
+}
+
+.chat-time {
+  margin-top: 5px;
+  padding-left: 2px;
+  font-size: 10.5px;
+  line-height: 1;
+  color: #a99c86;
+}
+
+.companion-waves path {
+  fill: none;
+  stroke: #2a9d8f;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  opacity: 0;
+}
+
+.speak .companion-waves path {
+  animation: companionWave 1.6s ease-in-out infinite;
+}
+
+.speak .companion-waves path:nth-of-type(2) {
+  animation-delay: 0.24s;
+}
+
 .leftward .companion-cat {
   transform: scaleX(-1);
 }
@@ -394,6 +667,14 @@ onBeforeUnmount(() => {
 
 .happy .companion-cat {
   animation: companionHop 0.5s ease-in-out 2;
+}
+
+.speak .companion-cat {
+  animation: companionSpeak 2s ease-in-out infinite;
+}
+
+.speak .companion-tail {
+  animation: companionTail 1.5s ease-in-out infinite;
 }
 
 .companion.invite .companion-cat {
@@ -487,6 +768,29 @@ onBeforeUnmount(() => {
   }
 }
 
+@keyframes companionSpeak {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-1.5deg);
+  }
+  50% {
+    transform: translateY(-3px) rotate(1.5deg);
+  }
+}
+
+@keyframes companionWave {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.9;
+  }
+  60% {
+    opacity: 0;
+  }
+}
+
 @keyframes companionBubbleIn {
   from {
     opacity: 0;
@@ -561,12 +865,18 @@ onBeforeUnmount(() => {
 
   .companion-cat,
   .companion.invite .companion-cat,
+  .speak .companion-cat,
   .companion-tail,
   .companion-eye,
   .companion-zzz,
   .companion-heart,
-  .companion-bubble {
+  .companion-bubble,
+  .companion-waves path {
     animation: none;
+  }
+
+  .speak .companion-waves path {
+    opacity: 0.7;
   }
 }
 </style>

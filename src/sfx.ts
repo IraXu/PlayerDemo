@@ -246,3 +246,49 @@ export function playMeow(delay = 0) {
   vibrato.stop(start + duration)
   breath.stop(start + duration)
 }
+
+/**
+ * “酱酱酱～”的揭晓音效：
+ * 三个上行音 + 尾音，三角波叠一层高八度正弦，听起来像小铃铛报幕。
+ */
+export function playReveal() {
+  const audio = getAudioContext()
+  if (!audio) return
+  const start = audio.currentTime
+  const notes = [
+    { freq: 523.25, at: 0, duration: 0.18, gain: 0.13 },
+    { freq: 659.25, at: 0.15, duration: 0.18, gain: 0.14 },
+    { freq: 783.99, at: 0.3, duration: 0.7, gain: 0.17 },
+  ]
+
+  notes.forEach(({ freq, at, duration, gain }, index) => {
+    const begin = start + at
+    const master = audio.createGain()
+    master.gain.setValueAtTime(0, begin)
+    master.gain.linearRampToValueAtTime(gain, begin + 0.012)
+    master.gain.exponentialRampToValueAtTime(0.0001, begin + duration)
+    master.connect(audio.destination)
+
+    const tone = audio.createOscillator()
+    tone.type = 'triangle'
+    tone.frequency.setValueAtTime(freq, begin)
+    if (index === notes.length - 1) {
+      tone.frequency.linearRampToValueAtTime(freq * 1.02, begin + duration)
+    }
+
+    const shimmer = audio.createOscillator()
+    shimmer.type = 'sine'
+    shimmer.frequency.setValueAtTime(freq * 2, begin)
+    const shimmerGain = audio.createGain()
+    shimmerGain.gain.value = 0.16
+
+    tone.connect(master)
+    shimmer.connect(shimmerGain)
+    shimmerGain.connect(master)
+
+    tone.start(begin)
+    shimmer.start(begin)
+    tone.stop(begin + duration)
+    shimmer.stop(begin + duration)
+  })
+}
