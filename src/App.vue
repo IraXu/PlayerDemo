@@ -672,6 +672,10 @@ async function startPlayer(info: StreamInfo, streamId: number) {
   if (!el) throw new Error('播放器容器未就绪')
   await waitForStableSize(el)
 
+  if (typeof window.HMWebPlayer !== 'function') {
+    throw new Error('播放器加载失败，请刷新重试')
+  }
+
   const instance = new window.HMWebPlayer({
     container: el,
     x: 0,

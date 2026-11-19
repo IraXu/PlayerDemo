@@ -1,5 +1,5 @@
 // ==================== HMWebPlayer SDK 全局声明 ====================
-// SDK 由 index.html 以 <script src="/hmwebplayer.js"> 同步引入，暴露 window.HMWebPlayer。
+// SDK 由 index.html 以 <script defer src="/hmwebplayer.js"> 引入，暴露 window.HMWebPlayer。
 
 interface HMPlayerOptions {
   container: HTMLElement | string
