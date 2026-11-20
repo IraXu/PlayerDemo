@@ -248,6 +248,80 @@ export function playMeow(delay = 0) {
 }
 
 /**
+ * 小熊的招呼声：比喵声低一个八度左右的一声“呜”，
+ * 三角波下滑 + 锯齿波胸腔共鸣 + 一点气息，听起来闷闷的、软软的。
+ * @param delay 相对当前时间的延迟（秒）
+ */
+export function playBearCall(delay = 0) {
+  const audio = getAudioContext()
+  if (!audio) return
+  const start = audio.currentTime + Math.max(0, delay)
+  const duration = 0.5
+
+  const master = audio.createGain()
+  master.gain.setValueAtTime(0, start)
+  master.gain.linearRampToValueAtTime(0.22, start + 0.05)
+  master.gain.linearRampToValueAtTime(0.14, start + 0.3)
+  master.gain.linearRampToValueAtTime(0, start + 0.48)
+
+  const tone = audio.createOscillator()
+  tone.type = 'triangle'
+  // 每次叫声略有不同，避免反复点击听起来一模一样
+  tone.detune.setValueAtTime(Math.random() * 24 - 12, start)
+  tone.frequency.setValueAtTime(210, start)
+  tone.frequency.linearRampToValueAtTime(150, start + 0.16)
+  tone.frequency.linearRampToValueAtTime(120, start + 0.42)
+
+  const rumble = audio.createOscillator()
+  rumble.type = 'sawtooth'
+  rumble.frequency.setValueAtTime(105, start)
+  rumble.frequency.linearRampToValueAtTime(78, start + 0.4)
+  const rumbleGain = audio.createGain()
+  rumbleGain.gain.value = 0.22
+
+  const vibrato = audio.createOscillator()
+  vibrato.type = 'sine'
+  vibrato.frequency.value = 6
+  const vibratoDepth = audio.createGain()
+  vibratoDepth.gain.value = 6
+  vibrato.connect(vibratoDepth)
+  vibratoDepth.connect(tone.detune)
+
+  const lowpass = audio.createBiquadFilter()
+  lowpass.type = 'lowpass'
+  lowpass.frequency.setValueAtTime(900, start)
+  lowpass.frequency.linearRampToValueAtTime(520, start + 0.4)
+  lowpass.Q.value = 1.2
+
+  const breath = brownNoise(audio, 0.3)
+  const breathFilter = audio.createBiquadFilter()
+  breathFilter.type = 'bandpass'
+  breathFilter.frequency.value = 420
+  breathFilter.Q.value = 0.7
+  const breathGain = audio.createGain()
+  breathGain.gain.setValueAtTime(0.06, start)
+  breathGain.gain.linearRampToValueAtTime(0, start + 0.18)
+
+  tone.connect(lowpass)
+  rumble.connect(rumbleGain)
+  rumbleGain.connect(lowpass)
+  lowpass.connect(master)
+  breath.connect(breathFilter)
+  breathFilter.connect(breathGain)
+  breathGain.connect(master)
+  master.connect(audio.destination)
+
+  tone.start(start)
+  rumble.start(start)
+  vibrato.start(start)
+  breath.start(start)
+  tone.stop(start + duration)
+  rumble.stop(start + duration)
+  vibrato.stop(start + duration)
+  breath.stop(start + duration)
+}
+
+/**
  * “酱酱酱～”的揭晓音效：
  * 三个上行音 + 尾音，三角波叠一层高八度正弦，听起来像小铃铛报幕。
  */

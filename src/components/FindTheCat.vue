@@ -4,10 +4,23 @@
     class="hunt-cat"
     :style="spot"
     type="button"
-    aria-label="躲起来的小猫"
+    :aria-label="copy.huntAria"
     @click="catchCat"
   >
-    <svg viewBox="0 0 120 120" fill="none" aria-hidden="true">
+    <svg v-if="isBear" viewBox="0 0 120 120" fill="none" aria-hidden="true">
+      <g stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="35" cy="36" r="12" />
+        <circle cx="85" cy="36" r="12" />
+        <path d="M46 78c-9 3-15 11-15 20 0 7 5 11 13 11h32c8 0 13-4 13-11 0-9-6-17-15-20" />
+        <path d="M49 78c7 4 15 4 22 0" />
+        <path d="M60 34c17 0 28 12 28 27 0 12-11 21-28 21S32 73 32 61c0-15 11-27 28-27Z" />
+        <ellipse cx="60" cy="64" rx="13" ry="9" />
+        <path d="M56 60h8l-4 4z" />
+        <path d="M60 64c0 2-3 2-4 1M60 64c0 2 3 2 4 1" />
+        <path d="M50 52c2-2 4-2 6 0M64 52c2-2 4-2 6 0" />
+      </g>
+    </svg>
+    <svg v-else viewBox="0 0 120 120" fill="none" aria-hidden="true">
       <g stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
         <path d="M86 96c10 1 15-5 13-13-1-5-5-8-10-8" />
         <path d="M46 78c-9 3-15 11-15 20 0 7 5 11 13 11h30c8 0 13-4 13-11 0-9-6-17-15-20" />
@@ -30,9 +43,10 @@
 </template>
 
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { SparklesIcon } from 'naive-icons-vue'
-import { playMeow } from '../sfx'
+import { playBearCall, playMeow } from '../sfx'
+import { copy, isBear, theme } from '../theme'
 
 const found = defineModel<boolean>('found', { default: false })
 const emit = defineEmits<{ found: [] }>()
@@ -74,7 +88,11 @@ function hash(value: string) {
   return result >>> 0
 }
 
-const storageKey = `cat-hunt:${todayKey()}`
+// 两个主题的进度分开记，换回来的时候各自的猫/熊还在原地
+function storageKey() {
+  return `${isBear.value ? 'bear' : 'cat'}-hunt:${todayKey()}`
+}
+
 const burst = ref(false)
 const spot = ref<Record<string, string>>(SPOTS_DESKTOP[0])
 
@@ -83,13 +101,22 @@ function pickSpot() {
   spot.value = spots[hash(todayKey()) % spots.length]
 }
 
+function readFound() {
+  try {
+    return localStorage.getItem(storageKey()) === '1'
+  } catch {
+    return false
+  }
+}
+
 function catchCat() {
   if (found.value) return
-  playMeow()
+  if (isBear.value) playBearCall()
+  else playMeow()
   found.value = true
   burst.value = true
   try {
-    localStorage.setItem(storageKey, '1')
+    localStorage.setItem(storageKey(), '1')
   } catch {
     /* 隐私模式下忽略存储失败 */
   }
@@ -97,12 +124,13 @@ function catchCat() {
   setTimeout(() => (burst.value = false), 1200)
 }
 
+watch(theme, () => {
+  found.value = readFound()
+  burst.value = false
+})
+
 onMounted(() => {
-  try {
-    if (localStorage.getItem(storageKey) === '1') found.value = true
-  } catch {
-    /* ignore */
-  }
+  found.value = readFound()
   pickSpot()
   window.addEventListener('resize', pickSpot)
 })

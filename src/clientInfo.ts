@@ -3,6 +3,8 @@
  * 公网 IP / 归属地来自公开的 IP 查询接口，其余信息都在浏览器本地读取。
  */
 
+import { copy } from './theme'
+
 export interface ClientInfo {
   browser: string
   os: string
@@ -199,7 +201,7 @@ export function buildTreeHoleMessage(
 
   return [
     '**🐾 树洞来信**',
-    `<font color="comment">${client.localTime} · 十七的逗猫室</font>`,
+    `<font color="comment">${client.localTime} · ${copy.value.title}</font>`,
     '',
     quoted,
     '',

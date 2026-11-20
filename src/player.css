@@ -1054,6 +1054,11 @@
   background: #e7f4e8;
 }
 
+.corner-icon.theme {
+  color: #a9761d;
+  background: #fbf0d8;
+}
+
 .corner-text {
   display: flex;
   flex: 1;
@@ -1440,6 +1445,58 @@
   to {
     opacity: 1;
   }
+}
+
+/* ==================== 小熊日限定主题 ==================== */
+.bear-badge {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 9px;
+  border-radius: 999px;
+  border: 1.5px solid #e7c78f;
+  background: #fbe6bf;
+  color: #a9761d;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1;
+}
+
+.page.bear-day .corner-fab {
+  color: #d99a3a;
+}
+
+.page.bear-day .corner-fab:hover {
+  color: #b97c22;
+}
+
+.page.bear-day .corner-slot.open .corner-fab {
+  color: #96631a;
+}
+
+.page.bear-day .toolbar :deep(.animal-btn.action) {
+  border-color: #b97c22;
+  background: #d99a3a;
+  box-shadow: 0 4px 0 #96631a;
+}
+
+.page.bear-day .toolbar :deep(.animal-btn.action:hover:not(:disabled)) {
+  border-color: #b97c22;
+  background: #e8ac4e;
+  box-shadow: 0 5px 0 #96631a;
+}
+
+.page.bear-day .toolbar :deep(.animal-btn.action:active:not(:disabled)) {
+  border-color: #b97c22;
+  background: #c8892c;
+  box-shadow: 0 1px 0 #96631a;
+}
+
+.page.bear-day .quality-tabs :deep(.animal-tabs__item--active),
+.page.bear-day .quality-tabs :deep(.animal-tabs__item--active:hover) {
+  background: #d99a3a;
 }
 
 /* ==================== 响应式 ==================== */

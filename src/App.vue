@@ -1,5 +1,8 @@
 <template>
-  <div class="page" :class="{ immersive: pseudoFullscreen || isFullscreen, touch: touchMode }">
+  <div
+    class="page"
+    :class="{ immersive: pseudoFullscreen || isFullscreen, touch: touchMode, 'bear-day': isBear }"
+  >
     <div class="bg-decor" aria-hidden="true">
       <svg class="deco-sprite" width="0" height="0">
         <defs>
@@ -35,11 +38,53 @@
               <path d="M61 92c0-5 4-8 8-8s8 3 8 8" />
             </g>
           </symbol>
+          <!-- 小熊日限定：把背景里的小猫换成小熊 -->
+          <symbol id="cute-bear-sit" viewBox="0 0 120 120">
+            <g fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="36" cy="34" r="13" />
+              <circle cx="84" cy="34" r="13" />
+              <path d="M42 78c-9 4-14 12-14 20 0 7 5 10 14 10h36c9 0 14-3 14-10 0-8-5-16-14-20" />
+              <path d="M45 78c8 4 22 4 30 0" />
+              <path d="M60 32c17 0 28 12 28 27 0 12-11 21-28 21S32 71 32 59c0-15 11-27 28-27Z" />
+              <ellipse cx="60" cy="63" rx="14" ry="10" />
+              <path d="M56 59h8l-4 4z" />
+              <path d="M60 63c0 2-3 2-4 1M60 63c0 2 3 2 4 1" />
+              <path d="M49 51c2-2 4-2 6 0M65 51c2-2 4-2 6 0" />
+              <path d="M46 108v-7M74 108v-7" />
+            </g>
+          </symbol>
+          <symbol id="cute-bear-peek" viewBox="0 0 120 120">
+            <g fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M10 92h100" />
+              <circle cx="42" cy="55" r="12" />
+              <circle cx="78" cy="55" r="12" />
+              <path d="M38 90c0-15 10-26 22-26s22 11 22 26" />
+              <ellipse cx="60" cy="76" rx="13" ry="9" />
+              <path d="M56 72h8l-4 4z" />
+              <path d="M60 76c0 2-3 2-4 1M60 76c0 2 3 2 4 1" />
+              <path d="M50 67c2-2 4-2 6 0M64 67c2-2 4-2 6 0" />
+              <path d="M43 92c0-5 4-8 8-8s8 3 8 8" />
+              <path d="M61 92c0-5 4-8 8-8s8 3 8 8" />
+            </g>
+          </symbol>
+          <symbol id="deco-honey" viewBox="0 0 120 120">
+            <g fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M36 40h48l-7 58c-1 8-7 13-17 13s-16-5-17-13l-7-58Z" />
+              <path d="M32 32h56v8H32z" />
+              <path d="M48 62h24M46 78h28" opacity=".65" />
+            </g>
+          </symbol>
         </defs>
       </svg>
-      <svg class="deco deco-cat deco-cat-main" viewBox="0 0 120 120"><use href="#cute-cat-peek" /></svg>
-      <svg class="deco deco-cat deco-cat-side" viewBox="0 0 120 120"><use href="#cute-cat-sit" /></svg>
-      <svg class="deco deco-cat deco-cat-top" viewBox="0 0 120 120"><use href="#cute-cat-peek" /></svg>
+      <svg class="deco deco-cat deco-cat-main" viewBox="0 0 120 120">
+        <use :href="isBear ? '#cute-bear-peek' : '#cute-cat-peek'" />
+      </svg>
+      <svg class="deco deco-cat deco-cat-side" viewBox="0 0 120 120">
+        <use :href="isBear ? '#cute-bear-sit' : '#cute-cat-sit'" />
+      </svg>
+      <svg class="deco deco-cat deco-cat-top" viewBox="0 0 120 120">
+        <use :href="isBear ? '#cute-bear-peek' : '#cute-cat-peek'" />
+      </svg>
       <PawPrintIcon class="deco deco-paw deco-paw-1" :size="34" color="currentColor" />
       <PawPrintIcon class="deco deco-paw deco-paw-2" :size="30" color="currentColor" />
       <PawPrintIcon class="deco deco-paw deco-paw-3" :size="28" color="currentColor" />
@@ -49,8 +94,16 @@
       <PawPrintIcon class="deco deco-paw deco-paw-7" :size="20" color="currentColor" />
       <FishIcon class="deco deco-fish deco-fish-1" :size="50" color="currentColor" />
       <FishIcon class="deco deco-fish deco-fish-2" :size="34" color="currentColor" />
-      <BoneIcon class="deco deco-bone deco-bone-1" :size="28" color="currentColor" />
-      <BoneIcon class="deco deco-bone deco-bone-2" :size="22" color="currentColor" />
+      <BoneIcon v-if="!isBear" class="deco deco-bone deco-bone-1" :size="28" color="currentColor" />
+      <BoneIcon v-if="!isBear" class="deco deco-bone deco-bone-2" :size="22" color="currentColor" />
+      <template v-else>
+        <svg class="deco deco-bone deco-bone-1" width="30" height="30" viewBox="0 0 120 120">
+          <use href="#deco-honey" />
+        </svg>
+        <svg class="deco deco-bone deco-bone-2" width="24" height="24" viewBox="0 0 120 120">
+          <use href="#deco-honey" />
+        </svg>
+      </template>
       <HeartIcon class="deco deco-heart deco-heart-1" :size="26" color="currentColor" />
       <HeartIcon class="deco deco-heart deco-heart-2" :size="20" color="currentColor" />
       <StarIcon class="deco deco-star deco-star-1" :size="24" color="currentColor" />
@@ -60,15 +113,41 @@
 
     <header class="masthead">
       <div class="brand">
-        <Title class="brand-title" size="middle" color="app-teal">十七的逗猫室</Title>
+        <span v-if="isBear" class="bear-badge">小熊日限定</span>
+        <Title class="brand-title" size="middle" :color="isBear ? 'app-orange' : 'app-teal'">
+          {{ copy.title }}
+        </Title>
         <p class="brand-sub">
           <PawPrintIcon :size="14" color="currentColor" />
-          一只猫，一台摄像头，和想来看他的人
+          {{ copy.subtitle }}
         </p>
       </div>
-      <Tooltip title="摸摸小猫" placement="bottom-end" variant="island">
-        <button class="page-cat" type="button" aria-label="摸摸小猫" @click="openEgg">
-          <svg class="cat-mascot" viewBox="0 0 120 110" fill="none" aria-hidden="true">
+      <Tooltip :title="copy.mascotTip" placement="bottom-end" variant="island">
+        <button class="page-cat" type="button" :aria-label="copy.mascotTip" @click="openEgg">
+          <svg v-if="isBear" class="cat-mascot bear-mascot" viewBox="0 0 120 110" fill="none" aria-hidden="true">
+            <circle cx="60" cy="58" r="47" fill="#FBF1DE" stroke="#D8C19A" stroke-width="2.5" />
+            <circle cx="33" cy="30" r="14" fill="#C98F52" stroke="#794F27" stroke-width="3.5" />
+            <circle cx="87" cy="30" r="14" fill="#C98F52" stroke="#794F27" stroke-width="3.5" />
+            <circle cx="33" cy="30" r="6.5" fill="#EBC08C" />
+            <circle cx="87" cy="30" r="6.5" fill="#EBC08C" />
+            <path d="M38 76c0-11 10-18 22-18s22 7 22 18c0 11-10 18-22 18s-22-7-22-18Z" fill="#C98F52" stroke="#794F27" stroke-width="3.5" />
+            <path d="M60 18c19 0 33 14 33 32 0 19-15 32-33 32S27 69 27 50c0-18 14-32 33-32Z" fill="#D9A468" stroke="#794F27" stroke-width="3.5" />
+            <ellipse cx="60" cy="60" rx="19" ry="14.5" fill="#F6DFBC" />
+            <ellipse class="cat-eye" cx="47" cy="46" rx="3.2" ry="4.2" fill="#2A2A2A" />
+            <ellipse class="cat-eye" cx="73" cy="46" rx="3.2" ry="4.2" fill="#2A2A2A" />
+            <circle cx="48" cy="44.5" r="1" fill="#fff" />
+            <circle cx="74" cy="44.5" r="1" fill="#fff" />
+            <circle cx="37" cy="57" r="3.2" fill="#F4A6A4" opacity=".5" />
+            <circle cx="83" cy="57" r="3.2" fill="#F4A6A4" opacity=".5" />
+            <path d="M55 54h10l-5 5.5z" fill="#5A3A22" />
+            <path d="M60 59.5c0 3-4 3-5 1M60 59.5c0 3 4 3 5 1" stroke="#794F27" stroke-width="1.8" stroke-linecap="round" />
+            <path d="M44 76c8 5 24 5 32 0" stroke="#2A9D8F" stroke-width="7" stroke-linecap="round" />
+            <path class="cat-scarf" d="M46 78c-6 3-8 9-6 15" stroke="#2A9D8F" stroke-width="6" stroke-linecap="round" />
+            <ellipse cx="48" cy="97" rx="9" ry="6" fill="#F6DFBC" stroke="#794F27" stroke-width="3" />
+            <ellipse cx="72" cy="97" rx="9" ry="6" fill="#F6DFBC" stroke="#794F27" stroke-width="3" />
+            <path d="M45 97v3M48 96.6v3.6M51 97v3M69 97v3M72 96.6v3.6M75 97v3" stroke="#C9A87C" stroke-width="1.3" stroke-linecap="round" />
+          </svg>
+          <svg v-else class="cat-mascot" viewBox="0 0 120 110" fill="none" aria-hidden="true">
             <circle cx="60" cy="58" r="47" fill="#F7F3DF" stroke="#D4C4A8" stroke-width="2.5" />
             <path class="cat-tail" d="M42 95c-15 2-25-7-21-20 2-8 10-12 16-8" stroke="#794F27" stroke-width="4" stroke-linecap="round" />
             <path d="M42 92c-10-4-14-16-8-26 5-8 16-12 26-12s21 4 26 12c6 10 2 22-8 26-8 4-28 4-36 0Z" fill="#F7CBD3" stroke="#794F27" stroke-width="3.5" />
@@ -168,7 +247,7 @@
             </Button>
           </Tooltip>
 
-          <Tooltip title="猫猫要和你互动咯～" placement="top" variant="island">
+          <Tooltip :title="copy.interactTip" placement="top" variant="island">
             <Button
               class="action"
               size="small"
@@ -187,7 +266,7 @@
                   </g>
                 </svg>
               </template>
-              <span>{{ interacting ? '逗猫中' : '逗猫棒' }}</span>
+              <span>{{ interacting ? copy.interactingLabel : copy.interactLabel }}</span>
             </Button>
           </Tooltip>
 
@@ -245,14 +324,14 @@
       </Tooltip>
     </footer>
 
-    <Footer class="page-footer" text="十七的逗猫室 · 猫猫万岁" />
+    <Footer class="page-footer" :text="copy.footer" />
 
     <div class="corner-slot" :class="{ open: cornerOpen }">
       <transition name="corner">
-        <div v-if="cornerOpen" class="corner-menu" role="menu" aria-label="猫猫的小角落">
+        <div v-if="cornerOpen" class="corner-menu" role="menu" :aria-label="copy.cornerTitle">
           <p class="corner-title">
             <PawPrintIcon :size="14" color="#19c8b9" />
-            猫猫的小角落
+            {{ copy.cornerTitle }}
           </p>
 
           <button class="corner-item" type="button" role="menuitem" @click="openFortuneFromMenu">
@@ -260,7 +339,7 @@
               <StickyNoteIcon :size="17" color="currentColor" />
             </span>
             <span class="corner-text">
-              <strong>今日猫签</strong>
+              <strong>{{ copy.fortuneTitle }}</strong>
               <small>抽一支今天的签</small>
             </span>
           </button>
@@ -270,8 +349,8 @@
               <SearchIcon :size="17" color="currentColor" />
             </span>
             <span class="corner-text">
-              <strong>{{ huntFound ? '已找到猫猫' : '找猫' }}</strong>
-              <small>{{ huntFound ? '明天它还会换个地方' : '猫猫今天躲起来了' }}</small>
+              <strong>{{ huntFound ? copy.huntFoundLabel : copy.huntLabel }}</strong>
+              <small>{{ huntFound ? copy.huntFoundDesc : copy.huntDesc }}</small>
             </span>
           </button>
 
@@ -284,6 +363,16 @@
               <small>把心事悄悄投进去</small>
             </span>
           </button>
+
+          <button class="corner-item" type="button" role="menuitem" @click="switchTheme">
+            <span class="corner-icon theme">
+              <PaletteIcon :size="17" color="currentColor" />
+            </span>
+            <span class="corner-text">
+              <strong>{{ isBear ? '换回猫咪主题' : '打开小熊日主题' }}</strong>
+              <small>{{ isBear ? '小熊日限定，明天再换回来' : '今天是特别的小熊日' }}</small>
+            </span>
+          </button>
         </div>
       </transition>
 
@@ -291,7 +380,7 @@
         class="corner-fab"
         type="button"
         :aria-expanded="cornerOpen"
-        aria-label="打开猫猫的小角落"
+        :aria-label="copy.cornerAria"
         @click="toggleCorner"
       >
         <PawPrintIcon :size="30" color="currentColor" />
@@ -307,7 +396,7 @@
           <TreeIcon :size="38" color="#19c8b9" />
           <h2>树洞</h2>
           <Typewriter :speed="55" :trigger="treeOpen" @done="treeTyped = true">
-            <p :class="{ typed: treeTyped }">把想说的话悄悄放进树洞吧，只有树和猫会听到。</p>
+            <p :class="{ typed: treeTyped }">{{ copy.treeDesc }}</p>
           </Typewriter>
         </div>
         <textarea
@@ -411,7 +500,7 @@
         </figure>
         <div class="egg-note">
           <HeartIcon :size="30" color="#ff8fb1" />
-          <p>给十七：<br />愿你每天都被小猫治愈。每天保持好心情～</p>
+          <p>给十七：<br />{{ copy.eggWish }}</p>
         </div>
         <button class="egg-close" type="button" aria-label="关闭" @click="closeEgg">
           <CloseIcon :size="20" color="currentColor" />
@@ -439,6 +528,7 @@ import {
   ImageIcon,
   MaximizeIcon,
   MinimizeIcon,
+  PaletteIcon,
   PawPrintIcon,
   QrCodeIcon,
   RefreshIcon,
@@ -462,6 +552,7 @@ import {
   loadNetworkInfo,
 } from './clientInfo'
 import { prepareTreeImage, type TreeImage } from './treeImage'
+import { copy, isBear, toggleTheme } from './theme'
 import CompanionCat from './components/CompanionCat.vue'
 import DailyFortune from './components/DailyFortune.vue'
 import FindTheCat from './components/FindTheCat.vue'
@@ -538,7 +629,7 @@ const statusKey = computed(() =>
   status.value === 'playing' ? 'ok' : status.value === 'error' ? 'bad' : 'wait',
 )
 const statusLabel = computed(() => {
-  if (status.value === 'playing') return '猫猫丧丧の，尝试逗逗吧～'
+  if (status.value === 'playing') return copy.value.liveStatus
   if (status.value === 'error') return '未连接'
   return status.value === 'switching' ? '切换中' : '连接中'
 })
@@ -855,9 +946,9 @@ async function triggerInteract() {
   interacting.value = true
   try {
     await interact()
-    showToast('已挥动逗猫棒，瞧瞧小猫发现了啥！')
+    showToast(copy.value.interactToast)
   } catch (error) {
-    showToast((error as Error).message || '逗猫棒指令下发失败')
+    showToast((error as Error).message || `${copy.value.interactLabel}指令下发失败`)
   } finally {
     setTimeout(() => (interacting.value = false), 1200)
   }
@@ -1172,11 +1263,7 @@ async function submitTreeHole() {
     treeOpen.value = false
     treeMessage.value = ''
     removeTreeImage()
-    showToast(
-      image
-        ? '留言和图片都悄悄投进树洞啦，猫猫会替你保密的～'
-        : '已经悄悄投进树洞啦，猫猫会替你保密的～',
-    )
+    showToast(image ? copy.value.treeSentBothToast : copy.value.treeSentToast)
   } catch {
     if (textSent) {
       treeOpen.value = false
@@ -1216,25 +1303,20 @@ function onVisibilityChange() {
   }
 }
 
-// ==================== 找猫 ====================
-const HUNT_HINTS = [
-  '猫猫今天躲在页面的某个角落，仔细看看那些装饰～',
-  '提示：它会在画面的边缘，不太起眼的地方。',
-  '它比背景里的小猫稍微清楚一点点。',
-  '试试看页面的上方和下方，猫猫喜欢待在那儿。',
-]
+// ==================== 找猫 / 找熊 ====================
 let huntHintIndex = 0
 
 function onHuntHint() {
-  showToast(HUNT_HINTS[huntHintIndex++ % HUNT_HINTS.length])
+  const hints = copy.value.huntHints
+  showToast(hints[huntHintIndex++ % hints.length])
 }
 
 function onCatFound() {
-  showToast('找到猫猫啦！它今天躲在这儿，被你发现了～')
+  showToast(copy.value.huntFoundToast)
 }
 
 function onHuntDone() {
-  showToast('今天已经找到猫猫啦，明天它还会换个地方躲起来～')
+  showToast(copy.value.huntDoneToast)
 }
 
 // ==================== 小角落菜单 ====================
@@ -1260,6 +1342,12 @@ function openHuntFromMenu() {
 function openTreeFromMenu() {
   closeCorner()
   openTreeHole()
+}
+
+function switchTheme() {
+  closeCorner()
+  toggleTheme()
+  showToast(isBear.value ? '小熊日限定主题开启啦～' : '已经换回猫咪主题，明天见～')
 }
 
 function onDocumentClick(event: MouseEvent) {

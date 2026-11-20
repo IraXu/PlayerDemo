@@ -59,6 +59,53 @@ body {
   background: rgba(25, 200, 185, 0.18);
 }
 
+/* ==================== 小熊日限定主题 ==================== */
+/* 主题由 src/theme.ts 写在 <html data-theme>，明天换回猫咪主题时整页自动复原 */
+html[data-theme='bear'] body {
+  background-color: #f8efe0;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140' viewBox='0 0 140 140'%3E%3Cg fill='%23a97845' fill-opacity='.06'%3E%3Cellipse cx='70' cy='88' rx='22' ry='17'/%3E%3Ccircle cx='37' cy='62' r='7.5'/%3E%3Ccircle cx='48' cy='45' r='7.5'/%3E%3Ccircle cx='70' cy='38' r='7.5'/%3E%3Ccircle cx='92' cy='45' r='7.5'/%3E%3Ccircle cx='103' cy='62' r='7.5'/%3E%3C/g%3E%3C/svg%3E"),
+    radial-gradient(620px 460px at 6% -6%, rgba(232, 168, 74, 0.26), transparent 64%),
+    radial-gradient(560px 420px at 98% 2%, rgba(247, 205, 103, 0.3), transparent 66%),
+    radial-gradient(620px 480px at 94% 98%, rgba(139, 177, 122, 0.24), transparent 66%),
+    radial-gradient(520px 420px at 2% 96%, rgba(214, 150, 96, 0.22), transparent 66%);
+  background-size: 140px 140px, auto, auto, auto, auto;
+}
+
+html[data-theme='bear'] ::selection {
+  background: rgba(217, 154, 58, 0.24);
+}
+
+html[data-theme='bear'] .tree-input:focus {
+  border-color: #d99a3a;
+  box-shadow: 0 0 0 3px rgba(217, 154, 58, 0.16);
+}
+
+html[data-theme='bear'] .tree-image-add:hover {
+  color: #a9761d;
+  border-color: #d99a3a;
+  background: #fdf6e9;
+}
+
+html[data-theme='bear'] .animal-modal:has(.tree-hole) .animal-btn.tree-submit {
+  color: #fff9e3;
+  background: #d99a3a;
+  border-color: #b97c22;
+  box-shadow: 0 4px 0 #96631a;
+}
+
+html[data-theme='bear'] .animal-modal:has(.tree-hole) .animal-btn.tree-submit:hover:not(:disabled) {
+  color: #fff9e3;
+  background: #e8ac4e;
+  border-color: #b97c22;
+  box-shadow: 0 5px 0 #96631a;
+}
+
+html[data-theme='bear'] .animal-modal:has(.tree-hole) .animal-btn.tree-submit:active:not(:disabled) {
+  background: #c8892c;
+  box-shadow: 0 1px 0 #96631a;
+}
+
 /* ==================== 树洞弹窗 ==================== */
 .animal-modal:has(.tree-hole) .animal-modal__body {
   padding: 32px 34px 24px;
