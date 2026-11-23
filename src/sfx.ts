@@ -322,6 +322,188 @@ export function playBearCall(delay = 0) {
 }
 
 /**
+ * 狐狸的短叫：连着两声急促的“嘤嘤”，
+ * 三角波快速下滑 + 一点锯齿波泛音，比喵声更尖更短。
+ * @param delay 相对当前时间的延迟（秒）
+ */
+export function playYip(delay = 0) {
+  const audio = getAudioContext()
+  if (!audio) return
+  const start = audio.currentTime + Math.max(0, delay)
+
+  const yips = [
+    { at: 0, duration: 0.14, pitch: 880 },
+    { at: 0.14, duration: 0.18, pitch: 960 },
+  ]
+
+  yips.forEach(({ at, duration, pitch }) => {
+    const begin = start + at
+
+    const master = audio.createGain()
+    master.gain.setValueAtTime(0, begin)
+    master.gain.linearRampToValueAtTime(0.16, begin + 0.015)
+    master.gain.exponentialRampToValueAtTime(0.001, begin + duration)
+    master.connect(audio.destination)
+
+    const tone = audio.createOscillator()
+    tone.type = 'triangle'
+    tone.frequency.setValueAtTime(pitch, begin)
+    tone.frequency.exponentialRampToValueAtTime(430, begin + duration)
+
+    const rasp = audio.createOscillator()
+    rasp.type = 'sawtooth'
+    rasp.frequency.setValueAtTime(pitch * 1.5, begin)
+    rasp.frequency.exponentialRampToValueAtTime(680, begin + duration)
+    const raspGain = audio.createGain()
+    raspGain.gain.value = 0.14
+
+    tone.connect(master)
+    rasp.connect(raspGain)
+    raspGain.connect(master)
+
+    tone.start(begin)
+    rasp.start(begin)
+    tone.stop(begin + duration + 0.02)
+    rasp.stop(begin + duration + 0.02)
+  })
+}
+
+/**
+ * 小猫开心的“咕噜啾”：连着三声短促上滑的啾鸣，
+ * 叠一层快速颤音模拟喉咙里的滚动感，和摸摸时的呼噜 + 喵声区分开。
+ * @param delay 相对当前时间的延迟（秒）
+ */
+export function playChirp(delay = 0) {
+  const audio = getAudioContext()
+  if (!audio) return
+  const start = audio.currentTime + Math.max(0, delay)
+
+  const notes = [
+    { at: 0, duration: 0.1, pitch: 520 },
+    { at: 0.11, duration: 0.1, pitch: 690 },
+    { at: 0.22, duration: 0.16, pitch: 880 },
+  ]
+
+  notes.forEach(({ at, duration, pitch }) => {
+    const begin = start + at
+
+    const master = audio.createGain()
+    master.gain.setValueAtTime(0, begin)
+    master.gain.linearRampToValueAtTime(0.13, begin + 0.012)
+    master.gain.exponentialRampToValueAtTime(0.001, begin + duration)
+    master.connect(audio.destination)
+
+    const tone = audio.createOscillator()
+    tone.type = 'triangle'
+    tone.frequency.setValueAtTime(pitch, begin)
+    tone.frequency.linearRampToValueAtTime(pitch * 1.3, begin + duration * 0.75)
+
+    // 32Hz 的快速颤音，模仿猫咪喉咙里“咕噜”的滚动感
+    const trill = audio.createOscillator()
+    trill.type = 'sine'
+    trill.frequency.value = 32
+    const trillDepth = audio.createGain()
+    trillDepth.gain.value = 16
+    trill.connect(trillDepth)
+    trillDepth.connect(tone.detune)
+
+    const body = audio.createGain()
+    body.gain.value = 0.55
+    const formant = audio.createBiquadFilter()
+    formant.type = 'bandpass'
+    formant.Q.value = 1.8
+    formant.frequency.value = pitch * 1.9
+
+    tone.connect(body)
+    body.connect(master)
+    tone.connect(formant)
+    formant.connect(master)
+
+    tone.start(begin)
+    trill.start(begin)
+    tone.stop(begin + duration + 0.02)
+    trill.stop(begin + duration + 0.02)
+  })
+}
+
+/**
+ * 被咬到的猫“嗷呜”：一声比喵声更粗更急的嚎叫，
+ * 起音带一口短促的“咔”和快速上挑，随后一路下滑，听起来像被吓到了。
+ * @param delay 相对当前时间的延迟（秒）
+ */
+export function playYowl(delay = 0) {
+  const audio = getAudioContext()
+  if (!audio) return
+  const start = audio.currentTime + Math.max(0, delay)
+  const duration = 0.62
+
+  const master = audio.createGain()
+  master.gain.setValueAtTime(0, start)
+  master.gain.linearRampToValueAtTime(0.26, start + 0.03)
+  master.gain.linearRampToValueAtTime(0.2, start + 0.18)
+  master.gain.linearRampToValueAtTime(0, start + duration)
+  master.connect(audio.destination)
+
+  const tone = audio.createOscillator()
+  tone.type = 'sawtooth'
+  const rasp = audio.createOscillator()
+  rasp.type = 'triangle'
+
+  const sweep = (param: AudioParam) => {
+    param.setValueAtTime(520, start)
+    param.linearRampToValueAtTime(980, start + 0.08)
+    param.exponentialRampToValueAtTime(330, start + duration)
+  }
+  sweep(tone.frequency)
+  sweep(rasp.frequency)
+
+  const vibrato = audio.createOscillator()
+  vibrato.type = 'sine'
+  vibrato.frequency.value = 8
+  const vibratoDepth = audio.createGain()
+  vibratoDepth.gain.value = 26
+  vibrato.connect(vibratoDepth)
+  vibratoDepth.connect(tone.detune)
+  vibratoDepth.connect(rasp.detune)
+
+  const lowpass = audio.createBiquadFilter()
+  lowpass.type = 'lowpass'
+  lowpass.frequency.setValueAtTime(2600, start)
+  lowpass.frequency.linearRampToValueAtTime(900, start + duration)
+  lowpass.Q.value = 0.9
+
+  const raspLevel = audio.createGain()
+  raspLevel.gain.value = 0.45
+
+  tone.connect(lowpass)
+  rasp.connect(raspLevel)
+  raspLevel.connect(lowpass)
+  lowpass.connect(master)
+
+  // 咬下去的一口“咔”：一小段带通噪声，让这一下和别的互动完全不一样
+  const snap = brownNoise(audio, 0.08)
+  const snapFilter = audio.createBiquadFilter()
+  snapFilter.type = 'bandpass'
+  snapFilter.frequency.value = 900
+  snapFilter.Q.value = 0.9
+  const snapGain = audio.createGain()
+  snapGain.gain.setValueAtTime(0.18, start)
+  snapGain.gain.exponentialRampToValueAtTime(0.001, start + 0.07)
+  snap.connect(snapFilter)
+  snapFilter.connect(snapGain)
+  snapGain.connect(master)
+
+  tone.start(start)
+  rasp.start(start)
+  vibrato.start(start)
+  snap.start(start)
+  tone.stop(start + duration)
+  rasp.stop(start + duration)
+  vibrato.stop(start + duration)
+  snap.stop(start + 0.1)
+}
+
+/**
  * “酱酱酱～”的揭晓音效：
  * 三个上行音 + 尾音，三角波叠一层高八度正弦，听起来像小铃铛报幕。
  */

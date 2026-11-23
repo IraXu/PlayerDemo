@@ -1,7 +1,12 @@
 <template>
   <div class="companion" :class="[mode, { leftward: facing < 0, invite: showInvite }]" :style="style">
     <button class="companion-btn" type="button" :aria-label="copy.companionAria" @click="onCatClick">
-      <span v-if="bubbleHint" class="companion-bubble" :class="{ news: hasNews }" aria-hidden="true">
+      <span
+        v-if="bubbleHint"
+        class="companion-bubble"
+        :class="{ news: hasNews, scene: scene !== 'none' }"
+        aria-hidden="true"
+      >
         {{ bubbleHint }}
       </span>
       <svg v-if="isBear" class="companion-cat" viewBox="0 0 100 100" fill="none" aria-hidden="true">
@@ -176,8 +181,171 @@
           stroke-width="1.1"
           stroke-linecap="round"
         />
+
+        <g
+          v-if="biteSpot"
+          class="companion-bite-anchor"
+          :transform="`translate(${biteSpot.x} ${biteSpot.y}) rotate(${biteSpot.rotate})`"
+        >
+          <g class="companion-bite-mark">
+            <ellipse cx="0" cy="0" rx="10" ry="6.6" fill="rgba(232, 96, 96, 0.16)" />
+            <path
+              d="M-9.4 -4.2l2.7 3.1 2.8-3.1 2.7 3.1 2.8-3.1 2.7 3.1 2.7-3.1"
+              stroke="#E06161"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              fill="none"
+            />
+            <path
+              d="M-9.4 4.2l2.7-3.1 2.8 3.1 2.7-3.1 2.8 3.1 2.7-3.1 2.7 3.1"
+              stroke="#E06161"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              fill="none"
+            />
+          </g>
+        </g>
       </svg>
     </button>
+
+    <Transition name="fox">
+      <svg
+        v-if="foxVisible"
+        class="companion-fox"
+        :class="{ lunge: foxLunge, mischief: foxMood === 'mischief' }"
+        viewBox="0 0 100 100"
+        fill="none"
+        aria-hidden="true"
+      >
+        <ellipse cx="50" cy="94" rx="22" ry="3.4" fill="rgba(121, 79, 39, 0.14)" />
+
+        <g class="companion-fox-body">
+          <g class="companion-fox-tail">
+            <path
+              d="M62 82c15 5 27 0 28-11 1-9-6-15-14-16"
+              stroke="#794F27"
+              stroke-width="14"
+              stroke-linecap="round"
+            />
+            <path
+              d="M62 82c15 5 27 0 28-11 1-9-6-15-14-16"
+              stroke="#E98B4B"
+              stroke-width="9.4"
+              stroke-linecap="round"
+            />
+            <circle cx="76" cy="55" r="5.4" fill="#FFF6E5" stroke="#794F27" stroke-width="2.2" />
+          </g>
+
+          <path
+            d="M44 53c13 0 23 10 23 22 0 8-8 13-23 13s-23-5-23-13c0-12 10-22 23-22Z"
+            fill="#E98B4B"
+            stroke="#794F27"
+            stroke-width="3"
+          />
+          <ellipse cx="41" cy="80" rx="11" ry="7" fill="#FFF6E5" />
+
+          <ellipse
+            cx="34"
+            cy="86.5"
+            rx="7.4"
+            ry="4.8"
+            fill="#FFF6E5"
+            stroke="#794F27"
+            stroke-width="2.4"
+          />
+          <ellipse
+            cx="52"
+            cy="86.5"
+            rx="7.4"
+            ry="4.8"
+            fill="#FFF6E5"
+            stroke="#794F27"
+            stroke-width="2.4"
+          />
+          <path
+            d="M31.5 84.4v3.8M34 84v4.4M36.5 84.4v3.8M49.5 84.4v3.8M52 84v4.4M54.5 84.4v3.8"
+            stroke="#C9A87C"
+            stroke-width="1.1"
+            stroke-linecap="round"
+          />
+
+          <path
+            d="M26 42 20 14 43 26a34 34 0 0 1 14 0l23-12-5 28c4 4 6 9 6 15 0 14-12 23-30 23S22 71 22 56c0-6 2-11 6-15Z"
+            fill="#E98B4B"
+            stroke="#794F27"
+            stroke-width="3"
+            stroke-linejoin="round"
+          />
+          <path d="M31 26 25 17 38 22Z" fill="#B45F38" />
+          <path d="M66 25 76 17 72 27Z" fill="#B45F38" />
+
+          <path
+            d="M46 44c-15 0-25 5-25 13 0 8 10 13 25 13s25-5 25-13c0-8-10-13-25-13Z"
+            fill="#FFF6E5"
+            stroke="#794F27"
+            stroke-width="2.2"
+          />
+
+          <template v-if="foxMood === 'mischief'">
+            <ellipse class="companion-fox-eye" cx="38" cy="37.5" rx="3.1" ry="3.8" fill="#2A2A2A" />
+            <ellipse class="companion-fox-eye" cx="60" cy="37.5" rx="3.1" ry="3.8" fill="#2A2A2A" />
+            <circle cx="39.1" cy="36.1" r="1.05" fill="#fff" />
+            <circle cx="61.1" cy="36.1" r="1.05" fill="#fff" />
+            <path
+              d="M32 31.5 37 34M66 31.5 61 34"
+              stroke="#794F27"
+              stroke-width="2.2"
+              stroke-linecap="round"
+            />
+          </template>
+          <template v-else>
+            <path
+              class="companion-fox-eye"
+              d="M33 38c2.4-3 6.2-3 8.6 0"
+              stroke="#5A3A22"
+              stroke-width="2.4"
+              stroke-linecap="round"
+            />
+            <path
+              class="companion-fox-eye"
+              d="M55 38c2.4-3 6.2-3 8.6 0"
+              stroke="#5A3A22"
+              stroke-width="2.4"
+              stroke-linecap="round"
+            />
+          </template>
+
+          <ellipse cx="31" cy="44" rx="3.4" ry="2" fill="#F4A6A4" opacity="0.55" />
+          <ellipse cx="69" cy="44" rx="3.4" ry="2" fill="#F4A6A4" opacity="0.55" />
+
+          <ellipse cx="23" cy="51.5" rx="3.7" ry="2.9" fill="#5A3A22" />
+
+          <g v-if="foxMood === 'mischief'" class="companion-fox-jaw">
+            <path
+              d="M15 54.5c4 6.5 12 8.5 17.5 3.2-1.2 5.4-6 8.4-10.4 6.2-3.6-1.8-6.2-5.4-7.1-9.4Z"
+              fill="#6B3A2A"
+              stroke="#794F27"
+              stroke-width="1.6"
+              stroke-linejoin="round"
+            />
+            <path d="M18.2 55.8 20.6 60 22.2 55.6Z" fill="#FFF6E5" />
+          </g>
+          <path
+            v-else
+            d="M23 54.2c0 2.4-3 2.6-4.4.8M23 54.2c0 2.4 3 2.6 4.4.8"
+            stroke="#794F27"
+            stroke-width="1.6"
+            stroke-linecap="round"
+          />
+        </g>
+      </svg>
+    </Transition>
+
+    <span v-if="biteBubble" class="companion-bubble scene fox-bubble" aria-hidden="true">
+      {{ biteBubble }}
+    </span>
 
     <span v-if="mode === 'sleep'" class="companion-zzz" aria-hidden="true">z</span>
 
@@ -255,10 +423,18 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { Modal } from 'animal-island-vue'
 import { ChevronLeftIcon, ChevronRightIcon, PawPrintIcon } from 'naive-icons-vue'
-import { playBearCall, playMeow, playPurr, playReveal } from '../sfx'
+import { playBearCall, playChirp, playMeow, playPurr, playReveal, playYip, playYowl } from '../sfx'
 import { copy, isBear } from '../theme'
 
-type Mode = 'sit' | 'walk' | 'sleep' | 'happy' | 'speak'
+type Mode = 'sit' | 'walk' | 'sleep' | 'happy' | 'speak' | 'nuzzle' | 'bite'
+type Scene = 'none' | 'nuzzle' | 'bite'
+
+interface BiteSpot {
+  x: number
+  y: number
+  rotate: number
+  label: string
+}
 
 interface OwnerMessage {
   id: string
@@ -273,6 +449,16 @@ interface Heart {
   size: number
 }
 
+// 每次点击随机挑一处下嘴，都选狐狸够得着的右侧和中间
+const BITE_SPOTS: BiteSpot[] = [
+  { x: 69, y: 20, rotate: 14, label: '耳朵' },
+  { x: 50, y: 16, rotate: -6, label: '头顶' },
+  { x: 66, y: 57, rotate: -12, label: '脸颊' },
+  { x: 65, y: 80, rotate: -18, label: '屁股' },
+  { x: 84, y: 68, rotate: 26, label: '尾巴' },
+  { x: 62, y: 86, rotate: 6, label: '前爪' },
+]
+
 const mode = ref<Mode>('sit')
 const facing = ref<1 | -1>(1)
 const pos = reactive({ x: 24, y: 0 })
@@ -280,6 +466,12 @@ const walkDuration = ref(3.6)
 const hearts = ref<Heart[]>([])
 const showInvite = ref(false)
 const hasPetted = ref(false)
+// 小狐狸来访：蹭蹭和咬人两个随机小剧场
+const scene = ref<Scene>('none')
+const foxVisible = ref(false)
+const foxLunge = ref(false)
+const foxMood = ref<'happy' | 'mischief'>('happy')
+const biteSpot = ref<BiteSpot | null>(null)
 // 十七的留言：有未读时小猫进入说话模式，点击后打开信箱
 const messages = ref<OwnerMessage[]>([])
 const ownerMessage = ref<OwnerMessage | null>(null)
@@ -297,8 +489,12 @@ const style = computed<Record<string, string>>(() => ({
 
 const bubbleHint = computed(() => {
   if (hasNews.value) return '有话对你说'
+  if (scene.value === 'nuzzle') return '蹭蹭蹭～'
   return showInvite.value ? '摸摸我～' : ''
 })
+
+// 咬人的吐槽气泡挂在狐狸头顶，顺便报出这次咬到的部位
+const biteBubble = computed(() => (biteSpot.value ? `嗷呜！咬到${biteSpot.value.label}了` : ''))
 
 // 聊天记录按时间倒序，最新的留言排在最上面
 const chatMessages = computed(() => {
@@ -369,6 +565,7 @@ function isToday(message: OwnerMessage) {
 let timer: ReturnType<typeof setTimeout> | null = null
 let inviteTimer: ReturnType<typeof setTimeout> | null = null
 let pollTimer: ReturnType<typeof setInterval> | null = null
+let sceneTimers: ReturnType<typeof setTimeout>[] = []
 let heartId = 0
 
 // 十七的留言存在仓库的 public/messages.json 里，页面定时拉取
@@ -404,6 +601,40 @@ function clearTimer() {
     clearTimeout(timer)
     timer = null
   }
+}
+
+/** 小剧场的定时器统一收在一起，方便中途被留言等事件打断时全部清掉 */
+function sceneLater(fn: () => void, delay: number) {
+  sceneTimers.push(
+    setTimeout(() => {
+      fn()
+    }, delay),
+  )
+}
+
+function clearSceneTimers() {
+  sceneTimers.forEach((id) => clearTimeout(id))
+  sceneTimers = []
+}
+
+function resetScene() {
+  clearSceneTimers()
+  scene.value = 'none'
+  foxVisible.value = false
+  foxLunge.value = false
+  biteSpot.value = null
+}
+
+/** 任何一次互动都算摸过它了：收起邀请、停下随机溜达 */
+function prepareInteraction() {
+  hasPetted.value = true
+  showInvite.value = false
+  if (inviteTimer) {
+    clearTimeout(inviteTimer)
+    inviteTimer = null
+  }
+  clearTimer()
+  clearSceneTimers()
 }
 
 function schedule(delay = rand(7000, 15000)) {
@@ -460,18 +691,76 @@ function pet() {
   mode.value = 'happy'
   burstHearts()
 
-  hasPetted.value = true
-  showInvite.value = false
-  if (inviteTimer) {
-    clearTimeout(inviteTimer)
-    inviteTimer = null
-  }
+  prepareInteraction()
 
-  clearTimer()
   timer = setTimeout(() => {
     mode.value = 'sit'
     schedule()
   }, 1800)
+}
+
+/** 小剧场一：狐狸来做客，小猫凑上去疯狂蹭蹭 */
+function startNuzzle() {
+  prepareInteraction()
+  facing.value = 1
+  scene.value = 'nuzzle'
+  mode.value = 'nuzzle'
+  foxMood.value = 'happy'
+  foxLunge.value = false
+  biteSpot.value = null
+  foxVisible.value = true
+
+  playChirp()
+
+  sceneLater(() => burstHearts(26), 650)
+  sceneLater(() => burstHearts(30), 1200)
+  sceneLater(() => burstHearts(24), 1750)
+  sceneLater(() => {
+    playChirp()
+    burstHearts(28)
+  }, 2300)
+
+  sceneLater(() => {
+    foxVisible.value = false
+    mode.value = 'sit'
+    scene.value = 'none'
+    schedule(rand(5000, 9000))
+  }, 3500)
+}
+
+/** 小剧场二：狐狸突然翻脸咬一口，下嘴的位置每次都不一样 */
+function startBite() {
+  prepareInteraction()
+  facing.value = 1
+  scene.value = 'bite'
+  foxMood.value = 'mischief'
+  foxLunge.value = false
+  biteSpot.value = null
+  foxVisible.value = true
+
+  // 先盯一会儿，再猛扑上去
+  sceneLater(() => {
+    foxLunge.value = true
+    playYip()
+  }, 620)
+
+  sceneLater(() => {
+    biteSpot.value = BITE_SPOTS[Math.floor(Math.random() * BITE_SPOTS.length)]
+    mode.value = 'bite'
+    playYowl()
+  }, 880)
+
+  sceneLater(() => {
+    foxLunge.value = false
+  }, 1500)
+
+  sceneLater(() => {
+    foxVisible.value = false
+    biteSpot.value = null
+    mode.value = 'sit'
+    scene.value = 'none'
+    schedule(rand(5000, 9000))
+  }, 2400)
 }
 
 function scheduleInvite(delay = 4000) {
@@ -493,7 +782,18 @@ function onCatClick() {
     openMessageDialog()
     return
   }
-  pet()
+  // 小剧场播放中不打断
+  if (scene.value !== 'none') return
+  // 小熊日还是原来的摸摸
+  if (isBear.value) {
+    pet()
+    return
+  }
+  // 三种互动等概率：摸一摸 / 蹭蹭狐狸 / 被狐狸咬
+  const roll = Math.floor(Math.random() * 3)
+  if (roll === 0) pet()
+  else if (roll === 1) startNuzzle()
+  else startBite()
 }
 
 function markMessageRead(message: OwnerMessage) {
@@ -515,6 +815,7 @@ function openMessageDialog() {
   const message = latestMessage.value
   if (!message) return
 
+  resetScene()
   ownerMessage.value = message
   // 默认停在最新留言那天，再左右切换去看往日的
   selectedDate.value = message.time?.slice(0, 10) || messageDates.value[0] || ''
@@ -594,6 +895,7 @@ async function loadOwnerMessage() {
         clearTimeout(inviteTimer)
         inviteTimer = null
       }
+      resetScene()
       mode.value = 'speak'
       clearTimer()
       return
@@ -613,10 +915,10 @@ function onVisibilityChange() {
   if (!document.hidden) void loadOwnerMessage()
 }
 
-function burstHearts() {
+function burstHearts(offset = 0) {
   const batch: Heart[] = Array.from({ length: 3 }, () => ({
     id: ++heartId,
-    left: rand(-16, 28),
+    left: rand(-16, 28) + offset,
     delay: rand(0, 0.25),
     size: rand(12, 18),
   }))
@@ -658,6 +960,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   clearTimer()
+  clearSceneTimers()
   if (inviteTimer) clearTimeout(inviteTimer)
   if (pollTimer) clearInterval(pollTimer)
   document.removeEventListener('visibilitychange', onVisibilityChange)
@@ -703,6 +1006,57 @@ onBeforeUnmount(() => {
   filter: drop-shadow(0 8px 12px rgba(121, 79, 39, 0.16));
 }
 
+/* 来做客的小狐狸：平时待在猫咪右后方，扑咬时压到最上层 */
+.companion-fox {
+  position: absolute;
+  left: 56px;
+  bottom: 0;
+  z-index: -1;
+  width: 64px;
+  height: 78px;
+  overflow: visible;
+  pointer-events: none;
+  transform-origin: 50% 92%;
+  filter: drop-shadow(0 8px 12px rgba(121, 79, 39, 0.16));
+}
+
+.companion-fox.lunge {
+  z-index: 2;
+  animation: companionFoxLunge 0.95s ease-in-out both;
+}
+
+.companion-fox-tail {
+  transform-box: fill-box;
+  transform-origin: 0% 55%;
+  animation: companionFoxTail 2.4s ease-in-out infinite;
+}
+
+.companion-fox.mischief .companion-fox-tail {
+  animation-duration: 0.9s;
+}
+
+.companion-fox-body {
+  transform-box: fill-box;
+  transform-origin: 50% 92%;
+}
+
+.companion-fox-jaw {
+  transform-box: fill-box;
+  transform-origin: 100% 8%;
+}
+
+.lunge .companion-fox-jaw {
+  animation: companionFoxChomp 0.24s ease-in-out 3;
+}
+
+.fox-enter-active {
+  animation: companionFoxIn 0.34s cubic-bezier(0.2, 0.9, 0.3, 1.35) both;
+}
+
+.fox-leave-active {
+  animation: companionFoxOut 0.28s ease-in both;
+}
+
 .companion-bubble {
   position: absolute;
   left: 50%;
@@ -741,6 +1095,17 @@ onBeforeUnmount(() => {
   color: #1d7f75;
   border-color: #b7e3dd;
   box-shadow: 0 3px 0 #cbe7e3;
+}
+
+.companion-bubble.scene {
+  color: #b5534f;
+  border-color: #f1c9c4;
+  box-shadow: 0 3px 0 #f3dbd7;
+}
+
+/* 咬人的吐槽气泡挂在狐狸头顶（狐狸中心在容器右侧约 88px 处） */
+.companion-bubble.fox-bubble {
+  left: 88px;
 }
 
 .mail-box {
@@ -971,6 +1336,36 @@ html[data-theme='bear'] .mail-date-nav:hover:not(:disabled) {
   animation: companionTail 1.5s ease-in-out infinite;
 }
 
+.nuzzle .companion-cat {
+  animation: companionCatNuzzle 1.6s ease-in-out infinite;
+}
+
+.nuzzle .companion-tail {
+  animation: companionTail 0.9s ease-in-out infinite;
+}
+
+.nuzzle .companion-eye {
+  transform: scaleY(0.16);
+}
+
+.nuzzle .companion-fox-body {
+  animation: companionFoxRub 1.6s ease-in-out infinite;
+}
+
+.bite .companion-cat {
+  animation: companionCatBite 0.85s ease-out both;
+}
+
+.bite .companion-eye {
+  animation: companionStartle 0.85s ease-out both;
+}
+
+.companion-bite-mark {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: companionBiteMark 1.3s ease-out both;
+}
+
 .companion.invite .companion-cat {
   animation: companionInvite 2.2s ease-in-out infinite;
 }
@@ -1145,10 +1540,182 @@ html[data-theme='bear'] .mail-date-nav:hover:not(:disabled) {
   }
 }
 
+@keyframes companionCatNuzzle {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  15% {
+    transform: translate(11px, -2px) rotate(9deg);
+  }
+  30% {
+    transform: translate(4px, 0) rotate(-4deg);
+  }
+  45% {
+    transform: translate(13px, -2px) rotate(11deg);
+  }
+  60% {
+    transform: translate(5px, 0) rotate(-3deg);
+  }
+  75% {
+    transform: translate(11px, -1px) rotate(8deg);
+  }
+}
+
+@keyframes companionFoxRub {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  20% {
+    transform: translate(-3px, 0) rotate(-3deg);
+  }
+  50% {
+    transform: translate(2px, -1px) rotate(2deg);
+  }
+  80% {
+    transform: translate(-2px, 0) rotate(-2deg);
+  }
+}
+
+@keyframes companionFoxIn {
+  0% {
+    opacity: 0;
+    transform: translateX(22px) scale(0.55);
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes companionFoxOut {
+  0% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(20px) scale(0.7);
+  }
+}
+
+@keyframes companionFoxLunge {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  24% {
+    transform: translate(-26px, -10px) rotate(-10deg);
+  }
+  36% {
+    transform: translate(-21px, -4px) rotate(-3deg);
+  }
+  48% {
+    transform: translate(-25px, -8px) rotate(-8deg);
+  }
+  60% {
+    transform: translate(-20px, -3px) rotate(-2deg);
+  }
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+}
+
+@keyframes companionFoxChomp {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(-12deg) scaleY(1.08);
+  }
+}
+
+@keyframes companionFoxTail {
+  0%,
+  100% {
+    transform: rotate(-5deg);
+  }
+  50% {
+    transform: rotate(8deg);
+  }
+}
+
+@keyframes companionCatBite {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  12% {
+    transform: translate(-4px, -12px) rotate(-12deg);
+  }
+  28% {
+    transform: translate(3px, -5px) rotate(9deg);
+  }
+  44% {
+    transform: translate(-3px, -9px) rotate(-7deg);
+  }
+  62% {
+    transform: translate(2px, -2px) rotate(4deg);
+  }
+  80% {
+    transform: translate(-1px, 0) rotate(-2deg);
+  }
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+}
+
+@keyframes companionStartle {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  30% {
+    transform: scale(1.55, 1.45);
+  }
+  65% {
+    transform: scale(1.2, 1.15);
+  }
+}
+
+@keyframes companionBiteMark {
+  0% {
+    opacity: 0;
+    transform: scale(0.2) rotate(-12deg);
+  }
+  18% {
+    opacity: 1;
+    transform: scale(1.12) rotate(0deg);
+  }
+  30% {
+    transform: scale(1);
+  }
+  72% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+}
+
 @media (max-width: 720px) {
   .companion {
     width: 56px;
     height: 60px;
+  }
+
+  .companion-fox {
+    left: 40px;
+    width: 47px;
+    height: 58px;
+  }
+
+  .companion-bubble.fox-bubble {
+    left: 64px;
   }
 }
 
@@ -1160,12 +1727,24 @@ html[data-theme='bear'] .mail-date-nav:hover:not(:disabled) {
   .companion-cat,
   .companion.invite .companion-cat,
   .speak .companion-cat,
+  .nuzzle .companion-cat,
+  .bite .companion-cat,
+  .bite .companion-eye,
+  .nuzzle .companion-tail,
   .companion-tail,
   .companion-eye,
   .companion-zzz,
   .companion-heart,
   .companion-bubble,
-  .companion-waves path {
+  .companion-waves path,
+  .companion-fox,
+  .companion-fox.lunge,
+  .companion-fox-tail,
+  .companion-fox-body,
+  .nuzzle .companion-fox-body,
+  .companion-fox-jaw,
+  .lunge .companion-fox-jaw,
+  .companion-bite-mark {
     animation: none;
   }
 
