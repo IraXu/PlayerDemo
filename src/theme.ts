@@ -1,25 +1,19 @@
 import { computed, ref, watch } from 'vue'
 
 /**
- * 今日是小熊日，页面默认切到小熊限定主题。
- * 猫咪主题的内容全部保留，在右上角小角落里一键就能换回去。
+ * 小熊日：每年 11 月 20 日限定一天。
+ * 当天自动切到小熊主题，过了这天自动回到猫咪主题，不做本地记忆。
  */
 export type ThemeName = 'bear' | 'cat'
 
-const STORAGE_KEY = 'player-theme'
-const DEFAULT_THEME: ThemeName = 'bear'
+const BEAR_DAY_MONTH = 11
+const BEAR_DAY_DATE = 20
 
-function readTheme(): ThemeName {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY)
-    if (saved === 'bear' || saved === 'cat') return saved
-  } catch {
-    /* 隐私模式下忽略 */
-  }
-  return DEFAULT_THEME
+function isBearDay(date = new Date()) {
+  return date.getMonth() + 1 === BEAR_DAY_MONTH && date.getDate() === BEAR_DAY_DATE
 }
 
-export const theme = ref<ThemeName>(readTheme())
+export const theme = ref<ThemeName>(isBearDay() ? 'bear' : 'cat')
 export const isBear = computed(() => theme.value === 'bear')
 
 function syncDocument(name: ThemeName) {
@@ -30,17 +24,14 @@ function syncDocument(name: ThemeName) {
 
 syncDocument(theme.value)
 
-watch(theme, (name) => {
-  syncDocument(name)
-  try {
-    localStorage.setItem(STORAGE_KEY, name)
-  } catch {
-    /* 隐私模式下忽略 */
-  }
-})
+watch(theme, (name) => syncDocument(name))
 
-export function toggleTheme() {
-  theme.value = isBear.value ? 'cat' : 'bear'
+// 页面常被长时间挂着：跨过零点时也自动上下主题
+if (typeof window !== 'undefined') {
+  window.setInterval(() => {
+    const next: ThemeName = isBearDay() ? 'bear' : 'cat'
+    if (next !== theme.value) theme.value = next
+  }, 60_000)
 }
 
 const CAT_HINTS = [

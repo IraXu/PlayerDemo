@@ -363,16 +363,6 @@
               <small>把心事悄悄投进去</small>
             </span>
           </button>
-
-          <button class="corner-item" type="button" role="menuitem" @click="switchTheme">
-            <span class="corner-icon theme">
-              <PaletteIcon :size="17" color="currentColor" />
-            </span>
-            <span class="corner-text">
-              <strong>{{ isBear ? '换回猫咪主题' : '打开小熊日主题' }}</strong>
-              <small>{{ isBear ? '小熊日限定，明天再换回来' : '今天是特别的小熊日' }}</small>
-            </span>
-          </button>
         </div>
       </transition>
 
@@ -528,7 +518,6 @@ import {
   ImageIcon,
   MaximizeIcon,
   MinimizeIcon,
-  PaletteIcon,
   PawPrintIcon,
   QrCodeIcon,
   RefreshIcon,
@@ -552,7 +541,7 @@ import {
   loadNetworkInfo,
 } from './clientInfo'
 import { prepareTreeImage, type TreeImage } from './treeImage'
-import { copy, isBear, toggleTheme } from './theme'
+import { copy, isBear } from './theme'
 import CompanionCat from './components/CompanionCat.vue'
 import DailyFortune from './components/DailyFortune.vue'
 import FindTheCat from './components/FindTheCat.vue'
@@ -1342,12 +1331,6 @@ function openHuntFromMenu() {
 function openTreeFromMenu() {
   closeCorner()
   openTreeHole()
-}
-
-function switchTheme() {
-  closeCorner()
-  toggleTheme()
-  showToast(isBear.value ? '小熊日限定主题开启啦～' : '已经换回猫咪主题，明天见～')
 }
 
 function onDocumentClick(event: MouseEvent) {
