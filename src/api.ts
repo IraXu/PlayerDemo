@@ -35,7 +35,8 @@ const ACCESS_KEY = 'G0015djd8jvz7205'
 const ACCESS_SECRET = 'ug8ebwuuaets805t'
 const DID = '1200010180ee9bea'
 const LICENSE = 'CM0423H1OUWAM'
-const LIGHT_DURATION_MS = 6000
+/** 白光灯点亮后自动恢复的时长，页面光效需要与它严格对齐 */
+export const LIGHT_DURATION_MS = 6000
 
 const encoder = new TextEncoder()
 const decoder = new TextDecoder()

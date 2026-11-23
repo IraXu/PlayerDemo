@@ -67,7 +67,11 @@ export interface ThemeCopy {
   interactTip: string
   interactLabel: string
   interactingLabel: string
-  interactToast: string
+  teasingText: string
+  teasingTip: string
+  cooldownLabel: string
+  cooldownTip: string
+  teaseEndToast: string
   footer: string
   cornerAria: string
   cornerTitle: string
@@ -112,10 +116,14 @@ const COPY: Record<ThemeName, ThemeCopy> = {
     switchingText: '猫猫正在配合调整，稍等一下下～',
     errorTitle: '暂时没连上猫猫',
     errorText: '猫猫可能打了个盹，过一会儿再试试吧～',
-    interactTip: '猫猫要和你互动咯～',
+    interactTip: '快和猫猫互动咯～',
     interactLabel: '逗猫棒',
     interactingLabel: '逗猫中',
-    interactToast: '已挥动逗猫棒，瞧瞧小猫发现了啥！',
+    teasingText: '逗猫棒挥起来啦～',
+    teasingTip: '逗猫棒正挥着，快看猫猫～',
+    cooldownLabel: '歇一会',
+    cooldownTip: '猫猫在喘口气，等一会儿再接着逗～',
+    teaseEndToast: '逗猫棒收起来啦，猫猫还盯着看～',
     footer: '十七的逗猫室 · 猫猫万岁',
     cornerAria: '打开猫猫的小角落',
     cornerTitle: '猫猫的小角落',
@@ -161,7 +169,11 @@ const COPY: Record<ThemeName, ThemeCopy> = {
     interactTip: '小熊要和你互动咯～',
     interactLabel: '逗熊棒',
     interactingLabel: '逗熊中',
-    interactToast: '已挥动逗熊棒，瞧瞧小熊发现了啥！',
+    teasingText: '逗熊棒挥起来啦～',
+    teasingTip: '逗熊棒正挥着，快看小熊～',
+    cooldownLabel: '歇一会',
+    cooldownTip: '小熊在喘口气，等一会儿再接着逗～',
+    teaseEndToast: '逗熊棒收起来啦，小熊还盯着看～',
     footer: '十七的逗熊室 · 小熊万岁',
     cornerAria: '打开小熊的小角落',
     cornerTitle: '小熊的小角落',

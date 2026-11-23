@@ -2,6 +2,11 @@
 .page {
   position: relative;
   z-index: 1;
+  /* 逗猫棒按钮的主题色，猫咪日 / 小熊日各一套 */
+  --action-accent: #19c8b9;
+  --action-accent-deep: #0e9f94;
+  --action-soft: #eefbf7;
+  --action-border: #bfe6e0;
   /* 同时受宽、高约束：横屏大屏时也能把 16:9 画面顶到视口极限 */
   width: min(100%, 1280px, calc((100svh - 270px) * 16 / 9 + 48px));
   min-height: 100vh;
@@ -12,6 +17,13 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+.page.bear-day {
+  --action-accent: #e0a344;
+  --action-accent-deep: #b97c22;
+  --action-soft: #fdf4e2;
+  --action-border: #ecd2a4;
 }
 
 /* ==================== 背景装饰 ==================== */
@@ -350,6 +362,230 @@
   background: #000;
 }
 
+/* ==================== 逗猫棒：画面里的互动小演出 ==================== */
+.tease-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* 彩带：从画面边缘飘过，中间留给猫猫 */
+.tease-ribbon {
+  position: absolute;
+  z-index: 1;
+  left: -25%;
+  width: 150%;
+  height: 34%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 7;
+  stroke-linecap: round;
+  opacity: 0.55;
+  will-change: transform;
+}
+
+.tease-ribbon path {
+  vector-effect: non-scaling-stroke;
+}
+
+.ribbon-a {
+  top: -8%;
+  color: #f7a8b8;
+  animation: ribbonFloat 4.2s ease-in-out infinite;
+}
+
+.ribbon-b {
+  top: 3%;
+  color: #6fd3c7;
+  opacity: 0.4;
+  animation: ribbonFloat 5.4s ease-in-out infinite reverse;
+}
+
+.ribbon-c {
+  bottom: -9%;
+  color: #ffd166;
+  animation: ribbonFloat 4.8s ease-in-out infinite;
+}
+
+/* 逗猫棒：从右上角垂下来，羽毛甩向画面中间 */
+.tease-wand {
+  position: absolute;
+  z-index: 2;
+  top: 9%;
+  right: 3%;
+  width: clamp(160px, 29%, 250px);
+  filter: drop-shadow(0 14px 20px rgba(0, 0, 0, 0.35));
+  animation: wandHop 2.8s ease-in-out infinite;
+  transform-origin: 92% 8%;
+}
+
+.tease-wand svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.tease-wand-swing {
+  transform-box: view-box;
+  transform-origin: 183px 17px;
+  animation: wandSwingBig 1.5s ease-in-out infinite;
+}
+
+.tease-wand-fluff {
+  transform-box: fill-box;
+  transform-origin: 90% 8%;
+  animation: featherFlutter 1.1s ease-in-out infinite;
+}
+
+.wand-spark {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: sparkTwinkle 1.3s ease-in-out infinite;
+}
+
+.spark-2 {
+  animation-delay: 0.35s;
+}
+
+.spark-3 {
+  animation-delay: 0.7s;
+}
+
+/* 彩纸屑 */
+.tease-confetti {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+}
+
+.tease-confetti span {
+  position: absolute;
+  top: -10%;
+  left: var(--x);
+  width: var(--size);
+  height: calc(var(--size) * 1.7);
+  border-radius: 2px;
+  background: var(--color);
+  opacity: 0;
+  animation:
+    confettiDrop var(--dur) var(--delay) linear infinite,
+    confettiSpin calc(var(--dur) * 1.4) var(--delay) linear infinite;
+}
+
+/* 画面内提示 */
+.tease-hud {
+  position: absolute;
+  z-index: 3;
+  top: 12px;
+  left: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: calc(100% - 76px);
+}
+
+.tease-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 6px 11px;
+  border: 2px solid #b8e3dd;
+  border-radius: 999px;
+  background: rgba(255, 252, 244, 0.94);
+  color: #0e7f75;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  box-shadow: 0 8px 18px -12px rgba(0, 0, 0, 0.55);
+  animation: teaseChipIn 0.34s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.tease-chip span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tease-track {
+  width: 100%;
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(255, 252, 244, 0.4);
+  overflow: hidden;
+}
+
+.tease-fill {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #f7a8b8, #ffd166, #6fd3c7);
+  animation-name: teaseDrain;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+.tease-fade-enter-active {
+  transition: opacity 0.16s ease;
+}
+
+.tease-fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.tease-fade-enter-from,
+.tease-fade-leave-to {
+  opacity: 0;
+}
+
+/* 房间也兴奋起来：装饰猫凑近、小猫跟着摇、爪印按钮晃起来 */
+.deco-cat {
+  transition: opacity 0.45s ease;
+}
+
+.page.teasing .deco-cat {
+  opacity: 0.22;
+  animation-duration: 2.4s;
+}
+
+.page.teasing .page-cat {
+  transform: translateY(-2px) rotate(-2deg);
+}
+
+.page.teasing .page-cat-heart {
+  animation-duration: 0.9s;
+}
+
+.page.teasing .corner-fab {
+  color: #e88fb0;
+  animation: pawCheer 1.4s ease-in-out infinite;
+}
+
+@media (max-width: 520px) {
+  .tease-wand {
+    top: 14%;
+    right: 3%;
+    width: 158px;
+  }
+
+  .tease-hud {
+    top: 10px;
+    left: 10px;
+  }
+
+  .tease-chip {
+    gap: 5px;
+    padding: 5px 9px;
+    font-size: 11px;
+  }
+}
+
+
 /* ==================== 页面右上角的小猫 ==================== */
 .page-cat {
   position: relative;
@@ -361,7 +597,9 @@
   background: transparent;
   cursor: pointer;
   filter: drop-shadow(0 10px 18px rgba(121, 79, 39, 0.16));
-  transition: transform 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    filter 0.45s ease;
 }
 
 .page-cat:hover {
@@ -704,50 +942,149 @@
   height: 19px;
 }
 
-/* 逗猫棒 */
+/* 逗猫棒：奶油小贴纸 + 圆形图标片 */
 .toolbar :deep(.animal-btn.action) {
-  height: 32px;
-  padding: 0 14px 0 10px;
-  gap: 6px;
+  height: 34px;
+  padding: 0 13px 0 5px;
+  gap: 8px;
   flex: none;
-  border: 2px solid #0ea99d;
+  border: 1.5px solid var(--action-border);
   border-radius: 999px;
-  color: #fff9e3;
-  background: #19c8b9;
+  color: #5a4227;
+  background: linear-gradient(180deg, #fffdf8, var(--action-soft));
   font-size: 12px;
   font-weight: 700;
-  box-shadow: 0 4px 0 #0b8f86;
-  transition: background 0.18s ease, box-shadow 0.18s ease, transform 0.12s ease;
+  letter-spacing: 0.02em;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 2px 5px -2px rgba(121, 79, 39, 0.18),
+    0 10px 18px -16px rgba(121, 79, 39, 0.55);
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.15s ease,
+    color 0.2s ease;
+}
+
+.toolbar :deep(.animal-btn.action) .action-icon {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  flex: none;
+  border-radius: 50%;
+  color: #fff9e3;
+  background: linear-gradient(160deg, var(--action-accent), var(--action-accent-deep));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    0 1px 3px rgba(14, 127, 117, 0.28);
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.toolbar :deep(.animal-btn.action) .action-icon::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ffd166;
+  box-shadow: 0 0 0 2px rgba(255, 209, 102, 0.25);
+  animation: actionTwinkle 2.6s ease-in-out infinite;
+}
+
+.toolbar :deep(.animal-btn.action) .action-icon .wand {
+  width: 18px;
+  height: 18px;
+  overflow: visible;
+}
+
+.toolbar :deep(.animal-btn.action) .action-label {
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .toolbar :deep(.animal-btn.action:hover:not(:disabled)) {
-  color: #fff9e3;
-  border-color: #0ea99d;
-  background: #3dd4c6;
-  box-shadow: 0 5px 0 #0b8f86;
+  color: #4b3320;
+  border-color: var(--action-accent);
+  background: linear-gradient(180deg, #fffefb, #fff8e9);
+  box-shadow:
+    inset 0 1px 0 #fff,
+    0 3px 7px -2px rgba(121, 79, 39, 0.2),
+    0 14px 22px -18px rgba(121, 79, 39, 0.6);
   transform: translateY(-1px);
 }
 
+.toolbar :deep(.animal-btn.action:hover:not(:disabled)) .action-icon {
+  transform: rotate(-7deg) scale(1.06);
+}
+
 .toolbar :deep(.animal-btn.action:active:not(:disabled)) {
+  transform: translateY(1px);
+  box-shadow: inset 0 1px 2px rgba(121, 79, 39, 0.12);
+}
+
+.toolbar :deep(.animal-btn.action:focus-visible) {
+  outline: 2px solid var(--action-accent);
+  outline-offset: 2px;
+}
+
+/* 互动进行中：整颗按钮点亮 */
+.toolbar :deep(.animal-btn.action.busy) {
   color: #fff9e3;
-  border-color: #0ea99d;
-  background: #0ea99d;
-  box-shadow: 0 1px 0 #0b8f86;
-  transform: translateY(2px);
+  border-color: var(--action-accent-deep);
+  background: linear-gradient(160deg, var(--action-accent), var(--action-accent-deep));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    0 6px 14px -10px rgba(14, 127, 117, 0.7);
 }
 
-.toolbar :deep(.animal-btn.action svg) {
-  width: 20px;
-  height: 20px;
+.toolbar :deep(.animal-btn.action.busy) .action-icon {
+  color: var(--action-accent-deep);
+  background: #fff9e3;
+  box-shadow:
+    inset 0 1px 0 #fff,
+    0 1px 2px rgba(121, 79, 39, 0.18);
 }
 
-.toolbar :deep(.animal-btn.action .wand) {
-  overflow: visible;
+.toolbar :deep(.animal-btn.action:disabled) {
+  opacity: 1;
+  filter: none;
+  cursor: default;
+}
+
+.toolbar :deep(.animal-btn.action.busy) .action-icon::after {
+  background: #ffd166;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.55);
+}
+
+/* 互动结束后的休息期 */
+.toolbar :deep(.animal-btn.action.cooling) {
+  color: #9b8d75;
+  border-color: #ded3bf;
+  background: #f7f0e3;
+  box-shadow: inset 0 1px 0 #fffdf8;
+}
+
+.toolbar :deep(.animal-btn.action.cooling) .action-icon {
+  color: #b0a38a;
+  background: #efe6d6;
+  box-shadow: none;
+}
+
+.toolbar :deep(.animal-btn.action.cooling) .action-icon::after {
+  display: none;
 }
 
 .toolbar :deep(.animal-btn.action .wand-tip) {
   transform-box: view-box;
-  transform-origin: 12.6px 11.4px;
+  transform-origin: 15px 9px;
   animation: wandSwing 1.6s cubic-bezier(0.45, 0, 0.55, 1) infinite;
 }
 
@@ -1420,6 +1757,123 @@
   }
 }
 
+@keyframes ribbonFloat {
+  0%,
+  100% {
+    transform: translate(-14px, 0) rotate(-1deg);
+  }
+  50% {
+    transform: translate(14px, 10px) rotate(1deg);
+  }
+}
+
+@keyframes wandSwingBig {
+  0%,
+  100% {
+    transform: rotate(-12deg);
+  }
+  50% {
+    transform: rotate(13deg);
+  }
+}
+
+@keyframes wandHop {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0);
+  }
+  50% {
+    transform: translate(-6px, 10px) rotate(-1.5deg);
+  }
+}
+
+@keyframes featherFlutter {
+  0%,
+  100% {
+    transform: rotate(-5deg) scale(1);
+  }
+  50% {
+    transform: rotate(6deg) scale(1.05);
+  }
+}
+
+@keyframes sparkTwinkle {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.7);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+}
+
+@keyframes confettiDrop {
+  0% {
+    top: -10%;
+    opacity: 0;
+  }
+  8% {
+    opacity: 0.95;
+  }
+  92% {
+    opacity: 0.95;
+  }
+  100% {
+    top: 108%;
+    opacity: 0;
+  }
+}
+
+@keyframes confettiSpin {
+  from {
+    transform: rotate(var(--rot));
+  }
+  to {
+    transform: rotate(calc(var(--rot) + 540deg));
+  }
+}
+
+@keyframes teaseChipIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes teaseDrain {
+  to {
+    width: 0;
+  }
+}
+
+@keyframes pawCheer {
+  0%,
+  100% {
+    transform: rotate(-5deg);
+  }
+  50% {
+    transform: rotate(5deg);
+  }
+}
+
+@keyframes actionTwinkle {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.7);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 @keyframes wandSwing {
   0%,
   100% {
@@ -1559,24 +2013,6 @@
 
 .page.bear-day .corner-slot.open .corner-fab {
   color: #96631a;
-}
-
-.page.bear-day .toolbar :deep(.animal-btn.action) {
-  border-color: #b97c22;
-  background: #d99a3a;
-  box-shadow: 0 4px 0 #96631a;
-}
-
-.page.bear-day .toolbar :deep(.animal-btn.action:hover:not(:disabled)) {
-  border-color: #b97c22;
-  background: #e8ac4e;
-  box-shadow: 0 5px 0 #96631a;
-}
-
-.page.bear-day .toolbar :deep(.animal-btn.action:active:not(:disabled)) {
-  border-color: #b97c22;
-  background: #c8892c;
-  box-shadow: 0 1px 0 #96631a;
 }
 
 .page.bear-day .quality-tabs :deep(.animal-tabs__item--active),
@@ -1824,7 +2260,19 @@
   }
 
   .toolbar :deep(.animal-btn.action) {
-    padding: 0 11px 0 9px;
+    height: 32px;
+    padding: 0 10px 0 4px;
+    gap: 6px;
+  }
+
+  .toolbar :deep(.animal-btn.action) .action-icon {
+    width: 22px;
+    height: 22px;
+  }
+
+  .toolbar :deep(.animal-btn.action) .action-icon .wand {
+    width: 16px;
+    height: 16px;
   }
 }
 
@@ -1834,7 +2282,7 @@
   }
 
   .toolbar :deep(.animal-btn.action) {
-    padding: 0 9px 0 7px;
+    padding: 0 8px 0 4px;
   }
 }
 
@@ -1847,8 +2295,21 @@
   .cat-scarf,
   .page-cat-heart,
   .deco,
+  .tease-ribbon,
+  .tease-wand,
+  .tease-wand-swing,
+  .tease-wand-fluff,
+  .wand-spark,
+  .tease-fill,
+  .tease-chip,
+  .page.teasing .corner-fab,
+  .toolbar :deep(.animal-btn.action) .action-icon::after,
   .toolbar :deep(.animal-btn.action .wand-tip) {
     animation: none;
+  }
+
+  .tease-confetti {
+    display: none;
   }
 
   .player.player {

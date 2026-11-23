@@ -1,7 +1,7 @@
 <template>
   <div
     class="page"
-    :class="{ immersive: pseudoFullscreen || isFullscreen, touch: touchMode, 'bear-day': isBear }"
+    :class="{ immersive: pseudoFullscreen || isFullscreen, touch: touchMode, 'bear-day': isBear, teasing: teasing }"
   >
     <div class="bg-decor" aria-hidden="true">
       <svg class="deco-sprite" width="0" height="0">
@@ -183,6 +183,130 @@
       >
         <div ref="containerRef" class="video"></div>
 
+        <transition name="tease-fade">
+          <div v-if="isLive && teasing" class="tease-overlay" aria-hidden="true">
+            <svg class="tease-ribbon ribbon-a" viewBox="0 0 800 240" preserveAspectRatio="none">
+              <path d="M-40 60C120-10 260 130 420 70S680-20 840 60" />
+            </svg>
+            <svg class="tease-ribbon ribbon-b" viewBox="0 0 800 240" preserveAspectRatio="none">
+              <path d="M-40 40C140 120 260 10 430 80S660 150 840 50" />
+            </svg>
+            <svg class="tease-ribbon ribbon-c" viewBox="0 0 800 240" preserveAspectRatio="none">
+              <path d="M-40 120C120 40 280 170 440 90S700 20 840 100" />
+            </svg>
+
+            <div class="tease-confetti">
+              <span v-for="piece in confetti" :key="piece.id" :style="piece.style"></span>
+            </div>
+
+            <div class="tease-wand">
+              <svg viewBox="0 0 200 200" fill="none">
+                <g class="tease-wand-swing">
+                  <!-- 奶油色衬底：任何画面上都能看清轮廓 -->
+                  <path
+                    d="M183 17 88 112"
+                    stroke="#fff7e6"
+                    stroke-width="15"
+                    stroke-linecap="round"
+                    opacity=".9"
+                  />
+                  <path
+                    d="M88 112c-8 9-15 16-21 22"
+                    stroke="#fff7e6"
+                    stroke-width="8"
+                    stroke-linecap="round"
+                    opacity=".9"
+                  />
+                  <path
+                    d="M69 131C58 134 48 142 41 153L35 148 37 158 29 158 34 166 27 169 34 175 28 181 38 181 40 189 48 181 53 188 58 177C68 161 73 144 69 131Z"
+                    fill="none"
+                    stroke="#fff7e6"
+                    stroke-width="12"
+                    stroke-linejoin="round"
+                    opacity=".9"
+                  />
+
+                  <!-- 棒身 -->
+                  <path d="M183 17 88 112" stroke="#8a5a2b" stroke-width="8" stroke-linecap="round" />
+                  <path
+                    d="M179 21 92 108"
+                    stroke="#c99a5e"
+                    stroke-width="2.6"
+                    stroke-linecap="round"
+                    opacity=".85"
+                  />
+                  <path d="M181 19 164 36" stroke="#19c8b9" stroke-width="9" stroke-linecap="round" />
+
+                  <!-- 绳子和羽毛 -->
+                  <path
+                    d="M88 112c-8 9-15 16-21 22"
+                    stroke="#8a5a2b"
+                    stroke-width="2.6"
+                    stroke-linecap="round"
+                  />
+                  <g class="tease-wand-fluff">
+                    <path
+                      d="M69 131C58 134 48 142 41 153L35 148 37 158 29 158 34 166 27 169 34 175 28 181 38 181 40 189 48 181 53 188 58 177C68 161 73 144 69 131Z"
+                      fill="#f7a8b8"
+                      stroke="#d97a93"
+                      stroke-width="2.6"
+                      stroke-linejoin="round"
+                    />
+                    <path
+                      d="M69 131C61 146 53 163 45 178"
+                      stroke="#d97a93"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                    />
+                    <path
+                      d="M64 141C59 139 54 136 49 132M58 152C52 150 47 147 42 143M52 163C46 161 41 158 36 154"
+                      stroke="#d97a93"
+                      stroke-width="1.5"
+                      stroke-linecap="round"
+                      opacity=".75"
+                    />
+                    <path
+                      d="M65 137c-6 5-11 12-15 20"
+                      stroke="#ffd3dc"
+                      stroke-width="4"
+                      stroke-linecap="round"
+                      opacity=".8"
+                    />
+                    <circle cx="69" cy="131" r="3.4" fill="#d97a93" />
+                  </g>
+
+                  <!-- 铃铛 -->
+                  <path d="M69 131 82 138" stroke="#8a5a2b" stroke-width="2.2" />
+                  <circle cx="85" cy="144" r="5.6" fill="#ffd166" stroke="#b98a1c" stroke-width="2" />
+                  <circle cx="83" cy="142" r="1.6" fill="#fff7e6" />
+
+                  <!-- 小闪光 -->
+                  <path
+                    class="wand-spark spark-1"
+                    d="M118 44l2.2 5.4 5.4 2.2-5.4 2.2-2.2 5.4-2.2-5.4-5.4-2.2 5.4-2.2Z"
+                    fill="#ffd166"
+                  />
+                  <circle class="wand-spark spark-2" cx="48" cy="112" r="3" fill="#6fd3c7" />
+                  <circle class="wand-spark spark-3" cx="96" cy="164" r="2.4" fill="#f7a8b8" />
+                </g>
+              </svg>
+            </div>
+
+            <div class="tease-hud">
+              <div class="tease-chip">
+                <PawPrintIcon :size="12" color="currentColor" />
+                <span>{{ copy.teasingText }}</span>
+              </div>
+              <div class="tease-track">
+                <span
+                  class="tease-fill"
+                  :style="{ animationDuration: `${TEASE_DURATION_MS}ms` }"
+                ></span>
+              </div>
+            </div>
+          </div>
+        </transition>
+
         <div v-if="rotateHint" class="rotate-hint">
           <SmartphoneIcon :size="16" color="currentColor" />
           <span>请将手机横过来观看</span>
@@ -268,26 +392,43 @@
             </Button>
           </Tooltip>
 
-          <Tooltip :title="copy.interactTip" placement="top" variant="island">
+          <Tooltip :title="interactHint" placement="top" variant="island">
             <Button
               class="action"
               size="small"
-              :class="{ busy: interacting }"
-              :disabled="interacting"
+              :class="{ busy: interacting || teasing, cooling: cooldownLeft > 0 }"
+              :disabled="interactDisabled"
               @click="triggerInteract"
             >
               <template #icon>
-                <svg class="wand" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                  <path d="M3.2 20.8 12.6 11.4" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                  <g class="wand-tip">
-                    <path d="M12.6 11.4c1.6-2.6 3.8-4.2 6.4-4.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
-                    <path d="M16.4 4.2c1.8 1.4 2.6 3.2 2.4 5.4-.2 2-1.4 3.5-3.6 4.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
-                    <circle cx="18.4" cy="13.4" r="1.5" fill="currentColor" />
-                    <path d="M20.2 15.2c1.2 1.4 1.6 3 1.2 4.8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
-                  </g>
-                </svg>
+                <span class="action-icon">
+                  <svg class="wand" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path
+                      d="M4 20 15 9"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                    />
+                    <path
+                      d="M15 9c1.3-1.5 2.9-2.6 4.7-3.1"
+                      stroke="currentColor"
+                      stroke-width="1.3"
+                      stroke-linecap="round"
+                    />
+                    <g class="wand-tip">
+                      <path
+                        d="M16.8 6.4c1.1-2 2.8-3.3 4.8-3.6 1-.1 1.9.4 2.3 1.4-.2 2-1.3 3.8-3 4.9-1.4 1-3 .9-4.2-.2-.4-.9-.4-1.7.1-2.5Z"
+                        fill="#f7a8b8"
+                        stroke="#d97a93"
+                        stroke-width="1.1"
+                        stroke-linejoin="round"
+                      />
+                      <circle cx="17.6" cy="10.9" r="1.3" fill="#ffd166" stroke="#b98a1c" stroke-width=".7" />
+                    </g>
+                  </svg>
+                </span>
               </template>
-              <span>{{ interacting ? copy.interactingLabel : copy.interactLabel }}</span>
+              <span class="action-label">{{ interactText }}</span>
             </Button>
           </Tooltip>
 
@@ -600,7 +741,14 @@ import {
   VolumeXIcon,
   WifiIcon,
 } from 'naive-icons-vue'
-import { interact, queryDevice, queryStream, type DeviceInfo, type StreamInfo } from './api'
+import {
+  interact,
+  LIGHT_DURATION_MS,
+  queryDevice,
+  queryStream,
+  type DeviceInfo,
+  type StreamInfo,
+} from './api'
 import eggPhoto from './assets/easter-egg.jpg'
 import {
   buildTreeHoleMessage,
@@ -656,6 +804,26 @@ const rotated = ref(false)
 const rotateHint = ref(false)
 const device = ref<DeviceInfo | null>(null)
 const interacting = ref(false)
+// 逗猫棒动画时长：和硬件侧的互动窗口保持一致
+const teasing = ref(false)
+const TEASE_DURATION_MS = LIGHT_DURATION_MS
+// 逗完歇一会儿，避免对面被反复打扰
+const cooldownLeft = ref(0)
+const COOLDOWN_MS = 30_000
+
+// 画面里的彩纸屑：位置和节奏在启动时随机一次，避免每次渲染都跳
+const CONFETTI_COLORS = ['#f7a8b8', '#ffd166', '#6fd3c7', '#f4b183', '#9db7f0']
+const confetti = Array.from({ length: 16 }, (_, index) => ({
+  id: index,
+  style: {
+    '--x': `${4 + Math.random() * 90}%`,
+    '--delay': `${(Math.random() * 2.6).toFixed(2)}s`,
+    '--dur': `${(2.4 + Math.random() * 2).toFixed(2)}s`,
+    '--rot': `${Math.round(Math.random() * 360)}deg`,
+    '--size': `${(6 + Math.random() * 5).toFixed(1)}px`,
+    '--color': CONFETTI_COLORS[index % CONFETTI_COLORS.length],
+  } as Record<string, string>,
+}))
 // 右下角小角落菜单
 const cornerOpen = ref(false)
 const huntFound = ref(false)
@@ -725,6 +893,19 @@ const placeholderText = computed(() => {
   if (status.value === 'idle') return copy.value.playText
   return status.value === 'switching' ? copy.value.switchingText : copy.value.loadingText
 })
+const interactDisabled = computed(
+  () => interacting.value || teasing.value || cooldownLeft.value > 0,
+)
+const interactText = computed(() => {
+  if (interacting.value || teasing.value) return copy.value.interactingLabel
+  if (cooldownLeft.value > 0) return copy.value.cooldownLabel
+  return copy.value.interactLabel
+})
+const interactHint = computed(() => {
+  if (teasing.value) return copy.value.teasingTip
+  if (cooldownLeft.value > 0) return copy.value.cooldownTip
+  return copy.value.interactTip
+})
 
 const MAX_RECONNECT_ATTEMPTS = 4
 const RECONNECT_MAX_DELAY = 12_000
@@ -735,6 +916,8 @@ let resizeObserver: ResizeObserver | null = null
 let videoGuard: MutationObserver | null = null
 let watchdogTimer: ReturnType<typeof setTimeout> | null = null
 let toastTimer: ReturnType<typeof setTimeout> | null = null
+let teaseEndTimer: ReturnType<typeof setTimeout> | null = null
+let cooldownTimer: ReturnType<typeof setInterval> | null = null
 let rotateHintTimer: ReturnType<typeof setTimeout> | null = null
 let reconnectTimer: ReturnType<typeof setTimeout> | null = null
 let hiddenSuspendTimer: ReturnType<typeof setTimeout> | null = null
@@ -1156,16 +1339,50 @@ async function loadDevice() {
   }
 }
 
+function clearTeaseTimers() {
+  if (teaseEndTimer) clearTimeout(teaseEndTimer)
+  if (cooldownTimer) clearInterval(cooldownTimer)
+  teaseEndTimer = null
+  cooldownTimer = null
+}
+
+/** 逗猫棒在画面上挥 6 秒，和硬件侧的反应时间对齐 */
+function startTeaseWindow() {
+  if (teaseEndTimer) clearTimeout(teaseEndTimer)
+  teasing.value = true
+  teaseEndTimer = setTimeout(() => {
+    teaseEndTimer = null
+    teasing.value = false
+    showToast(copy.value.teaseEndToast)
+  }, TEASE_DURATION_MS)
+}
+
+/** 从点亮那一刻开始计冷却，灯灭之后还剩 24 秒的休息 */
+function startCooldown() {
+  if (cooldownTimer) clearInterval(cooldownTimer)
+  const startedAt = Date.now()
+  cooldownLeft.value = Math.ceil(COOLDOWN_MS / 1000)
+  cooldownTimer = setInterval(() => {
+    const remain = startedAt + COOLDOWN_MS - Date.now()
+    cooldownLeft.value = Math.max(0, Math.ceil(remain / 1000))
+    if (remain <= 0 && cooldownTimer) {
+      clearInterval(cooldownTimer)
+      cooldownTimer = null
+    }
+  }, 250)
+}
+
 async function triggerInteract() {
-  if (interacting.value) return
+  if (interactDisabled.value) return
   interacting.value = true
   try {
     await interact()
-    showToast(copy.value.interactToast)
+    startTeaseWindow()
+    startCooldown()
   } catch (error) {
     showToast((error as Error).message || `${copy.value.interactLabel}指令下发失败`)
   } finally {
-    setTimeout(() => (interacting.value = false), 1200)
+    interacting.value = false
   }
 }
 
@@ -1697,6 +1914,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   if (toastTimer) clearTimeout(toastTimer)
+  clearTeaseTimers()
   if (rotateHintTimer) clearTimeout(rotateHintTimer)
   clearReconnectTimer()
   clearHiddenSuspendTimer()
