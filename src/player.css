@@ -430,6 +430,12 @@
   text-align: center;
 }
 
+/* 未播放时没有控制栏，内容整体居中 */
+.placeholder.idle {
+  gap: 12px;
+  padding: 24px;
+}
+
 .glyph {
   width: 64px;
   height: 64px;
@@ -501,6 +507,85 @@
 .placeholder .retry :deep(svg) {
   width: 16px;
   height: 16px;
+}
+
+/* 首屏播放按钮：点击后才建立视频通道 */
+.play-btn {
+  width: 76px;
+  height: 76px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border-radius: 50%;
+  border: 2px solid #0ea99d;
+  color: #fff9e3;
+  background: #19c8b9;
+  box-shadow:
+    0 5px 0 #0b8f86,
+    0 20px 34px -18px rgba(11, 143, 134, 0.65);
+  cursor: pointer;
+  transition:
+    transform 0.18s ease,
+    background 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.play-btn:hover {
+  background: #3dd4c6;
+  transform: translateY(-2px) scale(1.03);
+}
+
+.play-btn:active {
+  background: #0ea99d;
+  box-shadow: 0 1px 0 #0b8f86;
+  transform: translateY(2px) scale(0.98);
+}
+
+.play-btn:focus-visible {
+  outline: 2px solid #0b8f86;
+  outline-offset: 3px;
+}
+
+/* 播放按钮内的三角形视觉居中 */
+.play-btn :deep(svg) {
+  margin-left: 3px;
+}
+
+/* 播放中的关闭按钮 */
+.stop-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 6;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.22);
+  color: #f6efe2;
+  background: rgba(20, 24, 32, 0.55);
+  backdrop-filter: blur(6px);
+  cursor: pointer;
+  transition:
+    background 0.18s ease,
+    transform 0.18s ease;
+}
+
+.stop-btn:hover {
+  background: rgba(226, 76, 76, 0.9);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: scale(1.06);
+}
+
+.stop-btn:active {
+  transform: scale(0.94);
+}
+
+.stop-btn:focus-visible {
+  outline: 2px solid #19c8b9;
+  outline-offset: 3px;
 }
 
 /* ==================== 控制栏 ==================== */
@@ -1629,6 +1714,23 @@
     margin-top: 2px;
     padding: 0 14px;
     font-size: 12.5px;
+  }
+
+  .placeholder.idle {
+    gap: 10px;
+    padding: 16px;
+  }
+
+  .play-btn {
+    width: 64px;
+    height: 64px;
+  }
+
+  .stop-btn {
+    top: 10px;
+    right: 10px;
+    width: 32px;
+    height: 32px;
   }
 
   .corner-slot {

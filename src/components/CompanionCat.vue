@@ -489,7 +489,7 @@ const style = computed<Record<string, string>>(() => ({
 
 const bubbleHint = computed(() => {
   if (hasNews.value) return '有话对你说'
-  if (scene.value === 'nuzzle') return '蹭蹭蹭～'
+  if (scene.value === 'nuzzle') return '蹭蹭蹭～钻进狐狸怀里去～'
   return showInvite.value ? '摸摸我～' : ''
 })
 

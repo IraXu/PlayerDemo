@@ -53,6 +53,17 @@ export interface ThemeCopy {
   subtitle: string
   mascotTip: string
   liveStatus: string
+  idleStatus: string
+  playTitle: string
+  playText: string
+  playAria: string
+  stopTitle: string
+  loadingTitle: string
+  loadingText: string
+  switchingTitle: string
+  switchingText: string
+  errorTitle: string
+  errorText: string
   interactTip: string
   interactLabel: string
   interactingLabel: string
@@ -84,6 +95,17 @@ const COPY: Record<ThemeName, ThemeCopy> = {
     subtitle: '一只猫，一台摄像头，和想来看他的人',
     mascotTip: '摸摸小猫',
     liveStatus: '猫猫丧丧の，尝试逗逗吧～',
+    idleStatus: '猫猫还没出镜',
+    playTitle: '猫猫在屏幕里等你哦',
+    playText: '轻点播放，看看猫猫此刻在做什么～',
+    playAria: '播放猫猫画面',
+    stopTitle: '先不看了',
+    loadingTitle: '正在连上猫猫的镜头…',
+    loadingText: '悄悄搭一条小路过去，马上就好～',
+    switchingTitle: '正在换个更清楚的视角…',
+    switchingText: '猫猫正在配合调整，稍等一下下～',
+    errorTitle: '暂时没连上猫猫',
+    errorText: '猫猫可能打了个盹，过一会儿再试试吧～',
     interactTip: '猫猫要和你互动咯～',
     interactLabel: '逗猫棒',
     interactingLabel: '逗猫中',
@@ -113,6 +135,17 @@ const COPY: Record<ThemeName, ThemeCopy> = {
     subtitle: '一只小熊，一台摄像头，和想来看他的人',
     mascotTip: '摸摸小熊',
     liveStatus: '熊熊丧丧の，尝试逗逗吧～',
+    idleStatus: '小熊还没出镜',
+    playTitle: '小熊在屏幕里等你哦',
+    playText: '轻点播放，看看小熊此刻在做什么～',
+    playAria: '播放小熊画面',
+    stopTitle: '先不看了',
+    loadingTitle: '正在连上小熊的镜头…',
+    loadingText: '悄悄搭一条小路过去，马上就好～',
+    switchingTitle: '正在换个更清楚的视角…',
+    switchingText: '小熊正在配合调整，稍等一下下～',
+    errorTitle: '暂时没连上小熊',
+    errorText: '小熊可能打了个盹，过一会儿再试试吧～',
     interactTip: '小熊要和你互动咯～',
     interactLabel: '逗熊棒',
     interactingLabel: '逗熊中',

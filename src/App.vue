@@ -188,8 +188,18 @@
           <span>请将手机横过来观看</span>
         </div>
 
-        <div v-if="!isLive" class="placeholder">
-          <span v-if="status === 'error'" class="glyph">
+        <div v-if="!isLive" class="placeholder" :class="{ idle: status === 'idle' }">
+          <button
+            v-if="status === 'idle'"
+            class="play-btn"
+            type="button"
+            :aria-label="copy.playAria"
+            :title="copy.playAria"
+            @click.stop="openPlayback"
+          >
+            <PlayIcon :size="30" color="currentColor" />
+          </button>
+          <span v-else-if="status === 'error'" class="glyph">
             <VideoOffIcon :size="32" color="currentColor" />
           </span>
           <SpinnerIcon v-else class="spinner" :size="34" color="#19c8b9" />
@@ -203,7 +213,18 @@
           </Button>
         </div>
 
-        <div class="toolbar" @click.stop>
+        <button
+          v-if="isLive"
+          class="stop-btn"
+          type="button"
+          aria-label="关闭播放"
+          :title="copy.stopTitle"
+          @click.stop="closePlayback"
+        >
+          <CloseIcon :size="18" color="currentColor" />
+        </button>
+
+        <div v-if="isLive" class="toolbar" @click.stop>
           <Tabs
             class="quality-tabs"
             :items="qualityItems"
@@ -519,6 +540,7 @@ import {
   MaximizeIcon,
   MinimizeIcon,
   PawPrintIcon,
+  PlayIcon,
   QrCodeIcon,
   RefreshIcon,
   SearchIcon,
@@ -551,7 +573,7 @@ const TREE_WEBHOOK = 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=ab1da
 
 const containerRef = ref<HTMLElement>()
 const stageRef = ref<HTMLElement>()
-const status = ref<'loading' | 'switching' | 'playing' | 'error'>('loading')
+const status = ref<'idle' | 'loading' | 'switching' | 'playing' | 'error'>('idle')
 const errorMsg = ref('')
 const stream = ref<0 | 1>(0)
 const qualityItems = [
@@ -620,15 +642,18 @@ const statusKey = computed(() =>
 const statusLabel = computed(() => {
   if (status.value === 'playing') return copy.value.liveStatus
   if (status.value === 'error') return '未连接'
+  if (status.value === 'idle') return copy.value.idleStatus
   return status.value === 'switching' ? '切换中' : '连接中'
 })
 const placeholderTitle = computed(() => {
-  if (status.value === 'error') return '暂时无法连接'
-  return status.value === 'switching' ? '正在切换码流' : '正在连接设备'
+  if (status.value === 'error') return copy.value.errorTitle
+  if (status.value === 'idle') return copy.value.playTitle
+  return status.value === 'switching' ? copy.value.switchingTitle : copy.value.loadingTitle
 })
 const placeholderText = computed(() => {
-  if (status.value === 'error') return errorMsg.value || '请稍后重试'
-  return '正在建立加密视频通道'
+  if (status.value === 'error') return errorMsg.value || copy.value.errorText
+  if (status.value === 'idle') return copy.value.playText
+  return status.value === 'switching' ? copy.value.switchingText : copy.value.loadingText
 })
 
 let player: HMPlayerInstance | null = null
@@ -897,8 +922,26 @@ async function connect() {
   }
 }
 
+// 点击播放按钮才建立视频通道，避免进入页面自动拉流
+async function openPlayback() {
+  if (status.value !== 'idle' && status.value !== 'error') return
+  await connect()
+}
+
+// 播放中关闭：销毁播放器回到未播放状态
+async function closePlayback() {
+  await destroyPlayer()
+  stopWatchdog()
+  resetMeta()
+  errorMsg.value = ''
+  autoRetried = false
+  status.value = 'idle'
+  if (document.fullscreenElement) await document.exitFullscreen().catch(() => undefined)
+  if (pseudoFullscreen.value) exitPseudoFullscreen()
+}
+
 async function switchStream(target: 0 | 1) {
-  if (target === stream.value || status.value === 'switching') return
+  if (target === stream.value || status.value !== 'playing') return
   stream.value = target
 
   await destroyPlayer()
@@ -1078,7 +1121,7 @@ function onStageTap(event: MouseEvent) {
 
 function onStageDoubleClick(event: MouseEvent) {
   // 桌面端：双击画面切换全屏
-  if (isTouchDevice() || isToolbarEvent(event)) return
+  if (!isLive.value || isTouchDevice() || isToolbarEvent(event)) return
   void toggleFullscreen()
 }
 
@@ -1349,7 +1392,6 @@ onMounted(() => {
   window.visualViewport?.addEventListener('resize', onViewportResize)
   window.addEventListener('keydown', onKeydown)
   void loadDevice()
-  void connect()
 })
 
 onBeforeUnmount(() => {
