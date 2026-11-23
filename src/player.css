@@ -1139,6 +1139,11 @@
   background: #e7f4e8;
 }
 
+.corner-icon.share {
+  color: #c0567a;
+  background: #fdeef3;
+}
+
 .corner-text {
   display: flex;
   flex: 1;

@@ -85,6 +85,12 @@ export interface ThemeCopy {
   treeDesc: string
   treeSentToast: string
   treeSentBothToast: string
+  shareLabel: string
+  shareDesc: string
+  shareHint: string
+  shareFail: string
+  shareCardTip: string
+  shareSaved: string
   companionAria: string
   eggWish: string
 }
@@ -127,6 +133,12 @@ const COPY: Record<ThemeName, ThemeCopy> = {
     treeDesc: '把想说的话悄悄放进树洞吧，只有树和猫会听到。',
     treeSentToast: '已经悄悄投进树洞啦，猫猫会替你保密的～',
     treeSentBothToast: '留言和图片都悄悄投进树洞啦，猫猫会替你保密的～',
+    shareLabel: '猫猫卡片',
+    shareDesc: '把这一刻装进口袋',
+    shareHint: '等猫猫出镜了，再把它装进口袋吧～',
+    shareFail: '卡片没做出来，再试一次吧',
+    shareCardTip: '长按图片也可以保存，或者直接分享给朋友～',
+    shareSaved: '卡片已经保存到本地啦',
     companionAria: '摸摸陪你待着的小猫',
     eggWish: '愿你每天都被小猫治愈。每天保持好心情～',
   },
@@ -167,9 +179,19 @@ const COPY: Record<ThemeName, ThemeCopy> = {
     treeDesc: '把想说的话悄悄放进树洞吧，只有树和熊会听到。',
     treeSentToast: '已经悄悄投进树洞啦，小熊会替你保密的～',
     treeSentBothToast: '留言和图片都悄悄投进树洞啦，小熊会替你保密的～',
+    shareLabel: '小熊卡片',
+    shareDesc: '把这一刻装进口袋',
+    shareHint: '等小熊出镜了，再把它装进口袋吧～',
+    shareFail: '卡片没做出来，再试一次吧',
+    shareCardTip: '长按图片也可以保存，或者直接分享给朋友～',
+    shareSaved: '卡片已经保存到本地啦',
     companionAria: '摸摸陪你待着的小熊',
     eggWish: '愿你每天都被小熊治愈。每天保持好心情～',
   },
 }
 
-export const copy = computed(() => COPY[theme.value])
+export function copyFor(name: ThemeName): ThemeCopy {
+  return COPY[name]
+}
+
+export const copy = computed(() => copyFor(theme.value))

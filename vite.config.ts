@@ -16,9 +16,10 @@ function dropCjkWebFonts(): Plugin {
   }
 }
 
-export default defineConfig(({ command }) => ({
-  // GitHub Pages 项目站点部署在 /PlayerDemo/ 子路径下，构建时需要带上 base
-  base: command === 'build' ? '/PlayerDemo/' : '/',
+export default defineConfig(({ mode }) => ({
+  // GitHub Pages 项目站点部署在 /PlayerDemo/ 子路径下；
+  // preview 也使用 production mode，这样本地能按线上路径验证 SW / manifest
+  base: mode === 'production' ? '/PlayerDemo/' : '/',
   plugins: [vue(), dropCjkWebFonts()],
   server: {
     host: '127.0.0.1',

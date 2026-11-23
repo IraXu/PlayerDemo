@@ -87,6 +87,11 @@ html[data-theme='bear'] .tree-image-add:hover {
   background: #fdf6e9;
 }
 
+html[data-theme='bear'] .corner-icon.share {
+  color: #b4652a;
+  background: #fdeedb;
+}
+
 html[data-theme='bear'] .animal-modal:has(.tree-hole) .animal-btn.tree-submit {
   color: #fff9e3;
   background: #d99a3a;
@@ -355,6 +360,125 @@ html[data-theme='bear'] .animal-modal:has(.tree-hole) .animal-btn.tree-submit:ac
 @media (max-width: 520px) {
   .animal-modal:has(.fortune) .animal-modal__body {
     padding: 20px 18px 14px;
+  }
+}
+
+/* ==================== 分享卡片弹窗 ==================== */
+.animal-modal:has(.share-card) .animal-modal__body {
+  padding: 28px 28px 18px;
+}
+
+.animal-modal:has(.share-card) .animal-modal__content {
+  align-items: stretch;
+  padding-bottom: 12px;
+  color: #5a4227;
+}
+
+.share-card {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+}
+
+.share-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+}
+
+.share-head h2 {
+  margin: 0;
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #794f27;
+}
+
+.share-head p {
+  margin: 0;
+  font-size: 12px;
+  color: #9f927d;
+}
+
+.share-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 300px;
+  border-radius: 18px;
+  border: 2px dashed #e3d3b6;
+  background: #fffaf0;
+  font-size: 12.5px;
+  color: #8f734f;
+}
+
+.share-preview {
+  overflow: hidden;
+  border-radius: 18px;
+  border: 2px solid #e3d3b6;
+  background: #fffaf0;
+  box-shadow: 0 14px 30px -20px rgba(121, 79, 39, 0.6);
+}
+
+.share-preview img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.share-tip {
+  margin: 0;
+  text-align: center;
+  font-size: 11px;
+  color: #9f927d;
+}
+
+.animal-modal:has(.share-card) .animal-btn.share-save,
+.animal-modal:has(.share-card) .animal-btn.share-send {
+  color: #fff9e3;
+  background: #19c8b9;
+  border-color: #0ea99d;
+  box-shadow: 0 4px 0 #0b8f86;
+}
+
+.animal-modal:has(.share-card) .animal-btn.share-save:hover:not(:disabled),
+.animal-modal:has(.share-card) .animal-btn.share-send:hover:not(:disabled) {
+  color: #fff9e3;
+  background: #3dd4c6;
+  border-color: #0ea99d;
+  box-shadow: 0 5px 0 #0b8f86;
+  transform: translateY(-1px);
+}
+
+html[data-theme='bear'] .animal-modal:has(.share-card) .animal-btn.share-save,
+html[data-theme='bear'] .animal-modal:has(.share-card) .animal-btn.share-send {
+  color: #fff9e3;
+  background: #d99a3a;
+  border-color: #b97c22;
+  box-shadow: 0 4px 0 #96631a;
+}
+
+html[data-theme='bear'] .animal-modal:has(.share-card) .animal-btn.share-save:hover:not(:disabled),
+html[data-theme='bear'] .animal-modal:has(.share-card) .animal-btn.share-send:hover:not(:disabled) {
+  color: #fff9e3;
+  background: #e8ac4e;
+  border-color: #b97c22;
+  box-shadow: 0 5px 0 #96631a;
+}
+
+@media (max-width: 520px) {
+  .animal-modal:has(.share-card) .animal-modal__body {
+    padding: 22px 18px 14px;
+  }
+
+  .share-loading {
+    min-height: 240px;
   }
 }
 

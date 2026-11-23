@@ -375,6 +375,16 @@
             </span>
           </button>
 
+          <button class="corner-item" type="button" role="menuitem" @click="openShareFromMenu">
+            <span class="corner-icon share">
+              <ShareIcon :size="17" color="currentColor" />
+            </span>
+            <span class="corner-text">
+              <strong>{{ copy.shareLabel }}</strong>
+              <small>{{ copy.shareDesc }}</small>
+            </span>
+          </button>
+
           <button class="corner-item" type="button" role="menuitem" @click="openTreeFromMenu">
             <span class="corner-icon tree">
               <TreeIcon :size="17" color="currentColor" />
@@ -472,8 +482,43 @@
       </template>
     </Modal>
 
+    <Modal v-model:open="shareOpen" variant="default" :typewriter="false" :width="420">
+      <div class="share-card">
+        <div class="share-head">
+          <ShareIcon :size="24" color="#19c8b9" />
+          <h2>{{ copy.shareLabel }}</h2>
+          <p>把此刻的{{ isBear ? '小熊' : '猫猫' }}做成一张小卡片</p>
+        </div>
+
+        <div v-if="shareBusy" class="share-loading">
+          <SpinnerIcon class="spinner" :size="30" color="#19c8b9" />
+          <span>正在做成小卡片…</span>
+        </div>
+        <div v-else-if="shareUrl" class="share-preview">
+          <img :src="shareUrl" alt="分享卡片预览" />
+        </div>
+
+        <p class="share-tip">{{ copy.shareCardTip }}</p>
+      </div>
+      <template #footer>
+        <Button type="default" @click="shareOpen = false">先不分享</Button>
+        <Button type="primary" class="share-save" :disabled="!shareUrl" @click="saveShareCard">
+          保存图片
+        </Button>
+        <Button
+          v-if="canNativeShare"
+          type="primary"
+          class="share-send"
+          :disabled="!shareUrl"
+          @click="shareCardNative"
+        >
+          分享给朋友
+        </Button>
+      </template>
+    </Modal>
+
     <transition name="fade">
-      <div v-if="toast" class="toast">{{ toast }}</div>
+      <div v-if="toast" class="toast" role="status" aria-live="polite">{{ toast }}</div>
     </transition>
 
     <transition name="egg-fade">
@@ -524,7 +569,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { Button, Card, Collapse, Footer, Modal, Tabs, Title, Tooltip, Typewriter } from 'animal-island-vue'
 import {
   BoneIcon,
@@ -544,6 +589,7 @@ import {
   QrCodeIcon,
   RefreshIcon,
   SearchIcon,
+  ShareIcon,
   SmartphoneIcon,
   SpinnerIcon,
   StarIcon,
@@ -563,7 +609,9 @@ import {
   loadNetworkInfo,
 } from './clientInfo'
 import { prepareTreeImage, type TreeImage } from './treeImage'
-import { copy, isBear } from './theme'
+import { composeShareCard } from './shareCard'
+import { loadPlayerSdk } from './playerSdk'
+import { copy, isBear, theme } from './theme'
 import CompanionCat from './components/CompanionCat.vue'
 import DailyFortune from './components/DailyFortune.vue'
 import FindTheCat from './components/FindTheCat.vue'
@@ -575,7 +623,23 @@ const containerRef = ref<HTMLElement>()
 const stageRef = ref<HTMLElement>()
 const status = ref<'idle' | 'loading' | 'switching' | 'playing' | 'error'>('idle')
 const errorMsg = ref('')
-const stream = ref<0 | 1>(0)
+const QUALITY_KEY = 'cat-stream-quality'
+
+/** 记住上次清晰度；手机上默认高清，减少软解压力 */
+function initialQuality(): 0 | 1 {
+  try {
+    const saved = localStorage.getItem(QUALITY_KEY)
+    if (saved === '0' || saved === '1') return saved === '1' ? 1 : 0
+  } catch {
+    /* 隐私模式下忽略 */
+  }
+  const coarse = window.matchMedia?.('(pointer: coarse)').matches ?? false
+  const cores = navigator.hardwareConcurrency ?? 8
+  const memory = (navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? 8
+  return coarse || cores <= 4 || memory <= 4 ? 1 : 0
+}
+
+const stream = ref<0 | 1>(initialQuality())
 const qualityItems = [
   { key: '0', label: '超清' },
   { key: '1', label: '高清' },
@@ -612,6 +676,12 @@ const treeImageError = ref('')
 const treeFileRef = ref<HTMLInputElement | null>(null)
 const treeError = ref('')
 const treeTyped = ref(false)
+// 分享卡片
+const shareOpen = ref(false)
+const shareBusy = ref(false)
+const shareUrl = ref('')
+const canNativeShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function'
+let shareBlob: Blob | null = null
 interface EggPhotoItem {
   id: number
   left: number
@@ -656,20 +726,39 @@ const placeholderText = computed(() => {
   return status.value === 'switching' ? copy.value.switchingText : copy.value.loadingText
 })
 
+const MAX_RECONNECT_ATTEMPTS = 4
+const RECONNECT_MAX_DELAY = 12_000
+const HIDDEN_SUSPEND_MS = 3 * 60_000
+
 let player: HMPlayerInstance | null = null
-let cachedStream: StreamInfo | null = null
 let resizeObserver: ResizeObserver | null = null
 let videoGuard: MutationObserver | null = null
 let watchdogTimer: ReturnType<typeof setTimeout> | null = null
 let toastTimer: ReturnType<typeof setTimeout> | null = null
 let rotateHintTimer: ReturnType<typeof setTimeout> | null = null
+let reconnectTimer: ReturnType<typeof setTimeout> | null = null
+let hiddenSuspendTimer: ReturnType<typeof setTimeout> | null = null
 const redrawTimers: Array<ReturnType<typeof setTimeout>> = []
-let autoRetried = false
+// 用户是否还想继续看直播：手动关闭后不再自动重连
+let wantLive = false
+let reconnectAttempt = 0
+let reconnecting = false
+// 后台挂久了主动停流，回来时再恢复
+let suspendedByHidden = false
 
 function showToast(message: string) {
   toast.value = message
   if (toastTimer) clearTimeout(toastTimer)
   toastTimer = setTimeout(() => (toast.value = ''), 2000)
+}
+
+/** 非关键请求让路首屏：空闲时再查设备信息 */
+function runWhenIdle(task: () => void) {
+  const win = window as Window & {
+    requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number
+  }
+  if (win.requestIdleCallback) win.requestIdleCallback(task, { timeout: 2500 })
+  else window.setTimeout(task, 800)
 }
 
 // ==================== 播放器 ====================
@@ -724,7 +813,18 @@ function setupVideoGuard(el: HTMLElement) {
 function resizePlayer() {
   if (!player || !containerRef.value) return
   const { clientWidth, clientHeight } = containerRef.value
-  player.resizeView(0, 0, Math.max(1, clientWidth), Math.max(1, clientHeight))
+  try {
+    player.resizeView(0, 0, Math.max(1, clientWidth), Math.max(1, clientHeight))
+  } catch {
+    /* 播放器 worker 尚未初始化完成时忽略这次尺寸同步 */
+  }
+}
+
+/** 首帧出来后再监听尺寸变化，避免向还没初始化的 worker 发送 resize */
+function attachResizeObserver(el: HTMLElement) {
+  if (resizeObserver) return
+  resizeObserver = new ResizeObserver(() => resizePlayer())
+  resizeObserver.observe(el)
 }
 
 async function waitForStableSize(el: HTMLElement) {
@@ -764,7 +864,7 @@ function applyAudioState() {
     if (muted.value) player.mute()
     else {
       player.unMute()
-      player.setVolume(volumePercent.value / 100)
+      player.setVolume(volumePercent.value)
     }
   } catch {
     /* ignore */
@@ -777,9 +877,7 @@ async function startPlayer(info: StreamInfo, streamId: number) {
   if (!el) throw new Error('播放器容器未就绪')
   await waitForStableSize(el)
 
-  if (typeof window.HMWebPlayer !== 'function') {
-    throw new Error('播放器加载失败，请刷新重试')
-  }
+  await loadPlayerSdk()
 
   const instance = new window.HMWebPlayer({
     container: el,
@@ -802,13 +900,13 @@ async function startPlayer(info: StreamInfo, streamId: number) {
     if (player !== instance) return
     if (state === 2 || state === 4) {
       status.value = 'playing'
+      reconnectAttempt = 0
       stopWatchdog()
+      attachResizeObserver(el)
       forceRedraw()
       applyAudioState()
     } else if (state === 5) {
-      status.value = 'error'
-      errorMsg.value = '播放通道已中断'
-      stopWatchdog()
+      handleStreamInterruption('播放通道已中断，正在重连…')
     }
   })
 
@@ -823,20 +921,19 @@ async function startPlayer(info: StreamInfo, streamId: number) {
     fps.value = stats.vFramerate || stats.yuvFramerate || stats.vRemuxFramerate || 0
     if (status.value !== 'playing' && (stats.vFramerate > 0 || stats.yuvFramerate > 0)) {
       status.value = 'playing'
+      reconnectAttempt = 0
       stopWatchdog()
+      attachResizeObserver(el)
     }
   })
 
   instance.on('error', () => {
     if (player !== instance) return
-    status.value = 'error'
-    errorMsg.value = '拉流异常，请确认设备在线'
-    stopWatchdog()
+    handleStreamInterruption('拉流异常，正在重连…')
   })
 
   resizeObserver?.disconnect()
-  resizeObserver = new ResizeObserver(() => resizePlayer())
-  resizeObserver.observe(el)
+  resizeObserver = null
 
   instance.startHMLiveStream(
     '',
@@ -880,14 +977,8 @@ function startWatchdog() {
   watchdogTimer = setTimeout(() => {
     watchdogTimer = null
     if (status.value !== 'loading' && status.value !== 'switching') return
-    if (autoRetried) {
-      status.value = 'error'
-      errorMsg.value = '视频通道建立超时'
-      return
-    }
-    autoRetried = true
-    void connect()
-  }, 9000)
+    handleStreamInterruption('连接超时，正在重试…')
+  }, 10_000)
 }
 
 function stopWatchdog() {
@@ -897,28 +988,107 @@ function stopWatchdog() {
   }
 }
 
+function clearReconnectTimer() {
+  if (reconnectTimer) {
+    clearTimeout(reconnectTimer)
+    reconnectTimer = null
+  }
+}
+
+function clearHiddenSuspendTimer() {
+  if (hiddenSuspendTimer) {
+    clearTimeout(hiddenSuspendTimer)
+    hiddenSuspendTimer = null
+  }
+}
+
+/** 直播中途断开：保持“还想看”的意图，按指数退避自动重连 */
+function handleStreamInterruption(message: string) {
+  if (!wantLive || reconnecting) return
+  stopWatchdog()
+  status.value = 'loading'
+  errorMsg.value = ''
+  showToast(message)
+  void destroyPlayer()
+  scheduleReconnect()
+}
+
+function scheduleReconnect() {
+  if (!wantLive || reconnectTimer) return
+  if (reconnectAttempt >= MAX_RECONNECT_ATTEMPTS) {
+    status.value = 'error'
+    errorMsg.value = '画面没有连上，稍后再试试吧'
+    showToast(errorMsg.value)
+    return
+  }
+  const delay = Math.min(RECONNECT_MAX_DELAY, 1500 * 2 ** reconnectAttempt)
+  reconnectAttempt += 1
+  reconnectTimer = setTimeout(() => {
+    reconnectTimer = null
+    void reconnectStream()
+  }, delay)
+}
+
+async function reconnectStream() {
+  if (!wantLive || reconnecting) return
+  reconnecting = true
+  clearReconnectTimer()
+
+  try {
+    await destroyPlayer()
+    stopWatchdog()
+    resetMeta()
+    status.value = 'loading'
+    errorMsg.value = ''
+
+    const [info] = await Promise.all([fetchStream(), loadPlayerSdk()])
+    if (!wantLive) return
+    await startPlayer(info, stream.value)
+    // 等待期间用户可能已经手动关掉了
+    if (!wantLive) {
+      await destroyPlayer()
+      return
+    }
+    startWatchdog()
+  } catch {
+    scheduleReconnect()
+  } finally {
+    reconnecting = false
+  }
+}
+
 // ==================== 取流 ====================
-async function fetchStream(force = false): Promise<StreamInfo> {
-  if (!force && cachedStream) return cachedStream
-  cachedStream = await queryStream()
-  return cachedStream
+function fetchStream(): Promise<StreamInfo> {
+  return queryStream()
 }
 
 async function connect() {
+  clearReconnectTimer()
+  clearHiddenSuspendTimer()
+  wantLive = true
+  reconnectAttempt = 0
+  suspendedByHidden = false
+
   await destroyPlayer()
   stopWatchdog()
   resetMeta()
   status.value = 'loading'
   errorMsg.value = ''
-  autoRetried = false
 
   try {
-    const info = await fetchStream(true)
+    // SDK 加载和取流并行，首次点击播放时少等一个网络往返
+    const [info] = await Promise.all([fetchStream(), loadPlayerSdk()])
     await startPlayer(info, stream.value)
     startWatchdog()
   } catch (error) {
     status.value = 'error'
     errorMsg.value = (error as Error).message || '连接失败'
+    // 断网时保留观看意图，等网络恢复后自动重连
+    if (navigator.onLine) {
+      wantLive = false
+    } else {
+      errorMsg.value = '网络好像断开了，恢复后会自动重连'
+    }
   }
 }
 
@@ -930,11 +1100,15 @@ async function openPlayback() {
 
 // 播放中关闭：销毁播放器回到未播放状态
 async function closePlayback() {
+  wantLive = false
+  reconnectAttempt = 0
+  suspendedByHidden = false
+  clearReconnectTimer()
+  clearHiddenSuspendTimer()
   await destroyPlayer()
   stopWatchdog()
   resetMeta()
   errorMsg.value = ''
-  autoRetried = false
   status.value = 'idle'
   if (document.fullscreenElement) await document.exitFullscreen().catch(() => undefined)
   if (pseudoFullscreen.value) exitPseudoFullscreen()
@@ -943,15 +1117,18 @@ async function closePlayback() {
 async function switchStream(target: 0 | 1) {
   if (target === stream.value || status.value !== 'playing') return
   stream.value = target
+  wantLive = true
+  reconnectAttempt = 0
+  clearReconnectTimer()
 
   await destroyPlayer()
   resetMeta()
   status.value = 'switching'
   errorMsg.value = ''
-  autoRetried = false
 
   try {
-    const info = await fetchStream()
+    // 取流地址可能已过期，切换清晰度时重新取一次
+    const [info] = await Promise.all([fetchStream(), loadPlayerSdk()])
     await startPlayer(info, target)
     startWatchdog()
   } catch (error) {
@@ -961,7 +1138,13 @@ async function switchStream(target: 0 | 1) {
 }
 
 function onQualityChange(key: string) {
-  void switchStream(Number(key) === 1 ? 1 : 0)
+  const target: 0 | 1 = Number(key) === 1 ? 1 : 0
+  try {
+    localStorage.setItem(QUALITY_KEY, String(target))
+  } catch {
+    /* 隐私模式下忽略 */
+  }
+  void switchStream(target)
 }
 
 // ==================== 设备信息 / 互动 ====================
@@ -994,7 +1177,7 @@ function toggleMute() {
     muted.value = false
     try {
       player.unMute()
-      player.setVolume(volumePercent.value / 100)
+      player.setVolume(volumePercent.value)
     } catch {
       /* ignore */
     }
@@ -1019,7 +1202,7 @@ function onVolumeChange(value: number | number[]) {
     } else {
       muted.value = false
       player.unMute()
-      player.setVolume(next / 100)
+      player.setVolume(next)
     }
   } catch {
     /* ignore */
@@ -1328,11 +1511,52 @@ function onFullscreenChange() {
   setTimeout(resizePlayer, 120)
 }
 
+function scheduleHiddenSuspend() {
+  clearHiddenSuspendTimer()
+  if (!wantLive || status.value !== 'playing') return
+  hiddenSuspendTimer = setTimeout(() => {
+    hiddenSuspendTimer = null
+    if (!document.hidden || !wantLive || status.value !== 'playing') return
+    // 页面挂后台超过 3 分钟：主动停流，省设备和流量，回前台再拉
+    suspendedByHidden = true
+    status.value = 'idle'
+    clearReconnectTimer()
+    stopWatchdog()
+    void destroyPlayer()
+  }, HIDDEN_SUSPEND_MS)
+}
+
 function onVisibilityChange() {
-  if (!document.hidden && player) {
+  if (document.hidden) {
+    scheduleHiddenSuspend()
+    return
+  }
+
+  clearHiddenSuspendTimer()
+  if (suspendedByHidden) {
+    suspendedByHidden = false
+    reconnectAttempt = 0
+    showToast('猫猫镜头重新连接中…')
+    void reconnectStream()
+    return
+  }
+  if (wantLive && status.value === 'error') {
+    reconnectAttempt = 0
+    void reconnectStream()
+    return
+  }
+  if (player && status.value === 'playing') {
     forceRedraw()
     applyAudioState()
   }
+}
+
+function onOnline() {
+  if (!wantLive || status.value === 'playing' || document.hidden) return
+  reconnectAttempt = 0
+  clearReconnectTimer()
+  showToast('网络恢复了，正在重新连接…')
+  void reconnectStream()
 }
 
 // ==================== 找猫 / 找熊 ====================
@@ -1350,6 +1574,82 @@ function onCatFound() {
 function onHuntDone() {
   showToast(copy.value.huntDoneToast)
 }
+
+// ==================== 分享卡片 ====================
+function releaseShareCard() {
+  if (shareUrl.value) URL.revokeObjectURL(shareUrl.value)
+  shareUrl.value = ''
+  shareBlob = null
+}
+
+async function openShareFromMenu() {
+  closeCorner()
+  if (!isLive.value || !player) {
+    showToast(copy.value.shareHint)
+    return
+  }
+
+  releaseShareCard()
+  shareOpen.value = true
+  shareBusy.value = true
+
+  try {
+    const shot = await player.screenshot(undefined, 'jpeg', 0.92, 'base64')
+    if (typeof shot !== 'string' || !shot.startsWith('data:image')) {
+      throw new Error('截图失败')
+    }
+    const blob = await composeShareCard({ screenshot: shot, theme: theme.value })
+    if (!shareOpen.value) return
+    shareBlob = blob
+    shareUrl.value = URL.createObjectURL(blob)
+  } catch {
+    shareOpen.value = false
+    showToast(copy.value.shareFail)
+  } finally {
+    shareBusy.value = false
+  }
+}
+
+function shareFileName() {
+  const now = new Date()
+  const pad = (value: number) => String(value).padStart(2, '0')
+  const prefix = theme.value === 'bear' ? 'bear' : 'cat'
+  return `${prefix}-${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}.jpg`
+}
+
+function saveShareCard() {
+  if (!shareUrl.value) return
+  const link = document.createElement('a')
+  link.href = shareUrl.value
+  link.download = shareFileName()
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  showToast(copy.value.shareSaved)
+}
+
+async function shareCardNative() {
+  if (!shareBlob) return
+  const file = new File([shareBlob], shareFileName(), { type: 'image/jpeg' })
+  try {
+    if (navigator.canShare?.({ files: [file] })) {
+      await navigator.share({
+        files: [file],
+        title: copy.value.title,
+        text: isBear.value ? '来看看小熊此刻的样子～' : '来看看猫猫此刻的样子～',
+      })
+      return
+    }
+  } catch (error) {
+    if ((error as DOMException).name === 'AbortError') return
+  }
+  // 不支持文件分享时退回保存
+  saveShareCard()
+}
+
+watch(shareOpen, (open) => {
+  if (!open) releaseShareCard()
+})
 
 // ==================== 小角落菜单 ====================
 function toggleCorner() {
@@ -1391,11 +1691,15 @@ onMounted(() => {
   window.addEventListener('orientationchange', onViewportResize)
   window.visualViewport?.addEventListener('resize', onViewportResize)
   window.addEventListener('keydown', onKeydown)
-  void loadDevice()
+  window.addEventListener('online', onOnline)
+  runWhenIdle(() => void loadDevice())
 })
 
 onBeforeUnmount(() => {
   if (toastTimer) clearTimeout(toastTimer)
+  if (rotateHintTimer) clearTimeout(rotateHintTimer)
+  clearReconnectTimer()
+  clearHiddenSuspendTimer()
   document.removeEventListener('fullscreenchange', onFullscreenChange)
   document.removeEventListener('visibilitychange', onVisibilityChange)
   document.removeEventListener('click', onDocumentClick)
@@ -1403,7 +1707,8 @@ onBeforeUnmount(() => {
   window.removeEventListener('orientationchange', onViewportResize)
   window.visualViewport?.removeEventListener('resize', onViewportResize)
   window.removeEventListener('keydown', onKeydown)
-  if (rotateHintTimer) clearTimeout(rotateHintTimer)
+  window.removeEventListener('online', onOnline)
+  releaseShareCard()
   lockScroll(false)
   void destroyPlayer()
 })

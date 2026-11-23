@@ -150,11 +150,46 @@ async function fetchNetworkInfo(): Promise<NetworkInfo | null> {
   return null
 }
 
+const NETWORK_CACHE_KEY = 'cat-network-info'
+const NETWORK_CACHE_TTL = 6 * 60 * 60 * 1000
+
+function readNetworkCache(): NetworkInfo | null {
+  try {
+    const raw = localStorage.getItem(NETWORK_CACHE_KEY)
+    if (!raw) return null
+    const parsed = JSON.parse(raw) as { at?: number; info?: NetworkInfo }
+    if (!parsed?.info || typeof parsed.at !== 'number') return null
+    if (Date.now() - parsed.at > NETWORK_CACHE_TTL) return null
+    return parsed.info
+  } catch {
+    return null
+  }
+}
+
+function writeNetworkCache(info: NetworkInfo) {
+  try {
+    localStorage.setItem(NETWORK_CACHE_KEY, JSON.stringify({ at: Date.now(), info }))
+  } catch {
+    /* 隐私模式下忽略 */
+  }
+}
+
 let networkPromise: Promise<NetworkInfo | null> | null = null
 
-/** 打开树洞时预加载，避免提交时等待太久 */
+/** 打开树洞时预加载，避免提交时等待太久；结果缓存 6 小时，减少外部接口调用 */
 export function loadNetworkInfo() {
-  networkPromise ??= fetchNetworkInfo()
+  if (networkPromise) return networkPromise
+
+  const cached = readNetworkCache()
+  if (cached) {
+    networkPromise = Promise.resolve(cached)
+    return networkPromise
+  }
+
+  networkPromise = fetchNetworkInfo().then((info) => {
+    if (info) writeNetworkCache(info)
+    return info
+  })
   return networkPromise
 }
 
