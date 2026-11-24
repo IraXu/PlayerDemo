@@ -623,37 +623,65 @@
       </template>
     </Modal>
 
-    <Modal v-model:open="shareOpen" variant="default" :typewriter="false" :width="420">
+    <Modal v-model:open="shareOpen" variant="default" :typewriter="false" :width="480">
       <div class="share-card">
         <div class="share-head">
-          <ShareIcon :size="24" color="#19c8b9" />
-          <h2>{{ copy.shareLabel }}</h2>
-          <p>把此刻的{{ isBear ? '小熊' : '猫猫' }}做成一张小卡片</p>
+          <span class="share-badge">
+            <ShareIcon :size="13" color="currentColor" />
+            {{ copy.shareLabel }}
+          </span>
+          <h2>{{ copy.shareDesc }}</h2>
+          <p>{{ shareStatus }}</p>
         </div>
 
-        <div v-if="shareBusy" class="share-loading">
-          <SpinnerIcon class="spinner" :size="30" color="#19c8b9" />
-          <span>正在做成小卡片…</span>
-        </div>
-        <div v-else-if="shareUrl" class="share-preview">
-          <img :src="shareUrl" alt="分享卡片预览" />
+        <div class="share-stage">
+          <template v-if="shareBusy">
+            <div class="share-skeleton" aria-hidden="true">
+              <div class="share-skeleton__photo"></div>
+              <div class="share-skeleton__line wide"></div>
+              <div class="share-skeleton__line"></div>
+              <div class="share-skeleton__fortune"></div>
+            </div>
+            <div class="share-busy" role="status" aria-live="polite">
+              <SpinnerIcon class="spinner" :size="18" color="#19c8b9" />
+              <span>{{ copy.shareLoading }}</span>
+            </div>
+          </template>
+
+          <div v-else-if="shareError" class="share-error">
+            <span class="share-error__icon">
+              <PawPrintIcon :size="30" color="#c9b79a" />
+            </span>
+            <strong>{{ copy.shareErrorTitle }}</strong>
+            <p>{{ copy.shareFail }}</p>
+            <button class="share-retry" type="button" @click="generateShareCard">
+              <RefreshIcon :size="14" color="currentColor" />
+              {{ copy.shareRetry }}
+            </button>
+          </div>
+
+          <figure v-else-if="shareUrl" class="share-polaroid">
+            <img :src="shareUrl" alt="分享卡片预览" />
+          </figure>
         </div>
 
-        <p class="share-tip">{{ copy.shareCardTip }}</p>
+        <p v-if="shareUrl && !shareBusy && !shareError" class="share-tip">
+          {{ copy.shareCardTip }}
+        </p>
       </div>
       <template #footer>
-        <Button type="default" @click="shareOpen = false">先不分享</Button>
-        <Button type="primary" class="share-save" :disabled="!shareUrl" @click="saveShareCard">
-          保存图片
-        </Button>
+        <Button class="share-cancel" type="default" @click="shareOpen = false">先不分享</Button>
         <Button
-          v-if="canNativeShare"
           type="primary"
-          class="share-send"
-          :disabled="!shareUrl"
-          @click="shareCardNative"
+          class="share-save"
+          :disabled="!shareUrl || shareBusy"
+          @click="saveShareCard"
         >
-          分享给朋友
+          <template #icon>
+            <CheckIcon v-if="shareSaved" :size="16" color="currentColor" />
+            <DownloadIcon v-else :size="16" color="currentColor" />
+          </template>
+          {{ shareSaved ? copy.shareSavedLabel : copy.shareSave }}
         </Button>
       </template>
     </Modal>
@@ -715,9 +743,11 @@ import { Button, Card, Collapse, Footer, Modal, Tabs, Title, Tooltip, Typewriter
 import {
   BoneIcon,
   CameraIcon,
+  CheckIcon,
   CloseIcon,
   CloudIcon,
   CpuIcon,
+  DownloadIcon,
   FishIcon,
   HardDriveIcon,
   HeartIcon,
@@ -847,9 +877,14 @@ const treeTyped = ref(false)
 // 分享卡片
 const shareOpen = ref(false)
 const shareBusy = ref(false)
+const shareError = ref(false)
+const shareSaved = ref(false)
 const shareUrl = ref('')
-const canNativeShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function'
-let shareBlob: Blob | null = null
+const shareStatus = computed(() => {
+  if (shareBusy.value) return copy.value.shareLoading
+  if (shareError.value) return copy.value.shareFail
+  return copy.value.shareReady
+})
 interface EggPhotoItem {
   id: number
   left: number
@@ -1796,7 +1831,6 @@ function onHuntDone() {
 function releaseShareCard() {
   if (shareUrl.value) URL.revokeObjectURL(shareUrl.value)
   shareUrl.value = ''
-  shareBlob = null
 }
 
 async function openShareFromMenu() {
@@ -1806,8 +1840,16 @@ async function openShareFromMenu() {
     return
   }
 
-  releaseShareCard()
   shareOpen.value = true
+  await generateShareCard()
+}
+
+async function generateShareCard() {
+  if (!player) return
+
+  releaseShareCard()
+  shareError.value = false
+  shareSaved.value = false
   shareBusy.value = true
 
   try {
@@ -1817,11 +1859,10 @@ async function openShareFromMenu() {
     }
     const blob = await composeShareCard({ screenshot: shot, theme: theme.value })
     if (!shareOpen.value) return
-    shareBlob = blob
     shareUrl.value = URL.createObjectURL(blob)
   } catch {
-    shareOpen.value = false
-    showToast(copy.value.shareFail)
+    if (!shareOpen.value) return
+    shareError.value = true
   } finally {
     shareBusy.value = false
   }
@@ -1842,30 +1883,16 @@ function saveShareCard() {
   document.body.appendChild(link)
   link.click()
   link.remove()
+  shareSaved.value = true
   showToast(copy.value.shareSaved)
 }
 
-async function shareCardNative() {
-  if (!shareBlob) return
-  const file = new File([shareBlob], shareFileName(), { type: 'image/jpeg' })
-  try {
-    if (navigator.canShare?.({ files: [file] })) {
-      await navigator.share({
-        files: [file],
-        title: copy.value.title,
-        text: isBear.value ? '来看看小熊此刻的样子～' : '来看看猫猫此刻的样子～',
-      })
-      return
-    }
-  } catch (error) {
-    if ((error as DOMException).name === 'AbortError') return
-  }
-  // 不支持文件分享时退回保存
-  saveShareCard()
-}
-
 watch(shareOpen, (open) => {
-  if (!open) releaseShareCard()
+  if (!open) {
+    releaseShareCard()
+    shareError.value = false
+    shareSaved.value = false
+  }
 })
 
 // ==================== 小角落菜单 ====================

@@ -365,12 +365,12 @@ html[data-theme='bear'] .animal-modal:has(.tree-hole) .animal-btn.tree-submit:ac
 
 /* ==================== 分享卡片弹窗 ==================== */
 .animal-modal:has(.share-card) .animal-modal__body {
-  padding: 28px 28px 18px;
+  padding: 24px 26px 18px;
 }
 
 .animal-modal:has(.share-card) .animal-modal__content {
   align-items: stretch;
-  padding-bottom: 12px;
+  padding-bottom: 14px;
   color: #5a4227;
 }
 
@@ -378,7 +378,8 @@ html[data-theme='bear'] .animal-modal:has(.tree-hole) .animal-btn.tree-submit:ac
   display: flex;
   flex: none;
   flex-direction: column;
-  gap: 14px;
+  align-items: center;
+  gap: 13px;
   width: 100%;
 }
 
@@ -386,69 +387,281 @@ html[data-theme='bear'] .animal-modal:has(.tree-hole) .animal-btn.tree-submit:ac
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   text-align: center;
+}
+
+.share-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px 4px;
+  border-radius: 999px;
+  background: #e6f9f6;
+  color: #0e7f75;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+html[data-theme='bear'] .share-badge {
+  background: #fbeed6;
+  color: #a9761d;
 }
 
 .share-head h2 {
   margin: 0;
-  font-size: 21px;
+  font-size: 20px;
   font-weight: 800;
-  letter-spacing: 0.08em;
-  color: #794f27;
+  letter-spacing: 0.04em;
+  color: #5a4227;
 }
 
 .share-head p {
   margin: 0;
   font-size: 12px;
+  line-height: 1.5;
   color: #9f927d;
 }
 
-.share-loading {
+.share-stage {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 13px 0 8px;
+}
+
+/* 预览做成一张有厚度的相纸，和卡片本身的奶油纸张呼应 */
+.share-polaroid {
+  position: relative;
+  width: min(100%, calc(min(56vh, 520px) * 0.75));
+  width: min(100%, calc(min(56dvh, 520px) * 0.75));
+  margin: 0;
+  padding: 8px;
+  border: 2px solid #eadfc8;
+  border-radius: 20px;
+  background: #fffdf6;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 22px 36px -26px rgba(121, 79, 39, 0.65);
+  transform: rotate(-1.2deg);
+  transition:
+    transform 0.22s ease,
+    box-shadow 0.22s ease;
+}
+
+.share-polaroid:hover {
+  transform: rotate(0deg) translateY(-2px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 26px 40px -26px rgba(121, 79, 39, 0.7);
+}
+
+/* 顶部一小片胶带，像贴在墙上的拍立得 */
+.share-polaroid::before {
+  content: '';
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  width: 88px;
+  height: 22px;
+  border-radius: 3px;
+  background: rgba(25, 200, 185, 0.26);
+  box-shadow: 0 1px 2px rgba(121, 79, 39, 0.08);
+  transform: translateX(-50%) rotate(-2deg);
+}
+
+html[data-theme='bear'] .share-polaroid::before {
+  background: rgba(217, 154, 58, 0.3);
+}
+
+.share-polaroid img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 13px;
+}
+
+.share-skeleton {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(100%, calc(min(56vh, 520px) * 0.75));
+  width: min(100%, calc(min(56dvh, 520px) * 0.75));
+  aspect-ratio: 3 / 4;
+  padding: 12px;
+  overflow: hidden;
+  border: 2px solid #eadfc8;
+  border-radius: 20px;
+  background: #fffdf6;
+}
+
+.share-skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    transparent 24%,
+    rgba(255, 255, 255, 0.85) 46%,
+    transparent 68%
+  );
+  transform: translateX(-120%);
+  animation: shareShimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes shareShimmer {
+  to {
+    transform: translateX(120%);
+  }
+}
+
+.share-skeleton__photo {
+  height: 41%;
+  border-radius: 12px;
+  background: #f2e9d6;
+}
+
+.share-skeleton__line {
+  width: 58%;
+  height: 11px;
+  margin: 3px auto 0;
+  border-radius: 999px;
+  background: #f2e9d6;
+}
+
+.share-skeleton__line.wide {
+  width: 42%;
+  height: 15px;
+}
+
+.share-skeleton__fortune {
+  flex: 1;
+  margin-top: 6px;
+  border: 2px dashed #eee2cd;
+  border-radius: 14px;
+  background: #faf3e4;
+}
+
+.share-busy {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 20px;
+  background: rgba(255, 250, 240, 0.6);
+  color: #8f734f;
+  font-size: 12px;
+  font-weight: 600;
+  backdrop-filter: blur(2px);
+}
+
+.share-error {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  min-height: 300px;
-  border-radius: 18px;
+  gap: 7px;
+  width: min(100%, calc(min(56vh, 520px) * 0.75));
+  width: min(100%, calc(min(56dvh, 520px) * 0.75));
+  aspect-ratio: 3 / 4;
+  padding: 28px 24px;
   border: 2px dashed #e3d3b6;
+  border-radius: 20px;
   background: #fffaf0;
-  font-size: 12.5px;
-  color: #8f734f;
+  text-align: center;
 }
 
-.share-preview {
-  overflow: hidden;
-  border-radius: 18px;
-  border: 2px solid #e3d3b6;
-  background: #fffaf0;
-  box-shadow: 0 14px 30px -20px rgba(121, 79, 39, 0.6);
+.share-error__icon {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  margin-bottom: 2px;
+  border-radius: 50%;
+  background: #f3ead8;
 }
 
-.share-preview img {
-  display: block;
-  width: 100%;
-  height: auto;
+.share-error strong {
+  font-size: 14px;
+  font-weight: 800;
+  color: #5a4227;
+}
+
+.share-error p {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #9f927d;
+}
+
+.share-retry {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 6px;
+  padding: 7px 14px;
+  border: 1.5px solid #8fe3dc;
+  border-radius: 999px;
+  background: #f1fbfa;
+  color: #0e7f75;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background 0.16s ease,
+    border-color 0.16s ease,
+    transform 0.16s ease;
+}
+
+.share-retry:hover {
+  border-color: #19c8b9;
+  background: #e6f9f6;
+  transform: translateY(-1px);
+}
+
+html[data-theme='bear'] .share-error__icon {
+  background: #f7ead4;
+}
+
+html[data-theme='bear'] .share-retry {
+  border-color: #f0cf9b;
+  background: #fdf6e9;
+  color: #a9761d;
+}
+
+html[data-theme='bear'] .share-retry:hover {
+  border-color: #d99a3a;
+  background: #fbeed6;
 }
 
 .share-tip {
-  margin: 0;
+  margin: -2px 0 0;
   text-align: center;
   font-size: 11px;
   color: #9f927d;
 }
 
-.animal-modal:has(.share-card) .animal-btn.share-save,
-.animal-modal:has(.share-card) .animal-btn.share-send {
+.animal-modal:has(.share-card) .animal-modal__footer {
+  justify-content: center;
+  gap: 10px;
+}
+
+.animal-modal:has(.share-card) .animal-btn.share-save {
+  min-width: 128px;
   color: #fff9e3;
   background: #19c8b9;
   border-color: #0ea99d;
   box-shadow: 0 4px 0 #0b8f86;
 }
 
-.animal-modal:has(.share-card) .animal-btn.share-save:hover:not(:disabled),
-.animal-modal:has(.share-card) .animal-btn.share-send:hover:not(:disabled) {
+.animal-modal:has(.share-card) .animal-btn.share-save:hover:not(:disabled) {
   color: #fff9e3;
   background: #3dd4c6;
   border-color: #0ea99d;
@@ -456,29 +669,58 @@ html[data-theme='bear'] .animal-modal:has(.tree-hole) .animal-btn.tree-submit:ac
   transform: translateY(-1px);
 }
 
-html[data-theme='bear'] .animal-modal:has(.share-card) .animal-btn.share-save,
-html[data-theme='bear'] .animal-modal:has(.share-card) .animal-btn.share-send {
+.animal-modal:has(.share-card) .animal-btn.share-save:active:not(:disabled) {
+  background: #0ea99d;
+  box-shadow: 0 1px 0 #0b8f86;
+  transform: translateY(2px);
+}
+
+.animal-modal:has(.share-card) .animal-btn.share-save:disabled {
+  opacity: 0.55;
+  box-shadow: 0 3px 0 #0b8f86;
+  transform: none;
+}
+
+html[data-theme='bear'] .animal-modal:has(.share-card) .animal-btn.share-save {
   color: #fff9e3;
   background: #d99a3a;
   border-color: #b97c22;
   box-shadow: 0 4px 0 #96631a;
 }
 
-html[data-theme='bear'] .animal-modal:has(.share-card) .animal-btn.share-save:hover:not(:disabled),
-html[data-theme='bear'] .animal-modal:has(.share-card) .animal-btn.share-send:hover:not(:disabled) {
+html[data-theme='bear'] .animal-modal:has(.share-card) .animal-btn.share-save:hover:not(:disabled) {
   color: #fff9e3;
   background: #e8ac4e;
   border-color: #b97c22;
   box-shadow: 0 5px 0 #96631a;
 }
 
+html[data-theme='bear'] .animal-modal:has(.share-card) .animal-btn.share-save:active:not(:disabled) {
+  background: #c8892c;
+  box-shadow: 0 1px 0 #96631a;
+}
+
+html[data-theme='bear'] .animal-modal:has(.share-card) .animal-btn.share-save:disabled {
+  box-shadow: 0 3px 0 #96631a;
+}
+
 @media (max-width: 520px) {
   .animal-modal:has(.share-card) .animal-modal__body {
-    padding: 22px 18px 14px;
+    padding: 20px 16px 14px;
   }
 
-  .share-loading {
-    min-height: 240px;
+  .share-head h2 {
+    font-size: 18px;
+  }
+
+  .share-polaroid,
+  .share-skeleton,
+  .share-error {
+    width: min(100%, calc(min(54vh, 480px) * 0.75));
+  }
+
+  .animal-modal:has(.share-card) .animal-modal__footer {
+    gap: 8px;
   }
 }
 

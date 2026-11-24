@@ -93,6 +93,12 @@ export interface ThemeCopy {
   shareDesc: string
   shareHint: string
   shareFail: string
+  shareReady: string
+  shareLoading: string
+  shareErrorTitle: string
+  shareRetry: string
+  shareSave: string
+  shareSavedLabel: string
   shareCardTip: string
   shareSaved: string
   companionAria: string
@@ -144,8 +150,14 @@ const COPY: Record<ThemeName, ThemeCopy> = {
     shareLabel: '猫猫卡片',
     shareDesc: '把这一刻装进口袋',
     shareHint: '等猫猫出镜了，再把它装进口袋吧～',
-    shareFail: '卡片没做出来，再试一次吧',
-    shareCardTip: '长按图片也可以保存，或者直接分享给朋友～',
+    shareFail: '猫猫刚才动了一下，卡片没接住',
+    shareReady: '猫猫出镜的这一刻，已经装进卡片里啦',
+    shareLoading: '正在把猫猫装进卡片…',
+    shareErrorTitle: '卡片没能做出来',
+    shareRetry: '再试一次',
+    shareSave: '保存图片',
+    shareSavedLabel: '已保存',
+    shareCardTip: '长按卡片也能保存 · JPG 1080 × 1440',
     shareSaved: '卡片已经保存到本地啦',
     companionAria: '摸摸陪你待着的小猫',
     eggWish: '愿你每天都被小猫治愈。每天保持好心情～',
@@ -194,8 +206,14 @@ const COPY: Record<ThemeName, ThemeCopy> = {
     shareLabel: '小熊卡片',
     shareDesc: '把这一刻装进口袋',
     shareHint: '等小熊出镜了，再把它装进口袋吧～',
-    shareFail: '卡片没做出来，再试一次吧',
-    shareCardTip: '长按图片也可以保存，或者直接分享给朋友～',
+    shareFail: '小熊刚才动了一下，卡片没接住',
+    shareReady: '小熊出镜的这一刻，已经装进卡片里啦',
+    shareLoading: '正在把小熊装进卡片…',
+    shareErrorTitle: '卡片没能做出来',
+    shareRetry: '再试一次',
+    shareSave: '保存图片',
+    shareSavedLabel: '已保存',
+    shareCardTip: '长按卡片也能保存 · JPG 1080 × 1440',
     shareSaved: '卡片已经保存到本地啦',
     companionAria: '摸摸陪你待着的小熊',
     eggWish: '愿你每天都被小熊治愈。每天保持好心情～',
