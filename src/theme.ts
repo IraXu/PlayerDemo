@@ -116,7 +116,7 @@ const COPY: Record<ThemeName, ThemeCopy> = {
     switchingText: '猫猫正在配合调整，稍等一下下～',
     errorTitle: '暂时没连上猫猫',
     errorText: '猫猫可能打了个盹，过一会儿再试试吧～',
-    interactTip: '快和猫猫互动咯～',
+    interactTip: '猫猫要和你互动咯～',
     interactLabel: '逗猫棒',
     interactingLabel: '逗猫中',
     teasingText: '逗猫棒挥起来啦～',
