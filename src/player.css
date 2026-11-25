@@ -1059,10 +1059,19 @@
 }
 
 .corner-fab {
+  position:relative;
   display:grid;place-items:center;width:48px;height:48px;padding:0;
   border:1px solid #d8cbbb;border-radius:50%;background:linear-gradient(145deg,#fffdf6,#f4ecdf);color:#a78477;
   box-shadow:0 4px 12px #795f511a,inset 0 1px 0 #fff;
-  cursor:pointer;transition:transform .2s,background .2s,color .2s,box-shadow .2s;
+  cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+  transition:transform .2s,background .2s,color .2s,box-shadow .2s;
+}
+/* 圆形按钮的圆角外沿与四周留白也纳入点击热区，避免稍偏一点就没反应 */
+.corner-fab::before {
+  content:'';
+  position:absolute;
+  inset:-10px;
+  border-radius:50%;
 }
 .corner-fab:hover {color:#98717c;background:#fff8f1;box-shadow:0 6px 16px #795f5126;transform:translateY(-2px)}
 .corner-fab:active{transform:scale(.95)}
