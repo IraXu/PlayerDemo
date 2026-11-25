@@ -1,6 +1,6 @@
 <template>
   <div class="companion" :class="[mode, { leftward: facing < 0, invite: showInvite }]" :style="style">
-    <button class="companion-btn" type="button" :aria-label="copy.companionAria" @click="onCatClick">
+    <button class="companion-btn" type="button" :aria-label="copy.companionAria" @pointerenter="preloadCommonSounds" @click="onCatClick">
       <span
         v-if="bubbleHint"
         class="companion-bubble"
@@ -10,177 +10,10 @@
         {{ bubbleHint }}
       </span>
       <svg v-if="isBear" class="companion-cat" viewBox="0 0 100 100" fill="none" aria-hidden="true">
-        <ellipse cx="50" cy="94" rx="24" ry="3.6" fill="rgba(121, 79, 39, 0.14)" />
-
-        <path
-          d="M50 50c14 0 24 10 24 23 0 9-8 15-24 15s-24-6-24-15c0-13 10-23 24-23Z"
-          fill="#D9A468"
-          stroke="#794F27"
-          stroke-width="3"
-        />
-        <ellipse cx="50" cy="82" rx="12" ry="6.5" fill="#F6DFBC" />
-
-        <circle cx="29" cy="27" r="10.5" fill="#C98F52" stroke="#794F27" stroke-width="3" />
-        <circle cx="71" cy="27" r="10.5" fill="#C98F52" stroke="#794F27" stroke-width="3" />
-        <circle cx="50" cy="45" r="27" fill="#D9A468" stroke="#794F27" stroke-width="3" />
-
-        <ellipse cx="50" cy="55" rx="13" ry="9.5" fill="#F6DFBC" />
-
-        <ellipse class="companion-eye" cx="40" cy="41" rx="3.4" ry="4.4" fill="#2A2A2A" />
-        <ellipse class="companion-eye" cx="60" cy="41" rx="3.4" ry="4.4" fill="#2A2A2A" />
-        <circle cx="41.2" cy="39.4" r="1.2" fill="#fff" />
-        <circle cx="61.2" cy="39.4" r="1.2" fill="#fff" />
-
-        <ellipse cx="30" cy="52" rx="3.6" ry="2.2" fill="#F4A6A4" opacity="0.5" />
-        <ellipse cx="70" cy="52" rx="3.6" ry="2.2" fill="#F4A6A4" opacity="0.5" />
-
-        <path
-          d="M45.8 51c0-1.6 1.9-2.6 4.2-2.6s4.2 1 4.2 2.6c0 1.7-4.2 4.3-4.2 4.3s-4.2-2.6-4.2-4.3Z"
-          fill="#5A3A22"
-        />
-        <path
-          d="M50 55.6c0 1.9-2.4 2.1-3.4.8M50 55.6c0 1.9 2.4 2.1 3.4.8"
-          stroke="#794F27"
-          stroke-width="1.6"
-          stroke-linecap="round"
-        />
-
-        <g v-if="mode === 'speak'" class="companion-waves" aria-hidden="true">
-          <path d="M74 44c3.5 3 3.5 9 0 12" />
-          <path d="M80.5 38c6.5 5.6 6.5 17 0 22.6" />
-        </g>
-
-        <path d="M37 62c8 4 18 4 26 0" stroke="#2A9D8F" stroke-width="6.5" stroke-linecap="round" />
-        <g class="companion-scarf">
-          <path
-            d="M42 65c-4 3-6 8-4 12"
-            stroke="#2A9D8F"
-            stroke-width="5"
-            stroke-linecap="round"
-          />
-          <path
-            d="M47 66c-1 4 0 7 2 9"
-            stroke="#2A9D8F"
-            stroke-width="4"
-            stroke-linecap="round"
-            opacity="0.8"
-          />
-        </g>
-        <circle cx="50" cy="64.5" r="2.8" fill="#F6C445" stroke="#B8871F" stroke-width="1.1" />
-        <path d="M50 63.2v2.6" stroke="#B8871F" stroke-width="0.9" stroke-linecap="round" />
-
-        <ellipse cx="40" cy="85" rx="8" ry="5" fill="#F6DFBC" stroke="#794F27" stroke-width="2.4" />
-        <ellipse cx="60" cy="85" rx="8" ry="5" fill="#F6DFBC" stroke="#794F27" stroke-width="2.4" />
-        <path
-          d="M37.5 82.6v4M40 82.1v4.6M42.5 82.6v4M57.5 82.6v4M60 82.1v4.6M62.5 82.6v4"
-          stroke="#C9A87C"
-          stroke-width="1.1"
-          stroke-linecap="round"
-        />
+        <AnimalArtwork animal="bear" :speaking="mode === 'speak'" />
       </svg>
       <svg v-else class="companion-cat" viewBox="0 0 100 100" fill="none" aria-hidden="true">
-        <ellipse cx="50" cy="94" rx="24" ry="3.6" fill="rgba(121, 79, 39, 0.14)" />
-
-        <g class="companion-tail">
-          <path
-            d="M70 82c13 3 21-4 19-12-1-6-6-9-11-8"
-            stroke="#794F27"
-            stroke-width="6.4"
-            stroke-linecap="round"
-          />
-          <path
-            d="M70 82c13 3 21-4 19-12-1-6-6-9-11-8"
-            stroke="#F6E3C3"
-            stroke-width="3.8"
-            stroke-linecap="round"
-          />
-        </g>
-
-        <path
-          d="M50 47c14 0 24 11 24 24 0 10-8 16-24 16s-24-6-24-16c0-13 10-24 24-24Z"
-          fill="#FAEDCD"
-          stroke="#794F27"
-          stroke-width="3"
-        />
-
-        <ellipse cx="50" cy="82" rx="12" ry="6.5" fill="#FFF8E7" />
-
-        <path
-          d="M26 40 22 17 43 27a34 34 0 0 1 14 0l21-10-4 23c4 4 6 9 6 15 0 14-12 24-32 24S26 68 26 54c0-6 2-10 6-14Z"
-          fill="#FAEDCD"
-          stroke="#794F27"
-          stroke-width="3"
-          stroke-linejoin="round"
-        />
-
-        <path d="M29 26 27 15 37 21Z" fill="#F4A6A4" />
-        <path d="M71 26 73 15 63 21Z" fill="#F4A6A4" />
-        <path
-          d="M46 27c0-4 3-5 5-2M51 26c1-3 4-3 4 0"
-          stroke="#794F27"
-          stroke-width="2"
-          stroke-linecap="round"
-        />
-
-        <ellipse class="companion-eye" cx="40" cy="46" rx="3.5" ry="4.6" fill="#2A2A2A" />
-        <ellipse class="companion-eye" cx="60" cy="46" rx="3.5" ry="4.6" fill="#2A2A2A" />
-        <circle cx="41.2" cy="44" r="1.3" fill="#fff" />
-        <circle cx="61.2" cy="44" r="1.3" fill="#fff" />
-        <circle cx="39" cy="48" r="0.65" fill="#fff" opacity="0.85" />
-        <circle cx="59" cy="48" r="0.65" fill="#fff" opacity="0.85" />
-
-        <ellipse cx="32.5" cy="55" rx="3.6" ry="2.2" fill="#F4A6A4" opacity="0.5" />
-        <ellipse cx="67.5" cy="55" rx="3.6" ry="2.2" fill="#F4A6A4" opacity="0.5" />
-
-        <path
-          d="M47.8 54c0-1 1-1.6 2.2-1.6s2.2.6 2.2 1.6c0 1.1-2.2 2.8-2.2 2.8S47.8 55.1 47.8 54Z"
-          fill="#EF8F8F"
-        />
-        <path
-          d="M50 57.2c0 2-2.4 2.2-3.4.9M50 57.2c0 2 2.4 2.2 3.4.9"
-          stroke="#794F27"
-          stroke-width="1.6"
-          stroke-linecap="round"
-        />
-        <g v-if="mode === 'speak'" class="companion-waves" aria-hidden="true">
-          <path d="M72 46c3.5 3 3.5 9 0 12" />
-          <path d="M78.5 40c6.5 5.6 6.5 17 0 22.6" />
-        </g>
-        <path
-          d="M34 52c-4-1-7-1-9 0M34 56.5c-4 0-7 .6-9 1.2M66 52c4-1 7-1 9 0M66 56.5c4 0 7 .6 9 1.2"
-          stroke="#794F27"
-          stroke-width="1.15"
-          stroke-linecap="round"
-          opacity="0.45"
-        />
-
-        <path d="M37 65c8 4 18 4 26 0" stroke="#2A9D8F" stroke-width="6.5" stroke-linecap="round" />
-        <g class="companion-scarf">
-          <path
-            d="M42 68c-4 3-6 8-4 12"
-            stroke="#2A9D8F"
-            stroke-width="5"
-            stroke-linecap="round"
-          />
-          <path
-            d="M47 69c-1 4 0 7 2 9"
-            stroke="#2A9D8F"
-            stroke-width="4"
-            stroke-linecap="round"
-            opacity="0.8"
-          />
-        </g>
-        <circle cx="50" cy="67.5" r="2.8" fill="#F6C445" stroke="#B8871F" stroke-width="1.1" />
-        <path d="M50 66.2v2.6" stroke="#B8871F" stroke-width="0.9" stroke-linecap="round" />
-
-        <ellipse cx="40" cy="85" rx="8" ry="5" fill="#FFF8E7" stroke="#794F27" stroke-width="2.4" />
-        <ellipse cx="60" cy="85" rx="8" ry="5" fill="#FFF8E7" stroke="#794F27" stroke-width="2.4" />
-        <path
-          d="M37.5 82.6v4M40 82.1v4.6M42.5 82.6v4M57.5 82.6v4M60 82.1v4.6M62.5 82.6v4"
-          stroke="#C9A87C"
-          stroke-width="1.1"
-          stroke-linecap="round"
-        />
+        <AnimalArtwork animal="cat" :speaking="mode === 'speak'" />
 
         <g
           v-if="biteSpot"
@@ -219,127 +52,7 @@
         fill="none"
         aria-hidden="true"
       >
-        <ellipse cx="50" cy="94" rx="22" ry="3.4" fill="rgba(121, 79, 39, 0.14)" />
-
-        <g class="companion-fox-body">
-          <g class="companion-fox-tail">
-            <path
-              d="M62 82c15 5 27 0 28-11 1-9-6-15-14-16"
-              stroke="#794F27"
-              stroke-width="14"
-              stroke-linecap="round"
-            />
-            <path
-              d="M62 82c15 5 27 0 28-11 1-9-6-15-14-16"
-              stroke="#E98B4B"
-              stroke-width="9.4"
-              stroke-linecap="round"
-            />
-            <circle cx="76" cy="55" r="5.4" fill="#FFF6E5" stroke="#794F27" stroke-width="2.2" />
-          </g>
-
-          <path
-            d="M44 53c13 0 23 10 23 22 0 8-8 13-23 13s-23-5-23-13c0-12 10-22 23-22Z"
-            fill="#E98B4B"
-            stroke="#794F27"
-            stroke-width="3"
-          />
-          <ellipse cx="41" cy="80" rx="11" ry="7" fill="#FFF6E5" />
-
-          <ellipse
-            cx="34"
-            cy="86.5"
-            rx="7.4"
-            ry="4.8"
-            fill="#FFF6E5"
-            stroke="#794F27"
-            stroke-width="2.4"
-          />
-          <ellipse
-            cx="52"
-            cy="86.5"
-            rx="7.4"
-            ry="4.8"
-            fill="#FFF6E5"
-            stroke="#794F27"
-            stroke-width="2.4"
-          />
-          <path
-            d="M31.5 84.4v3.8M34 84v4.4M36.5 84.4v3.8M49.5 84.4v3.8M52 84v4.4M54.5 84.4v3.8"
-            stroke="#C9A87C"
-            stroke-width="1.1"
-            stroke-linecap="round"
-          />
-
-          <path
-            d="M26 42 20 14 43 26a34 34 0 0 1 14 0l23-12-5 28c4 4 6 9 6 15 0 14-12 23-30 23S22 71 22 56c0-6 2-11 6-15Z"
-            fill="#E98B4B"
-            stroke="#794F27"
-            stroke-width="3"
-            stroke-linejoin="round"
-          />
-          <path d="M31 26 25 17 38 22Z" fill="#B45F38" />
-          <path d="M66 25 76 17 72 27Z" fill="#B45F38" />
-
-          <path
-            d="M46 44c-15 0-25 5-25 13 0 8 10 13 25 13s25-5 25-13c0-8-10-13-25-13Z"
-            fill="#FFF6E5"
-            stroke="#794F27"
-            stroke-width="2.2"
-          />
-
-          <template v-if="foxMood === 'mischief'">
-            <ellipse class="companion-fox-eye" cx="38" cy="37.5" rx="3.1" ry="3.8" fill="#2A2A2A" />
-            <ellipse class="companion-fox-eye" cx="60" cy="37.5" rx="3.1" ry="3.8" fill="#2A2A2A" />
-            <circle cx="39.1" cy="36.1" r="1.05" fill="#fff" />
-            <circle cx="61.1" cy="36.1" r="1.05" fill="#fff" />
-            <path
-              d="M32 31.5 37 34M66 31.5 61 34"
-              stroke="#794F27"
-              stroke-width="2.2"
-              stroke-linecap="round"
-            />
-          </template>
-          <template v-else>
-            <path
-              class="companion-fox-eye"
-              d="M33 38c2.4-3 6.2-3 8.6 0"
-              stroke="#5A3A22"
-              stroke-width="2.4"
-              stroke-linecap="round"
-            />
-            <path
-              class="companion-fox-eye"
-              d="M55 38c2.4-3 6.2-3 8.6 0"
-              stroke="#5A3A22"
-              stroke-width="2.4"
-              stroke-linecap="round"
-            />
-          </template>
-
-          <ellipse cx="31" cy="44" rx="3.4" ry="2" fill="#F4A6A4" opacity="0.55" />
-          <ellipse cx="69" cy="44" rx="3.4" ry="2" fill="#F4A6A4" opacity="0.55" />
-
-          <ellipse cx="23" cy="51.5" rx="3.7" ry="2.9" fill="#5A3A22" />
-
-          <g v-if="foxMood === 'mischief'" class="companion-fox-jaw">
-            <path
-              d="M15 54.5c4 6.5 12 8.5 17.5 3.2-1.2 5.4-6 8.4-10.4 6.2-3.6-1.8-6.2-5.4-7.1-9.4Z"
-              fill="#6B3A2A"
-              stroke="#794F27"
-              stroke-width="1.6"
-              stroke-linejoin="round"
-            />
-            <path d="M18.2 55.8 20.6 60 22.2 55.6Z" fill="#FFF6E5" />
-          </g>
-          <path
-            v-else
-            d="M23 54.2c0 2.4-3 2.6-4.4.8M23 54.2c0 2.4 3 2.6 4.4.8"
-            stroke="#794F27"
-            stroke-width="1.6"
-            stroke-linecap="round"
-          />
-        </g>
+        <g class="companion-fox-body"><AnimalArtwork animal="fox" /></g>
       </svg>
     </Transition>
 
@@ -423,7 +136,8 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { Modal } from 'animal-island-vue'
 import { ChevronLeftIcon, ChevronRightIcon, PawPrintIcon } from 'naive-icons-vue'
-import { playBearCall, playChirp, playMeow, playPurr, playReveal, playYip, playYowl } from '../sfx'
+import { preloadSoundEffects, playBearCall, playChirp, playMeow, playPurr, playReveal, playYip, playYowl } from '../sfx'
+import AnimalArtwork from './AnimalArtwork.vue'
 import { copy, isBear } from '../theme'
 
 type Mode = 'sit' | 'walk' | 'sleep' | 'happy' | 'speak' | 'nuzzle' | 'bite'
@@ -933,6 +647,11 @@ function onResize() {
   clampPosition()
 }
 
+function preloadCommonSounds() {
+  if (!isBear.value) preloadSoundEffects('meow', 'purr')
+  else preloadSoundEffects('bear')
+}
+
 onMounted(() => {
   const b = bounds()
   pos.x = b.minX + 12
@@ -1025,13 +744,13 @@ onBeforeUnmount(() => {
   animation: companionFoxLunge 0.95s ease-in-out both;
 }
 
-.companion-fox-tail {
+:deep(.companion-fox-tail) {
   transform-box: fill-box;
   transform-origin: 0% 55%;
   animation: companionFoxTail 2.4s ease-in-out infinite;
 }
 
-.companion-fox.mischief .companion-fox-tail {
+.companion-fox.mischief :deep(.companion-fox-tail) {
   animation-duration: 0.9s;
 }
 
@@ -1279,7 +998,7 @@ html[data-theme='bear'] .mail-date-nav:hover:not(:disabled) {
   color: #a99c86;
 }
 
-.companion-waves path {
+:deep(.companion-waves) path {
   fill: none;
   stroke: #2a9d8f;
   stroke-width: 2.4;
@@ -1287,11 +1006,11 @@ html[data-theme='bear'] .mail-date-nav:hover:not(:disabled) {
   opacity: 0;
 }
 
-.speak .companion-waves path {
+.speak :deep(.companion-waves) path {
   animation: companionWave 1.6s ease-in-out infinite;
 }
 
-.speak .companion-waves path:nth-of-type(2) {
+.speak :deep(.companion-waves) path:nth-of-type(2) {
   animation-delay: 0.24s;
 }
 
@@ -1299,7 +1018,7 @@ html[data-theme='bear'] .mail-date-nav:hover:not(:disabled) {
   transform: scaleX(-1);
 }
 
-.companion-eye {
+:deep(.companion-eye) {
   transform-box: fill-box;
   transform-origin: center;
 }
@@ -1308,7 +1027,7 @@ html[data-theme='bear'] .mail-date-nav:hover:not(:disabled) {
   animation: companionBob 3.6s ease-in-out infinite;
 }
 
-.sit .companion-eye {
+.sit :deep(.companion-eye) {
   animation: companionBlink 6.2s ease-in-out infinite;
 }
 
@@ -1320,7 +1039,7 @@ html[data-theme='bear'] .mail-date-nav:hover:not(:disabled) {
   animation: companionBreathe 4.4s ease-in-out infinite;
 }
 
-.sleep .companion-eye {
+.sleep :deep(.companion-eye) {
   transform: scaleY(0.12);
 }
 
@@ -1332,7 +1051,7 @@ html[data-theme='bear'] .mail-date-nav:hover:not(:disabled) {
   animation: companionSpeak 2s ease-in-out infinite;
 }
 
-.speak .companion-tail {
+.speak :deep(.companion-tail) {
   animation: companionTail 1.5s ease-in-out infinite;
 }
 
@@ -1340,11 +1059,11 @@ html[data-theme='bear'] .mail-date-nav:hover:not(:disabled) {
   animation: companionCatNuzzle 1.6s ease-in-out infinite;
 }
 
-.nuzzle .companion-tail {
+.nuzzle :deep(.companion-tail) {
   animation: companionTail 0.9s ease-in-out infinite;
 }
 
-.nuzzle .companion-eye {
+.nuzzle :deep(.companion-eye) {
   transform: scaleY(0.16);
 }
 
@@ -1356,7 +1075,7 @@ html[data-theme='bear'] .mail-date-nav:hover:not(:disabled) {
   animation: companionCatBite 0.85s ease-out both;
 }
 
-.bite .companion-eye {
+.bite :deep(.companion-eye) {
   animation: companionStartle 0.85s ease-out both;
 }
 
@@ -1370,14 +1089,14 @@ html[data-theme='bear'] .mail-date-nav:hover:not(:disabled) {
   animation: companionInvite 2.2s ease-in-out infinite;
 }
 
-.companion-tail,
-.companion-scarf {
+:deep(.companion-tail),
+:deep(.companion-scarf) {
   transform-box: fill-box;
   transform-origin: 0% 50%;
 }
 
-.sit .companion-tail,
-.happy .companion-tail {
+.sit :deep(.companion-tail),
+.happy :deep(.companion-tail) {
   animation: companionTail 3.2s ease-in-out infinite;
 }
 
@@ -1729,17 +1448,17 @@ html[data-theme='bear'] .mail-date-nav:hover:not(:disabled) {
   .speak .companion-cat,
   .nuzzle .companion-cat,
   .bite .companion-cat,
-  .bite .companion-eye,
-  .nuzzle .companion-tail,
-  .companion-tail,
-  .companion-eye,
+  .bite :deep(.companion-eye),
+  .nuzzle :deep(.companion-tail),
+  :deep(.companion-tail),
+  :deep(.companion-eye),
   .companion-zzz,
   .companion-heart,
   .companion-bubble,
-  .companion-waves path,
+  :deep(.companion-waves) path,
   .companion-fox,
   .companion-fox.lunge,
-  .companion-fox-tail,
+  :deep(.companion-fox-tail),
   .companion-fox-body,
   .nuzzle .companion-fox-body,
   .companion-fox-jaw,
@@ -1748,7 +1467,7 @@ html[data-theme='bear'] .mail-date-nav:hover:not(:disabled) {
     animation: none;
   }
 
-  .speak .companion-waves path {
+  .speak :deep(.companion-waves) path {
     opacity: 0.7;
   }
 }

@@ -362,174 +362,7 @@
   background: #000;
 }
 
-/* ==================== 逗猫棒：画面里的互动小演出 ==================== */
-.tease-overlay {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  overflow: hidden;
-  pointer-events: none;
-}
-
-/* 彩带：从画面边缘飘过，中间留给猫猫 */
-.tease-ribbon {
-  position: absolute;
-  z-index: 1;
-  left: -25%;
-  width: 150%;
-  height: 34%;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 7;
-  stroke-linecap: round;
-  opacity: 0.55;
-  will-change: transform;
-}
-
-.tease-ribbon path {
-  vector-effect: non-scaling-stroke;
-}
-
-.ribbon-a {
-  top: -8%;
-  color: #f7a8b8;
-  animation: ribbonFloat 4.2s ease-in-out infinite;
-}
-
-.ribbon-b {
-  top: 3%;
-  color: #6fd3c7;
-  opacity: 0.4;
-  animation: ribbonFloat 5.4s ease-in-out infinite reverse;
-}
-
-.ribbon-c {
-  bottom: -9%;
-  color: #ffd166;
-  animation: ribbonFloat 4.8s ease-in-out infinite;
-}
-
-/* 逗猫棒：从右上角垂下来，羽毛甩向画面中间 */
-.tease-wand {
-  position: absolute;
-  z-index: 2;
-  top: 9%;
-  right: 3%;
-  width: clamp(160px, 29%, 250px);
-  filter: drop-shadow(0 14px 20px rgba(0, 0, 0, 0.35));
-  animation: wandHop 2.8s ease-in-out infinite;
-  transform-origin: 92% 8%;
-}
-
-.tease-wand svg {
-  display: block;
-  width: 100%;
-  height: auto;
-  overflow: visible;
-}
-
-.tease-wand-swing {
-  transform-box: view-box;
-  transform-origin: 183px 17px;
-  animation: wandSwingBig 1.5s ease-in-out infinite;
-}
-
-.tease-wand-fluff {
-  transform-box: fill-box;
-  transform-origin: 90% 8%;
-  animation: featherFlutter 1.1s ease-in-out infinite;
-}
-
-.wand-spark {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: sparkTwinkle 1.3s ease-in-out infinite;
-}
-
-.spark-2 {
-  animation-delay: 0.35s;
-}
-
-.spark-3 {
-  animation-delay: 0.7s;
-}
-
-/* 彩纸屑 */
-.tease-confetti {
-  position: absolute;
-  z-index: 1;
-  inset: 0;
-}
-
-.tease-confetti span {
-  position: absolute;
-  top: -10%;
-  left: var(--x);
-  width: var(--size);
-  height: calc(var(--size) * 1.7);
-  border-radius: 2px;
-  background: var(--color);
-  opacity: 0;
-  animation:
-    confettiDrop var(--dur) var(--delay) linear infinite,
-    confettiSpin calc(var(--dur) * 1.4) var(--delay) linear infinite;
-}
-
-/* 画面内提示 */
-.tease-hud {
-  position: absolute;
-  z-index: 3;
-  top: 12px;
-  left: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  max-width: calc(100% - 76px);
-}
-
-.tease-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  max-width: 100%;
-  padding: 6px 11px;
-  border: 2px solid #b8e3dd;
-  border-radius: 999px;
-  background: rgba(255, 252, 244, 0.94);
-  color: #0e7f75;
-  font-size: 12px;
-  font-weight: 700;
-  line-height: 1;
-  white-space: nowrap;
-  box-shadow: 0 8px 18px -12px rgba(0, 0, 0, 0.55);
-  animation: teaseChipIn 0.34s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-}
-
-.tease-chip span {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.tease-track {
-  width: 100%;
-  height: 3px;
-  border-radius: 999px;
-  background: rgba(255, 252, 244, 0.4);
-  overflow: hidden;
-}
-
-.tease-fill {
-  display: block;
-  width: 100%;
-  height: 100%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, #f7a8b8, #ffd166, #6fd3c7);
-  animation-name: teaseDrain;
-  animation-timing-function: linear;
-  animation-fill-mode: forwards;
-}
-
+/* ==================== 逗猫互动切换 ==================== */
 .tease-fade-enter-active {
   transition: opacity 0.16s ease;
 }
@@ -553,11 +386,9 @@
   animation-duration: 2.4s;
 }
 
-.page.teasing .page-cat {
-  transform: translateY(-2px) rotate(-2deg);
-}
 
-.page.teasing .page-cat-heart {
+
+.page.teasing .mascot-heart {
   animation-duration: 0.9s;
 }
 
@@ -566,49 +397,31 @@
   animation: pawCheer 1.4s ease-in-out infinite;
 }
 
-@media (max-width: 520px) {
-  .tease-wand {
-    top: 14%;
-    right: 3%;
-    width: 158px;
-  }
-
-  .tease-hud {
-    top: 10px;
-    left: 10px;
-  }
-
-  .tease-chip {
-    gap: 5px;
-    padding: 5px 9px;
-    font-size: 11px;
-  }
-}
-
-
 /* ==================== 页面右上角的小猫 ==================== */
 .page-cat {
-  position: relative;
-  flex: none;
-  width: 118px;
-  height: 108px;
+  position: fixed;
+  top: max(12px, env(safe-area-inset-top));
+  right: -22px;
+  z-index: 3;
+  width: 76px;
+  height: 74px;
   padding: 0;
   border: none;
   background: transparent;
   cursor: pointer;
-  filter: drop-shadow(0 10px 18px rgba(121, 79, 39, 0.16));
+  filter: drop-shadow(0 3px 5px rgba(121, 79, 39, 0.08));
+  opacity: .78;
   transition:
-    transform 0.2s ease,
+    transform 0.32s cubic-bezier(.2,.8,.2,1),
     filter 0.45s ease;
 }
 
-.page-cat:hover {
-  transform: translateY(-2px) rotate(-1deg);
+.page-cat.revealed {
+  transform: translateX(-32px);
+  opacity: 1;
 }
 
-.page-cat:active {
-  transform: translateY(1px) scale(0.98);
-}
+.page-cat:active { filter: drop-shadow(0 2px 6px #d6a1b144); }
 
 .page-cat:focus-visible {
   outline: 2px solid #19c8b9;
@@ -621,7 +434,7 @@
   height: 100%;
   overflow: visible;
   transform-origin: 50% 90%;
-  animation: mascotBob 4s ease-in-out infinite;
+  animation: mascotBob 4.6s ease-in-out infinite;
 }
 
 .cat-tail {
@@ -642,12 +455,23 @@
   animation: catBlink 5.2s ease-in-out infinite;
 }
 
-.page-cat-heart {
-  position: absolute;
-  top: 0;
-  right: 2px;
-  filter: drop-shadow(0 2px 4px rgba(233, 30, 99, 0.25));
-  animation: heartPop 2.2s ease-in-out infinite;
+.mascot-hearts { position:absolute; inset:0; pointer-events:none; }
+.page-cat:hover { opacity:1; }
+.mascot-heart {
+  position:absolute;
+  left:calc(4% + var(--i) * 11%);
+  top:66%;
+  font-size:calc(9px + var(--i) * 1px);
+  color:#E79AB5;
+  opacity:0;
+  animation:mascotHeartRise 3.6s calc(var(--i) * -.6s) ease-out infinite;
+  filter:drop-shadow(0 2px 3px #ebbac544);
+}
+@keyframes mascotHeartRise {
+  0% {opacity:0;transform:translate(0,8px) scale(.5) rotate(-12deg)}
+  20% {opacity:.85}
+  80% {opacity:0;transform:translate(calc((var(--i) - 3) * 5px),-40px) scale(1.1) rotate(12deg)}
+  100% {opacity:0;transform:translateY(-46px)}
 }
 
 .page-cat:hover .cat-mascot {
@@ -942,159 +766,24 @@
   height: 19px;
 }
 
-/* 逗猫棒：奶油小贴纸 + 圆形图标片 */
-.toolbar :deep(.animal-btn.action) {
-  height: 34px;
-  padding: 0 13px 0 5px;
-  gap: 8px;
-  flex: none;
-  border: 1.5px solid var(--action-border);
-  border-radius: 999px;
-  color: #5a4227;
-  background: linear-gradient(180deg, #fffdf8, var(--action-soft));
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.9),
-    0 2px 5px -2px rgba(121, 79, 39, 0.18),
-    0 10px 18px -16px rgba(121, 79, 39, 0.55);
-  transition:
-    background 0.2s ease,
-    border-color 0.2s ease,
-    box-shadow 0.2s ease,
-    transform 0.15s ease,
-    color 0.2s ease;
-}
-
-.toolbar :deep(.animal-btn.action) .action-icon {
-  position: relative;
-  display: grid;
-  place-items: center;
-  width: 24px;
-  height: 24px;
-  flex: none;
-  border-radius: 50%;
-  color: #fff9e3;
-  background: linear-gradient(160deg, var(--action-accent), var(--action-accent-deep));
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.45),
-    0 1px 3px rgba(14, 127, 117, 0.28);
-  transition:
-    transform 0.2s ease,
-    background 0.2s ease,
-    color 0.2s ease;
-}
-
-.toolbar :deep(.animal-btn.action) .action-icon::after {
-  content: '';
-  position: absolute;
-  top: -2px;
-  right: -2px;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #ffd166;
-  box-shadow: 0 0 0 2px rgba(255, 209, 102, 0.25);
-  animation: actionTwinkle 2.6s ease-in-out infinite;
-}
-
-.toolbar :deep(.animal-btn.action) .action-icon .wand {
-  width: 18px;
-  height: 18px;
-  overflow: visible;
-}
-
-.toolbar :deep(.animal-btn.action) .action-label {
-  line-height: 1;
-  white-space: nowrap;
-}
-
-.toolbar :deep(.animal-btn.action:hover:not(:disabled)) {
-  color: #4b3320;
-  border-color: var(--action-accent);
-  background: linear-gradient(180deg, #fffefb, #fff8e9);
-  box-shadow:
-    inset 0 1px 0 #fff,
-    0 3px 7px -2px rgba(121, 79, 39, 0.2),
-    0 14px 22px -18px rgba(121, 79, 39, 0.6);
-  transform: translateY(-1px);
-}
-
-.toolbar :deep(.animal-btn.action:hover:not(:disabled)) .action-icon {
-  transform: rotate(-7deg) scale(1.06);
-}
-
-.toolbar :deep(.animal-btn.action:active:not(:disabled)) {
-  transform: translateY(1px);
-  box-shadow: inset 0 1px 2px rgba(121, 79, 39, 0.12);
-}
-
-.toolbar :deep(.animal-btn.action:focus-visible) {
-  outline: 2px solid var(--action-accent);
-  outline-offset: 2px;
-}
-
-/* 互动进行中：整颗按钮点亮 */
-.toolbar :deep(.animal-btn.action.busy) {
-  color: #fff9e3;
-  border-color: var(--action-accent-deep);
-  background: linear-gradient(160deg, var(--action-accent), var(--action-accent-deep));
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.3),
-    0 6px 14px -10px rgba(14, 127, 117, 0.7);
-}
-
-.toolbar :deep(.animal-btn.action.busy) .action-icon {
-  color: var(--action-accent-deep);
-  background: #fff9e3;
-  box-shadow:
-    inset 0 1px 0 #fff,
-    0 1px 2px rgba(121, 79, 39, 0.18);
-}
-
-.toolbar :deep(.animal-btn.action:disabled) {
-  opacity: 1;
-  filter: none;
-  cursor: default;
-}
-
-.toolbar :deep(.animal-btn.action.busy) .action-icon::after {
-  background: #ffd166;
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.55);
-}
-
-/* 互动结束后的休息期 */
-.toolbar :deep(.animal-btn.action.cooling) {
-  color: #9b8d75;
-  border-color: #ded3bf;
-  background: #f7f0e3;
-  box-shadow: inset 0 1px 0 #fffdf8;
-}
-
-.toolbar :deep(.animal-btn.action.cooling) .action-icon {
-  color: #b0a38a;
-  background: #efe6d6;
-  box-shadow: none;
-}
-
-.toolbar :deep(.animal-btn.action.cooling) .action-icon::after {
-  display: none;
-}
-
-.toolbar :deep(.animal-btn.action .wand-tip) {
-  transform-box: view-box;
-  transform-origin: 15px 9px;
-  animation: wandSwing 1.6s cubic-bezier(0.45, 0, 0.55, 1) infinite;
-}
-
-.toolbar :deep(.animal-btn.action:hover .wand-tip) {
-  animation-duration: 0.85s;
-}
-
-.toolbar :deep(.animal-btn.action.busy .wand-tip) {
-  animation-duration: 0.32s;
-}
+/* 逗猫棒按钮：燕麦布面与木柄、铃铛相呼应。 */
+.toolbar :deep(.animal-btn.action) { height:36px;padding:0 15px 0 8px;gap:8px;flex:none;border:1px solid #d8cabb;border-radius:999px;color:#725d51;background:linear-gradient(180deg,#fffdf8,#f4ecdf);font-size:12px;font-weight:700;letter-spacing:.02em;box-shadow:inset 0 1px 0 #fff,0 2px 4px #73583c16;transition:background .2s,border-color .2s,box-shadow .2s,transform .15s,color .2s; }
+.toolbar :deep(.animal-btn.action) .action-icon { position:relative;display:grid;place-items:center;width:26px;height:26px;flex:none;border-radius:9px;color:#786054;background:#eee1d1;box-shadow:inset 0 1px 0 #fffaf1,0 1px 2px #62482d18;transition:transform .2s ease,background .2s ease,color .2s ease; }
+.toolbar :deep(.animal-btn.action) .action-icon::after { content:'';position:absolute;top:0;right:0;width:5px;height:5px;border-radius:50%;background:#e8bf75;box-shadow:0 0 0 2px #f8eddb;animation:actionTwinkle 2.6s ease-in-out infinite; }
+.toolbar :deep(.animal-btn.action) .action-icon .wand { width:26px;height:26px;overflow:visible; }
+.toolbar :deep(.animal-btn.action) .action-label { line-height:1;white-space:nowrap; }
+.toolbar :deep(.animal-btn.action:hover:not(:disabled)) { color:#604b41;border-color:#c6a995;background:#fffaf0;box-shadow:0 4px 9px #73583c20;transform:translateY(-1px); }
+.toolbar :deep(.animal-btn.action:hover:not(:disabled)) .action-icon { transform:rotate(-9deg) scale(1.06);background:#f3e2dc; }
+.toolbar :deep(.animal-btn.action:active:not(:disabled)) { transform:translateY(1px);box-shadow:inset 0 1px 2px #62482d18; }
+.toolbar :deep(.animal-btn.action:focus-visible) { outline:2px solid #b9907a;outline-offset:2px; }
+.toolbar :deep(.animal-btn.action.busy) { color:#675149;border-color:#bd998c;background:linear-gradient(180deg,#f7e9e6,#eddbd4);box-shadow:inset 0 1px 0 #fff9; }
+.toolbar :deep(.animal-btn.action.busy) .action-icon { color:#77594e;background:#fff8ed; }
+.toolbar :deep(.animal-btn.action:disabled) { opacity:1;filter:none;cursor:default; }
+.toolbar :deep(.animal-btn.action.cooling) { color:#9b8d7e;border-color:#ddd3c6;background:#f4efe7;box-shadow:inset 0 1px 0 #fffdf8; }
+.toolbar :deep(.animal-btn.action.cooling) .action-icon { color:#a79688;background:#eae2d7;box-shadow:none; }
+.toolbar :deep(.animal-btn.action.cooling) .action-icon::after { display:none; }
+.toolbar :deep(.animal-btn.action:hover .feather-tip) { animation-duration:.6s; }
+.toolbar :deep(.animal-btn.action.busy .feather-tip) { animation-duration:.3s; }
 
 /* 音量 */
 .slider {
@@ -1370,44 +1059,15 @@
 }
 
 .corner-fab {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 50px;
-  height: 50px;
-  padding: 0;
-  border: none;
-  background: none;
-  color: #19c8b9;
-  filter:
-    drop-shadow(0 0 2px #fffaf0)
-    drop-shadow(0 4px 6px rgba(121, 79, 39, 0.22));
-  cursor: pointer;
-  transition:
-    transform 0.16s ease,
-    color 0.16s ease,
-    filter 0.16s ease;
+  display:grid;place-items:center;width:48px;height:48px;padding:0;
+  border:1px solid #d8cbbb;border-radius:50%;background:linear-gradient(145deg,#fffdf6,#f4ecdf);color:#a78477;
+  box-shadow:0 4px 12px #795f511a,inset 0 1px 0 #fff;
+  cursor:pointer;transition:transform .2s,background .2s,color .2s,box-shadow .2s;
 }
-
-.corner-fab :deep(svg *) {
-  fill: currentColor;
-}
-
-.corner-fab:hover {
-  color: #0ea99d;
-  filter:
-    drop-shadow(0 0 2px #fffaf0)
-    drop-shadow(0 6px 9px rgba(121, 79, 39, 0.26));
-  transform: translateY(-1px) scale(1.06);
-}
-
-.corner-fab:active {
-  transform: translateY(1px) scale(0.97);
-}
-
-.corner-slot.open .corner-fab {
-  color: #0b8f86;
-}
+.corner-fab:hover {color:#98717c;background:#fff8f1;box-shadow:0 6px 16px #795f5126;transform:translateY(-2px)}
+.corner-fab:active{transform:scale(.95)}
+.corner-fab:focus-visible{outline:2px solid #b38f85;outline-offset:4px}
+.corner-slot.open .corner-fab{color:#98717c;background:#f4e5e7;border-color:#dbc0c7}
 
 .corner-menu {
   width: 220px;
@@ -1549,132 +1209,9 @@
   transform: translate(-50%, 6px);
 }
 
-/* ==================== 彩蛋 ==================== */
-.egg-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 80;
-  overflow: hidden;
-  background: radial-gradient(120% 100% at 50% 0%, rgba(28, 18, 34, 0.52), rgba(7, 11, 19, 0.68));
-  backdrop-filter: blur(10px) saturate(135%);
-  -webkit-backdrop-filter: blur(10px) saturate(135%);
-}
-
-.egg-word {
-  position: absolute;
-  top: -6vh;
-  z-index: 3;
-  font-size: var(--size);
-  font-weight: 800;
-  line-height: 1;
-  letter-spacing: 0.04em;
-  white-space: nowrap;
-  color: transparent;
-  background-image: linear-gradient(150deg, #ffd3e7 0%, #ff8fbe 45%, #ff7b6b 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  filter: drop-shadow(0 6px 14px rgba(255, 95, 153, 0.45));
-  opacity: 0;
-  transform: rotate(var(--rot));
-  animation: eggWordFall var(--dur) linear var(--delay) infinite;
-  pointer-events: none;
-  user-select: none;
-}
-
-.egg-photo {
-  position: absolute;
-  z-index: 2;
-  width: var(--w);
-  margin: 0;
-  padding: 6px;
-  border-radius: 16px;
-  background: linear-gradient(160deg, #fffdfd, #ffeef4);
-  border: 1px solid rgba(255, 255, 255, 0.92);
-  box-shadow:
-    0 26px 54px -26px rgba(0, 0, 0, 0.7),
-    0 0 0 1px rgba(194, 24, 91, 0.06);
-  transform: translate(-50%, -50%) rotate(var(--rot));
-  animation: eggPhotoIn var(--dur) cubic-bezier(0.18, 0.72, 0.22, 1) var(--delay) both;
-  will-change: transform;
-}
-
-.egg-photo img {
-  display: block;
-  width: 100%;
-  border-radius: 11px;
-  user-select: none;
-}
-
-.egg-note {
-  position: absolute;
-  z-index: 4;
-  left: 50%;
-  bottom: 9vh;
-  transform: translateX(-50%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  width: max-content;
-  max-width: min(86vw, 420px);
-  padding: 18px 26px;
-  border-radius: 24px;
-  text-align: center;
-  background: rgba(255, 252, 244, 0.94);
-  border: 2px solid #d4c4a8;
-  box-shadow:
-    0 6px 0 #d4c9b4,
-    0 24px 40px -20px rgba(0, 0, 0, 0.5);
-  pointer-events: none;
-  animation: eggNoteIn 0.6s 0.3s both;
-}
-
-.egg-note p {
-  margin: 0;
-  font-size: 14px;
-  line-height: 1.7;
-  font-weight: 600;
-  color: #794f27;
-}
-
-.egg-note span {
-  font-size: 11px;
-  color: #9f927d;
-}
-
-.egg-close {
-  position: absolute;
-  top: 18px;
-  right: 18px;
-  z-index: 5;
-  display: grid;
-  place-items: center;
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  border: 2px solid #d4c4a8;
-  background: #fffaf0;
-  color: #794f27;
-  cursor: pointer;
-  box-shadow: 0 4px 0 #d4c9b4;
-  transition: transform 0.2s ease, background 0.2s ease;
-  animation: eggCloseIn 0.4s ease 0.5s both;
-}
-
-.egg-close:hover {
-  transform: scale(1.08) rotate(90deg);
-  background: #fff;
-}
-
-.egg-fade-enter-active,
-.egg-fade-leave-active {
-  transition: opacity 0.22s ease;
-}
-
-.egg-fade-enter-from,
-.egg-fade-leave-to {
-  opacity: 0;
-}
+/* ==================== 手账式彩蛋由 CatKeepsake.vue 呈现 ==================== */
+.egg-fade-enter-active,.egg-fade-leave-active{transition:opacity .28s ease,backdrop-filter .28s ease}
+.egg-fade-enter-from,.egg-fade-leave-to{opacity:0;backdrop-filter:blur(0)}
 
 /* ==================== 动画 ==================== */
 @keyframes spin {
@@ -1742,113 +1279,6 @@
   }
   50% {
     transform: rotate(12deg);
-  }
-}
-
-@keyframes heartPop {
-  0%,
-  100% {
-    opacity: 0.7;
-    transform: scale(0.85) rotate(-6deg);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.12) rotate(6deg);
-  }
-}
-
-@keyframes ribbonFloat {
-  0%,
-  100% {
-    transform: translate(-14px, 0) rotate(-1deg);
-  }
-  50% {
-    transform: translate(14px, 10px) rotate(1deg);
-  }
-}
-
-@keyframes wandSwingBig {
-  0%,
-  100% {
-    transform: rotate(-12deg);
-  }
-  50% {
-    transform: rotate(13deg);
-  }
-}
-
-@keyframes wandHop {
-  0%,
-  100% {
-    transform: translate(0, 0) rotate(0);
-  }
-  50% {
-    transform: translate(-6px, 10px) rotate(-1.5deg);
-  }
-}
-
-@keyframes featherFlutter {
-  0%,
-  100% {
-    transform: rotate(-5deg) scale(1);
-  }
-  50% {
-    transform: rotate(6deg) scale(1.05);
-  }
-}
-
-@keyframes sparkTwinkle {
-  0%,
-  100% {
-    opacity: 0.35;
-    transform: scale(0.7);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.15);
-  }
-}
-
-@keyframes confettiDrop {
-  0% {
-    top: -10%;
-    opacity: 0;
-  }
-  8% {
-    opacity: 0.95;
-  }
-  92% {
-    opacity: 0.95;
-  }
-  100% {
-    top: 108%;
-    opacity: 0;
-  }
-}
-
-@keyframes confettiSpin {
-  from {
-    transform: rotate(var(--rot));
-  }
-  to {
-    transform: rotate(calc(var(--rot) + 540deg));
-  }
-}
-
-@keyframes teaseChipIn {
-  from {
-    opacity: 0;
-    transform: translateY(-6px) scale(0.96);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-@keyframes teaseDrain {
-  to {
-    width: 0;
   }
 }
 
@@ -1928,61 +1358,6 @@
   to {
     opacity: 1;
     transform: translate(-50%, -50%) scale(1);
-  }
-}
-
-@keyframes eggWordFall {
-  0% {
-    opacity: 0;
-    transform: translateY(-10vh) rotate(var(--rot));
-  }
-  12% {
-    opacity: var(--alpha);
-  }
-  82% {
-    opacity: calc(var(--alpha) * 0.85);
-  }
-  100% {
-    opacity: 0;
-    transform: translateY(112vh) rotate(calc(var(--rot) + 36deg));
-  }
-}
-
-@keyframes eggPhotoIn {
-  0% {
-    opacity: 0;
-    transform: translate(calc(-50% + 46vw), calc(-50% + 52vh)) scale(0.12) rotate(calc(var(--rot) - var(--spin)));
-  }
-  12% {
-    opacity: 1;
-  }
-  72% {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1.03) rotate(var(--rot));
-  }
-  100% {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1) rotate(var(--rot));
-  }
-}
-
-@keyframes eggNoteIn {
-  from {
-    opacity: 0;
-    transform: translate(-50%, 14px) scale(0.96);
-  }
-  to {
-    opacity: 1;
-    transform: translate(-50%, 0) scale(1);
-  }
-}
-
-@keyframes eggCloseIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
   }
 }
 
@@ -2071,9 +1446,12 @@
   }
 
   .page-cat {
-    width: 84px;
-    height: 78px;
+    width: 65px;
+    height: 64px;
+    right: -18px;
+    top: max(9px, env(safe-area-inset-top));
   }
+  .page-cat.revealed { transform:translateX(-26px); }
 
   /* 手机端全幅播放器：去掉卡片留白、圆角与阴影，画面顶到屏幕两侧 */
   .player.player {
@@ -2180,13 +1558,13 @@
   }
 
   .corner-fab {
-    width: 58px;
-    height: 58px;
+    width: 48px;
+    height: 48px;
   }
 
   .corner-fab :deep(svg) {
-    width: 38px;
-    height: 38px;
+    width: 23px;
+    height: 23px;
   }
 
   .corner-menu {
@@ -2235,18 +1613,7 @@
     padding: 0 16px;
   }
 
-  .egg-close {
-    top: 12px;
-    right: 12px;
-    width: 38px;
-    height: 38px;
-  }
 
-  .egg-note {
-    bottom: 8vh;
-    width: calc(100% - 40px);
-    max-width: none;
-  }
 }
 
 /* 窄屏控制条太挤，音量改由图标控制 */
@@ -2266,13 +1633,13 @@
   }
 
   .toolbar :deep(.animal-btn.action) .action-icon {
-    width: 22px;
-    height: 22px;
+    width: 24px;
+    height: 24px;
   }
 
   .toolbar :deep(.animal-btn.action) .action-icon .wand {
-    width: 16px;
-    height: 16px;
+    width: 24px;
+    height: 24px;
   }
 }
 
@@ -2293,24 +1660,14 @@
   .cat-eye,
   .cat-tail,
   .cat-scarf,
-  .page-cat-heart,
+  .mascot-heart,
   .deco,
-  .tease-ribbon,
-  .tease-wand,
-  .tease-wand-swing,
-  .tease-wand-fluff,
-  .wand-spark,
-  .tease-fill,
-  .tease-chip,
   .page.teasing .corner-fab,
   .toolbar :deep(.animal-btn.action) .action-icon::after,
   .toolbar :deep(.animal-btn.action .wand-tip) {
     animation: none;
   }
 
-  .tease-confetti {
-    display: none;
-  }
 
   .player.player {
     animation: none;

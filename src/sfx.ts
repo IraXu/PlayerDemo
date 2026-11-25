@@ -1,550 +1,159 @@
-/**
- * 页面轻音效：呼噜声、喵一声。
- * 全部用 Web Audio 实时合成，不引入任何音频文件。
- */
+/** Recorded animal foley; attribution and editing details live alongside the clips. */
+import meow from './assets/sfx/meow.mp3'
+import softMeow from './assets/sfx/meow-soft.mp3'
+import shortMeow from './assets/sfx/cat-short.mp3'
+import purr from './assets/sfx/purr.mp3'
+import fox from './assets/sfx/fox.mp3'
+import foxAlt from './assets/sfx/fox-alt.mp3'
+import bear from './assets/sfx/bear.mp3'
 
-type AudioContextCtor = typeof AudioContext
-
+type Sound = 'meow' | 'purr' | 'bear' | 'fox' | 'chirp' | 'yowl'
+const clips: Record<Sound, string[]> = {
+  meow: [meow, softMeow], purr: [purr], bear: [bear],
+  fox: [fox, foxAlt], chirp: [softMeow], yowl: [shortMeow],
+}
 let ctx: AudioContext | null = null
-let activePurr: GainNode | null = null
+let output: DynamicsCompressorNode | null = null
+const downloads = new Map<string, Promise<ArrayBuffer>>()
+const decoded = new Map<string, Promise<AudioBuffer>>()
+const previous = new Map<Sound, number>()
+const pending = new Map<Sound, number>()
+interface Voice { source: AudioScheduledSourceNode; gain: GainNode; kind: string }
+const voices = new Set<Voice>()
 
-function getAudioContext(): AudioContext | null {
+function download(url: string) {
+  let task = downloads.get(url)
+  if (!task) {
+    task = fetch(url).then(response => {
+      if (!response.ok) throw new Error(`Audio ${response.status}`)
+      return response.arrayBuffer()
+    }).catch(error => { downloads.delete(url); throw error })
+    downloads.set(url, task)
+  }
+  return task
+}
+
+/** Fetch only the sounds needed for the hovered companion. Never block first paint. */
+export function preloadSoundEffects(...sounds: Sound[]) {
+  const urls = sounds.flatMap(sound => clips[sound] ?? [])
+  for (const url of new Set(urls)) void download(url).catch(() => {})
+}
+
+function audioContext() {
   if (typeof window === 'undefined') return null
-  const Ctor =
-    window.AudioContext ??
-    (window as unknown as { webkitAudioContext?: AudioContextCtor }).webkitAudioContext
+  const Ctor = window.AudioContext ??
+    (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
   if (!Ctor) return null
-  if (!ctx) ctx = new Ctor()
-  if (ctx.state === 'suspended') void ctx.resume()
+  if (!ctx) {
+    ctx = new Ctor()
+    output = ctx.createDynamicsCompressor()
+    output.threshold.value = -12
+    output.knee.value = 12
+    output.ratio.value = 4
+    output.attack.value = 0.005
+    output.release.value = 0.16
+    output.connect(ctx.destination)
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        pending.clear()
+        for (const voice of voices) fadeOut(voice)
+      }
+    })
+  }
+  if (ctx.state === 'suspended') void ctx.resume().catch(() => {})
   return ctx
 }
 
-function brownNoise(ctx: AudioContext, seconds: number): AudioBufferSourceNode {
-  const buffer = ctx.createBuffer(1, Math.floor(ctx.sampleRate * seconds), ctx.sampleRate)
-  const data = buffer.getChannelData(0)
-  let last = 0
-  for (let i = 0; i < data.length; i++) {
-    const white = Math.random() * 2 - 1
-    last = (last + 0.02 * white) / 1.02
-    data[i] = last * 3.2
-  }
-  const source = ctx.createBufferSource()
-  source.buffer = buffer
-  return source
+function fadeOut(voice: Voice) {
+  if (!ctx) return
+  const now = ctx.currentTime
+  voice.gain.gain.cancelAndHoldAtTime(now)
+  voice.gain.gain.linearRampToValueAtTime(0, now + 0.045)
+  voice.source.stop(now + 0.05)
 }
 
-/**
- * 呼噜声：
- * 低频基音 + 点缀噪声，再叠 24Hz 的振幅脉冲和 0.6Hz 的缓慢起伏，
- * 避免出现“电流噪声”或机械的电子音。
- */
-export function playPurr() {
-  const audio = getAudioContext()
-  if (!audio) return
-  const now = audio.currentTime
-  const duration = 2.6
+function track(source: AudioScheduledSourceNode, gain: GainNode, kind: string) {
+  // Repeated petting fades the previous sound rather than stacking loud voices.
+  for (const voice of voices) if (voice.kind === kind) fadeOut(voice)
+  if (!kind.startsWith('reveal-') && [...voices].filter(voice => !voice.kind.startsWith('reveal-')).length >= 4) {
+    const oldest = [...voices].find(voice => !voice.kind.startsWith('reveal-'))
+    if (oldest) fadeOut(oldest)
+  }
+  const voice = { source, gain, kind }
+  voices.add(voice)
+  source.onended = () => { voices.delete(voice); source.disconnect(); gain.disconnect() }
+}
 
-  // 上一段还没播完就再点，先把旧的一段收掉，避免叠音
-  if (activePurr) {
-    try {
-      activePurr.gain.cancelScheduledValues(now)
-      activePurr.gain.setTargetAtTime(0, now, 0.06)
-    } catch {
-      /* ignore */
+async function play(kind: Sound, delay = 0) {
+  const audio = audioContext()
+  if (!audio || document.hidden) return
+  const requestedAt = performance.now()
+  pending.set(kind, requestedAt)
+  const options = clips[kind]
+  // Alternate recordings where available; keep natural recorded pitches intact.
+  const index = ((previous.get(kind) ?? -1) + 1) % options.length
+  previous.set(kind, index)
+  const url = options[index]!
+  const target = audio.currentTime + Math.max(0, delay)
+  try {
+    let bufferTask = decoded.get(url)
+    if (!bufferTask) {
+      bufferTask = download(url).then(bytes => audio.decodeAudioData(bytes.slice(0)))
+        .catch(error => { decoded.delete(url); throw error })
+      decoded.set(url, bufferTask)
     }
-  }
-
-  const master = audio.createGain()
-  master.gain.setValueAtTime(0, now)
-  master.gain.linearRampToValueAtTime(0.12, now + 0.22)
-  master.gain.setValueAtTime(0.12, now + duration - 0.6)
-  master.gain.linearRampToValueAtTime(0, now + duration)
-
-  // 基音：55Hz 三角波 + 82.5Hz 正弦，经过低通后作为“胸腔共振”
-  const toneFilter = audio.createBiquadFilter()
-  toneFilter.type = 'lowpass'
-  toneFilter.frequency.value = 240
-  toneFilter.Q.value = 0.8
-
-  const base = audio.createOscillator()
-  base.type = 'triangle'
-  base.frequency.value = 55
-
-  const overtone = audio.createOscillator()
-  overtone.type = 'sine'
-  overtone.frequency.value = 82.5
-  const overtoneGain = audio.createGain()
-  overtoneGain.gain.value = 0.4
-
-  base.connect(toneFilter)
-  overtone.connect(overtoneGain)
-  overtoneGain.connect(toneFilter)
-
-  // 呼噜的脉冲感：用一个 25Hz 的 LFO 调制音量
-  const pulse = audio.createGain()
-  pulse.gain.value = 0.6
-  const pulseLfo = audio.createOscillator()
-  pulseLfo.type = 'sine'
-  pulseLfo.frequency.value = 25
-  const pulseDepth = audio.createGain()
-  pulseDepth.gain.value = 0.35
-  pulseLfo.connect(pulseDepth)
-  pulseDepth.connect(pulse.gain)
-
-  // 一点气息声，让声音不那么“电子”
-  const breath = brownNoise(audio, duration)
-  const breathFilter = audio.createBiquadFilter()
-  breathFilter.type = 'lowpass'
-  breathFilter.frequency.value = 520
-  breathFilter.Q.value = 0.5
-  const breathGain = audio.createGain()
-  breathGain.gain.value = 0.09
-  breath.connect(breathFilter)
-  breathFilter.connect(breathGain)
-  breathGain.connect(pulse)
-
-  // 0.6Hz 的缓慢起伏，模拟猫呼吸时呼噜强弱的变化
-  const wave = audio.createOscillator()
-  wave.type = 'sine'
-  wave.frequency.value = 0.6
-  const waveDepth = audio.createGain()
-  waveDepth.gain.value = 0.03
-  wave.connect(waveDepth)
-  waveDepth.connect(master.gain)
-
-  const smooth = audio.createBiquadFilter()
-  smooth.type = 'lowpass'
-  smooth.frequency.value = 1200
-  smooth.Q.value = 0.5
-
-  toneFilter.connect(pulse)
-  pulse.connect(smooth)
-  smooth.connect(master)
-  master.connect(audio.destination)
-
-  base.start(now)
-  overtone.start(now)
-  pulseLfo.start(now)
-  breath.start(now)
-  wave.start(now)
-
-  base.stop(now + duration)
-  overtone.stop(now + duration)
-  pulseLfo.stop(now + duration)
-  breath.stop(now + duration)
-  wave.stop(now + duration)
-
-  activePurr = master
-  window.setTimeout(() => {
-    if (activePurr === master) activePurr = null
-  }, duration * 1000)
+    const buffer = await bufferTask
+    // Drop outdated requests after slow loads or a switch away from the page.
+    if (pending.get(kind) !== requestedAt || document.hidden || performance.now() - requestedAt > 1200 + Math.max(0, delay) * 1000) return
+    const start = Math.max(audio.currentTime, target)
+    const source = audio.createBufferSource()
+    source.buffer = buffer
+    const gain = audio.createGain()
+    const level = kind === 'purr' ? 0.8 : 0.9
+    const end = start + buffer.duration
+    gain.gain.setValueAtTime(0, start)
+    gain.gain.linearRampToValueAtTime(level, start + 0.02)
+    gain.gain.setValueAtTime(level, Math.max(start + 0.02, end - 0.07))
+    gain.gain.linearRampToValueAtTime(0, end)
+    source.connect(gain)
+    gain.connect(output!)
+    track(source, gain, kind)
+    source.start(start)
+  } catch { /* Missing audio must never interrupt an interaction; allow a later retry. */ }
 }
 
-/**
- * 喵一声：三角波 + 少量锯齿波作为声源，
- * 用会滑动的共振峰模拟“喵——”的元音变化，并加一点起音气息，减少电子感。
- * @param delay 相对当前时间的延迟（秒）
- */
-export function playMeow(delay = 0) {
-  const audio = getAudioContext()
-  if (!audio) return
-  const start = audio.currentTime + Math.max(0, delay)
-  const duration = 0.48
+export function playMeow(delay = 0) { void play('meow', delay) }
+export function playPurr() { void play('purr') }
+export function playBearCall(delay = 0) { void play('bear', delay) }
+export function playYip(delay = 0) { void play('fox', delay) }
+/** A quiet recorded greeting replaces the old electronic three-note chirp. */
+export function playChirp(delay = 0) { void play('chirp', delay) }
+/** Short, emphatic recorded mew; avoid a harsh distress scream. */
+export function playYowl(delay = 0) { void play('yowl', delay) }
 
-  const master = audio.createGain()
-  master.gain.setValueAtTime(0, start)
-  master.gain.linearRampToValueAtTime(0.2, start + 0.04)
-  master.gain.linearRampToValueAtTime(0.15, start + 0.26)
-  master.gain.linearRampToValueAtTime(0, start + 0.46)
-
-  const tone = audio.createOscillator()
-  tone.type = 'triangle'
-  const rasp = audio.createOscillator()
-  rasp.type = 'sawtooth'
-  const raspLevel = audio.createGain()
-  raspLevel.gain.value = 0.24
-
-  // 每次叫声音高略有不同，避免反复点击时听起来一模一样
-  const offset = Math.random() * 50 - 25
-  tone.detune.setValueAtTime(offset, start)
-  rasp.detune.setValueAtTime(offset, start)
-
-  const setPitch = (param: AudioParam) => {
-    param.setValueAtTime(560, start)
-    param.linearRampToValueAtTime(880, start + 0.07)
-    param.linearRampToValueAtTime(760, start + 0.19)
-    param.linearRampToValueAtTime(470, start + 0.4)
-  }
-  setPitch(tone.frequency)
-  setPitch(rasp.frequency)
-
-  // 轻微颤音，让音高不是完全笔直
-  const vibrato = audio.createOscillator()
-  vibrato.type = 'sine'
-  vibrato.frequency.value = 5.5
-  const vibratoDepth = audio.createGain()
-  vibratoDepth.gain.value = 9
-  vibrato.connect(vibratoDepth)
-  vibratoDepth.connect(tone.detune)
-  vibratoDepth.connect(rasp.detune)
-
-  const lowpass = audio.createBiquadFilter()
-  lowpass.type = 'lowpass'
-  lowpass.frequency.value = 2100
-  lowpass.Q.value = 0.6
-
-  tone.connect(lowpass)
-  rasp.connect(raspLevel)
-  raspLevel.connect(lowpass)
-
-  // 两个会滑动的共振峰，形成“喵——”的元音变化
-  const formant1 = audio.createBiquadFilter()
-  formant1.type = 'bandpass'
-  formant1.Q.value = 2.4
-  formant1.frequency.setValueAtTime(680, start)
-  formant1.frequency.linearRampToValueAtTime(1120, start + 0.13)
-  formant1.frequency.linearRampToValueAtTime(800, start + 0.42)
-
-  const formant2 = audio.createBiquadFilter()
-  formant2.type = 'bandpass'
-  formant2.Q.value = 3.2
-  formant2.frequency.setValueAtTime(1750, start)
-  formant2.frequency.linearRampToValueAtTime(1250, start + 0.2)
-  formant2.frequency.linearRampToValueAtTime(1050, start + 0.42)
-
-  const body = audio.createGain()
-  body.gain.value = 0.28
-
-  lowpass.connect(formant1)
-  lowpass.connect(formant2)
-  lowpass.connect(body)
-  formant1.connect(master)
-  formant2.connect(master)
-  body.connect(master)
-
-  // 起音的一点气息，减少“电子音头”
-  const breath = brownNoise(audio, 0.2)
-  const breathFilter = audio.createBiquadFilter()
-  breathFilter.type = 'bandpass'
-  breathFilter.frequency.value = 1200
-  breathFilter.Q.value = 0.8
-  const breathGain = audio.createGain()
-  breathGain.gain.setValueAtTime(0.05, start)
-  breathGain.gain.linearRampToValueAtTime(0, start + 0.12)
-  breath.connect(breathFilter)
-  breathFilter.connect(breathGain)
-  breathGain.connect(master)
-
-  master.connect(audio.destination)
-
-  tone.start(start)
-  rasp.start(start)
-  vibrato.start(start)
-  breath.start(start)
-  tone.stop(start + duration)
-  rasp.stop(start + duration)
-  vibrato.stop(start + duration)
-  breath.stop(start + duration)
-}
-
-/**
- * 小熊的招呼声：比喵声低一个八度左右的一声“呜”，
- * 三角波下滑 + 锯齿波胸腔共鸣 + 一点气息，听起来闷闷的、软软的。
- * @param delay 相对当前时间的延迟（秒）
- */
-export function playBearCall(delay = 0) {
-  const audio = getAudioContext()
-  if (!audio) return
-  const start = audio.currentTime + Math.max(0, delay)
-  const duration = 0.5
-
-  const master = audio.createGain()
-  master.gain.setValueAtTime(0, start)
-  master.gain.linearRampToValueAtTime(0.22, start + 0.05)
-  master.gain.linearRampToValueAtTime(0.14, start + 0.3)
-  master.gain.linearRampToValueAtTime(0, start + 0.48)
-
-  const tone = audio.createOscillator()
-  tone.type = 'triangle'
-  // 每次叫声略有不同，避免反复点击听起来一模一样
-  tone.detune.setValueAtTime(Math.random() * 24 - 12, start)
-  tone.frequency.setValueAtTime(210, start)
-  tone.frequency.linearRampToValueAtTime(150, start + 0.16)
-  tone.frequency.linearRampToValueAtTime(120, start + 0.42)
-
-  const rumble = audio.createOscillator()
-  rumble.type = 'sawtooth'
-  rumble.frequency.setValueAtTime(105, start)
-  rumble.frequency.linearRampToValueAtTime(78, start + 0.4)
-  const rumbleGain = audio.createGain()
-  rumbleGain.gain.value = 0.22
-
-  const vibrato = audio.createOscillator()
-  vibrato.type = 'sine'
-  vibrato.frequency.value = 6
-  const vibratoDepth = audio.createGain()
-  vibratoDepth.gain.value = 6
-  vibrato.connect(vibratoDepth)
-  vibratoDepth.connect(tone.detune)
-
-  const lowpass = audio.createBiquadFilter()
-  lowpass.type = 'lowpass'
-  lowpass.frequency.setValueAtTime(900, start)
-  lowpass.frequency.linearRampToValueAtTime(520, start + 0.4)
-  lowpass.Q.value = 1.2
-
-  const breath = brownNoise(audio, 0.3)
-  const breathFilter = audio.createBiquadFilter()
-  breathFilter.type = 'bandpass'
-  breathFilter.frequency.value = 420
-  breathFilter.Q.value = 0.7
-  const breathGain = audio.createGain()
-  breathGain.gain.setValueAtTime(0.06, start)
-  breathGain.gain.linearRampToValueAtTime(0, start + 0.18)
-
-  tone.connect(lowpass)
-  rumble.connect(rumbleGain)
-  rumbleGain.connect(lowpass)
-  lowpass.connect(master)
-  breath.connect(breathFilter)
-  breathFilter.connect(breathGain)
-  breathGain.connect(master)
-  master.connect(audio.destination)
-
-  tone.start(start)
-  rumble.start(start)
-  vibrato.start(start)
-  breath.start(start)
-  tone.stop(start + duration)
-  rumble.stop(start + duration)
-  vibrato.stop(start + duration)
-  breath.stop(start + duration)
-}
-
-/**
- * 狐狸的短叫：连着两声急促的“嘤嘤”，
- * 三角波快速下滑 + 一点锯齿波泛音，比喵声更尖更短。
- * @param delay 相对当前时间的延迟（秒）
- */
-export function playYip(delay = 0) {
-  const audio = getAudioContext()
-  if (!audio) return
-  const start = audio.currentTime + Math.max(0, delay)
-
-  const yips = [
-    { at: 0, duration: 0.14, pitch: 880 },
-    { at: 0.14, duration: 0.18, pitch: 960 },
-  ]
-
-  yips.forEach(({ at, duration, pitch }) => {
-    const begin = start + at
-
-    const master = audio.createGain()
-    master.gain.setValueAtTime(0, begin)
-    master.gain.linearRampToValueAtTime(0.16, begin + 0.015)
-    master.gain.exponentialRampToValueAtTime(0.001, begin + duration)
-    master.connect(audio.destination)
-
-    const tone = audio.createOscillator()
-    tone.type = 'triangle'
-    tone.frequency.setValueAtTime(pitch, begin)
-    tone.frequency.exponentialRampToValueAtTime(430, begin + duration)
-
-    const rasp = audio.createOscillator()
-    rasp.type = 'sawtooth'
-    rasp.frequency.setValueAtTime(pitch * 1.5, begin)
-    rasp.frequency.exponentialRampToValueAtTime(680, begin + duration)
-    const raspGain = audio.createGain()
-    raspGain.gain.value = 0.14
-
-    tone.connect(master)
-    rasp.connect(raspGain)
-    raspGain.connect(master)
-
-    tone.start(begin)
-    rasp.start(begin)
-    tone.stop(begin + duration + 0.02)
-    rasp.stop(begin + duration + 0.02)
-  })
-}
-
-/**
- * 小猫开心的“咕噜啾”：连着三声短促上滑的啾鸣，
- * 叠一层快速颤音模拟喉咙里的滚动感，和摸摸时的呼噜 + 喵声区分开。
- * @param delay 相对当前时间的延迟（秒）
- */
-export function playChirp(delay = 0) {
-  const audio = getAudioContext()
-  if (!audio) return
-  const start = audio.currentTime + Math.max(0, delay)
-
-  const notes = [
-    { at: 0, duration: 0.1, pitch: 520 },
-    { at: 0.11, duration: 0.1, pitch: 690 },
-    { at: 0.22, duration: 0.16, pitch: 880 },
-  ]
-
-  notes.forEach(({ at, duration, pitch }) => {
-    const begin = start + at
-
-    const master = audio.createGain()
-    master.gain.setValueAtTime(0, begin)
-    master.gain.linearRampToValueAtTime(0.13, begin + 0.012)
-    master.gain.exponentialRampToValueAtTime(0.001, begin + duration)
-    master.connect(audio.destination)
-
-    const tone = audio.createOscillator()
-    tone.type = 'triangle'
-    tone.frequency.setValueAtTime(pitch, begin)
-    tone.frequency.linearRampToValueAtTime(pitch * 1.3, begin + duration * 0.75)
-
-    // 32Hz 的快速颤音，模仿猫咪喉咙里“咕噜”的滚动感
-    const trill = audio.createOscillator()
-    trill.type = 'sine'
-    trill.frequency.value = 32
-    const trillDepth = audio.createGain()
-    trillDepth.gain.value = 16
-    trill.connect(trillDepth)
-    trillDepth.connect(tone.detune)
-
-    const body = audio.createGain()
-    body.gain.value = 0.55
-    const formant = audio.createBiquadFilter()
-    formant.type = 'bandpass'
-    formant.Q.value = 1.8
-    formant.frequency.value = pitch * 1.9
-
-    tone.connect(body)
-    body.connect(master)
-    tone.connect(formant)
-    formant.connect(master)
-
-    tone.start(begin)
-    trill.start(begin)
-    tone.stop(begin + duration + 0.02)
-    trill.stop(begin + duration + 0.02)
-  })
-}
-
-/**
- * 被咬到的猫“嗷呜”：一声比喵声更粗更急的嚎叫，
- * 起音带一口短促的“咔”和快速上挑，随后一路下滑，听起来像被吓到了。
- * @param delay 相对当前时间的延迟（秒）
- */
-export function playYowl(delay = 0) {
-  const audio = getAudioContext()
-  if (!audio) return
-  const start = audio.currentTime + Math.max(0, delay)
-  const duration = 0.62
-
-  const master = audio.createGain()
-  master.gain.setValueAtTime(0, start)
-  master.gain.linearRampToValueAtTime(0.26, start + 0.03)
-  master.gain.linearRampToValueAtTime(0.2, start + 0.18)
-  master.gain.linearRampToValueAtTime(0, start + duration)
-  master.connect(audio.destination)
-
-  const tone = audio.createOscillator()
-  tone.type = 'sawtooth'
-  const rasp = audio.createOscillator()
-  rasp.type = 'triangle'
-
-  const sweep = (param: AudioParam) => {
-    param.setValueAtTime(520, start)
-    param.linearRampToValueAtTime(980, start + 0.08)
-    param.exponentialRampToValueAtTime(330, start + duration)
-  }
-  sweep(tone.frequency)
-  sweep(rasp.frequency)
-
-  const vibrato = audio.createOscillator()
-  vibrato.type = 'sine'
-  vibrato.frequency.value = 8
-  const vibratoDepth = audio.createGain()
-  vibratoDepth.gain.value = 26
-  vibrato.connect(vibratoDepth)
-  vibratoDepth.connect(tone.detune)
-  vibratoDepth.connect(rasp.detune)
-
-  const lowpass = audio.createBiquadFilter()
-  lowpass.type = 'lowpass'
-  lowpass.frequency.setValueAtTime(2600, start)
-  lowpass.frequency.linearRampToValueAtTime(900, start + duration)
-  lowpass.Q.value = 0.9
-
-  const raspLevel = audio.createGain()
-  raspLevel.gain.value = 0.45
-
-  tone.connect(lowpass)
-  rasp.connect(raspLevel)
-  raspLevel.connect(lowpass)
-  lowpass.connect(master)
-
-  // 咬下去的一口“咔”：一小段带通噪声，让这一下和别的互动完全不一样
-  const snap = brownNoise(audio, 0.08)
-  const snapFilter = audio.createBiquadFilter()
-  snapFilter.type = 'bandpass'
-  snapFilter.frequency.value = 900
-  snapFilter.Q.value = 0.9
-  const snapGain = audio.createGain()
-  snapGain.gain.setValueAtTime(0.18, start)
-  snapGain.gain.exponentialRampToValueAtTime(0.001, start + 0.07)
-  snap.connect(snapFilter)
-  snapFilter.connect(snapGain)
-  snapGain.connect(master)
-
-  tone.start(start)
-  rasp.start(start)
-  vibrato.start(start)
-  snap.start(start)
-  tone.stop(start + duration)
-  rasp.stop(start + duration)
-  vibrato.stop(start + duration)
-  snap.stop(start + 0.1)
-}
-
-/**
- * “酱酱酱～”的揭晓音效：
- * 三个上行音 + 尾音，三角波叠一层高八度正弦，听起来像小铃铛报幕。
- */
+/** Soft felt-bell cue with decaying, slightly inharmonic overtones. */
 export function playReveal() {
-  const audio = getAudioContext()
-  if (!audio) return
+  const audio = audioContext()
+  if (!audio || document.hidden) return
+  for (const voice of voices) if (voice.kind.startsWith('reveal-')) fadeOut(voice)
   const start = audio.currentTime
-  const notes = [
-    { freq: 523.25, at: 0, duration: 0.18, gain: 0.13 },
-    { freq: 659.25, at: 0.15, duration: 0.18, gain: 0.14 },
-    { freq: 783.99, at: 0.3, duration: 0.7, gain: 0.17 },
-  ]
-
-  notes.forEach(({ freq, at, duration, gain }, index) => {
-    const begin = start + at
-    const master = audio.createGain()
-    master.gain.setValueAtTime(0, begin)
-    master.gain.linearRampToValueAtTime(gain, begin + 0.012)
-    master.gain.exponentialRampToValueAtTime(0.0001, begin + duration)
-    master.connect(audio.destination)
-
-    const tone = audio.createOscillator()
-    tone.type = 'triangle'
-    tone.frequency.setValueAtTime(freq, begin)
-    if (index === notes.length - 1) {
-      tone.frequency.linearRampToValueAtTime(freq * 1.02, begin + duration)
-    }
-
-    const shimmer = audio.createOscillator()
-    shimmer.type = 'sine'
-    shimmer.frequency.setValueAtTime(freq * 2, begin)
-    const shimmerGain = audio.createGain()
-    shimmerGain.gain.value = 0.16
-
-    tone.connect(master)
-    shimmer.connect(shimmerGain)
-    shimmerGain.connect(master)
-
-    tone.start(begin)
-    shimmer.start(begin)
-    tone.stop(begin + duration)
-    shimmer.stop(begin + duration)
+  ;[523.25, 659.25, 783.99].forEach((frequency, index) => {
+    const begin = start + index * 0.13
+    ;[1, 2.006, 3.98].forEach((ratio, partial) => {
+      const tone = audio.createOscillator()
+      tone.type = 'sine'
+      tone.frequency.value = frequency * ratio
+      const gain = audio.createGain()
+      const duration = partial === 0 ? 0.85 : 0.32
+      gain.gain.setValueAtTime(0, begin)
+      gain.gain.linearRampToValueAtTime([0.055, 0.012, 0.003][partial]!, begin + 0.008)
+      gain.gain.exponentialRampToValueAtTime(0.0001, begin + duration)
+      tone.connect(gain)
+      gain.connect(output!)
+      // Partials belong to one cue and should ring together.
+      track(tone, gain, `reveal-${index}-${partial}`)
+      tone.start(begin)
+      tone.stop(begin + duration)
+    })
   })
 }

@@ -7,33 +7,8 @@
     :aria-label="copy.huntAria"
     @click="catchCat"
   >
-    <svg v-if="isBear" viewBox="0 0 120 120" fill="none" aria-hidden="true">
-      <g stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="35" cy="36" r="12" />
-        <circle cx="85" cy="36" r="12" />
-        <path d="M46 78c-9 3-15 11-15 20 0 7 5 11 13 11h32c8 0 13-4 13-11 0-9-6-17-15-20" />
-        <path d="M49 78c7 4 15 4 22 0" />
-        <path d="M60 34c17 0 28 12 28 27 0 12-11 21-28 21S32 73 32 61c0-15 11-27 28-27Z" />
-        <ellipse cx="60" cy="64" rx="13" ry="9" />
-        <path d="M56 60h8l-4 4z" />
-        <path d="M60 64c0 2-3 2-4 1M60 64c0 2 3 2 4 1" />
-        <path d="M50 52c2-2 4-2 6 0M64 52c2-2 4-2 6 0" />
-      </g>
-    </svg>
-    <svg v-else viewBox="0 0 120 120" fill="none" aria-hidden="true">
-      <g stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M86 96c10 1 15-5 13-13-1-5-5-8-10-8" />
-        <path d="M46 78c-9 3-15 11-15 20 0 7 5 11 13 11h30c8 0 13-4 13-11 0-9-6-17-15-20" />
-        <path d="M49 78c7 4 15 4 22 0" />
-        <path d="M38 54c0-14 10-24 22-24s22 10 22 24c0 13-10 22-22 22S38 67 38 54Z" />
-        <path d="M42 39 38 23 55 33" />
-        <path d="M65 33 82 23 78 39" />
-        <path d="M49 54c2-3 5-3 7 0" />
-        <path d="M64 54c2-3 5-3 7 0" />
-        <path d="M58 60 62 60 60 63Z" />
-        <path d="M60 63c0 2-3 2-4 1M60 63c0 2 3 2 4 1" />
-        <path d="M47 60 37 58M47 65 37 66M73 60 83 58M73 65 83 66" />
-      </g>
+    <svg viewBox="0 0 100 100" fill="none" aria-hidden="true">
+      <AnimalArtwork :animal="isBear ? 'bear' : 'cat'" />
     </svg>
   </button>
 
@@ -45,6 +20,7 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { SparklesIcon } from 'naive-icons-vue'
+import AnimalArtwork from './AnimalArtwork.vue'
 import { playBearCall, playMeow } from '../sfx'
 import { copy, isBear, theme } from '../theme'
 

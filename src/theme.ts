@@ -51,7 +51,6 @@ const BEAR_HINTS = [
 export interface ThemeCopy {
   title: string
   subtitle: string
-  mascotTip: string
   liveStatus: string
   idleStatus: string
   playTitle: string
@@ -109,7 +108,6 @@ const COPY: Record<ThemeName, ThemeCopy> = {
   cat: {
     title: '十七的逗猫室',
     subtitle: '一只猫，一台摄像头，和想来看他的人',
-    mascotTip: '摸摸小猫',
     liveStatus: '猫猫丧丧の，尝试逗逗吧～',
     idleStatus: '猫猫还没出镜',
     playTitle: '猫猫在屏幕里等你哦',
@@ -165,7 +163,6 @@ const COPY: Record<ThemeName, ThemeCopy> = {
   bear: {
     title: '十七的逗熊室',
     subtitle: '一只小熊，一台摄像头，和想来看他的人',
-    mascotTip: '摸摸小熊',
     liveStatus: '熊熊丧丧の，尝试逗逗吧～',
     idleStatus: '小熊还没出镜',
     playTitle: '小熊在屏幕里等你哦',

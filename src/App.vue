@@ -7,65 +7,17 @@
       <svg class="deco-sprite" width="0" height="0">
         <defs>
           <symbol id="cute-cat-sit" viewBox="0 0 120 120">
-            <g fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M86 96c10 1 15-5 13-13-1-5-5-8-10-8" />
-              <path d="M46 78c-9 3-15 11-15 20 0 7 5 11 13 11h30c8 0 13-4 13-11 0-9-6-17-15-20" />
-              <path d="M49 78c7 4 15 4 22 0" />
-              <path d="M38 54c0-14 10-24 22-24s22 10 22 24c0 13-10 22-22 22S38 67 38 54Z" />
-              <path d="M42 39 38 23 55 33" />
-              <path d="M65 33 82 23 78 39" />
-              <path d="M49 54c2-3 5-3 7 0" />
-              <path d="M64 54c2-3 5-3 7 0" />
-              <path d="M58 60 62 60 60 63Z" />
-              <path d="M60 63c0 2-3 2-4 1M60 63c0 2 3 2 4 1" />
-              <path d="M47 60 37 58M47 65 37 66M73 60 83 58M73 65 83 66" />
-              <path d="M52 109v-7M68 109v-7" />
-            </g>
+            <BackgroundAnimal pose="sleep" :bear="false" />
           </symbol>
           <symbol id="cute-cat-peek" viewBox="0 0 120 120">
-            <g fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M10 92h100" />
-              <path d="M91 92c10-1 14-8 11-16" />
-              <path d="M36 88c0-18 11-30 24-30s24 12 24 30" />
-              <path d="M41 64 37 47 54 58" />
-              <path d="M66 58 83 47 79 64" />
-              <path d="M48 72c2-3 5-3 7 0" />
-              <path d="M65 72c2-3 5-3 7 0" />
-              <path d="M58 78 62 78 60 81Z" />
-              <path d="M60 81c0 2-3 2-4 1M60 81c0 2 3 2 4 1" />
-              <path d="M47 78 38 76M47 82 38 84M73 78 82 76M73 82 82 84" />
-              <path d="M43 92c0-5 4-8 8-8s8 3 8 8" />
-              <path d="M61 92c0-5 4-8 8-8s8 3 8 8" />
-            </g>
+            <BackgroundAnimal pose="peek" :bear="false" />
           </symbol>
           <!-- 小熊日限定：把背景里的小猫换成小熊 -->
           <symbol id="cute-bear-sit" viewBox="0 0 120 120">
-            <g fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="36" cy="34" r="13" />
-              <circle cx="84" cy="34" r="13" />
-              <path d="M42 78c-9 4-14 12-14 20 0 7 5 10 14 10h36c9 0 14-3 14-10 0-8-5-16-14-20" />
-              <path d="M45 78c8 4 22 4 30 0" />
-              <path d="M60 32c17 0 28 12 28 27 0 12-11 21-28 21S32 71 32 59c0-15 11-27 28-27Z" />
-              <ellipse cx="60" cy="63" rx="14" ry="10" />
-              <path d="M56 59h8l-4 4z" />
-              <path d="M60 63c0 2-3 2-4 1M60 63c0 2 3 2 4 1" />
-              <path d="M49 51c2-2 4-2 6 0M65 51c2-2 4-2 6 0" />
-              <path d="M46 108v-7M74 108v-7" />
-            </g>
+            <BackgroundAnimal pose="sleep" :bear="true" />
           </symbol>
           <symbol id="cute-bear-peek" viewBox="0 0 120 120">
-            <g fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M10 92h100" />
-              <circle cx="42" cy="55" r="12" />
-              <circle cx="78" cy="55" r="12" />
-              <path d="M38 90c0-15 10-26 22-26s22 11 22 26" />
-              <ellipse cx="60" cy="76" rx="13" ry="9" />
-              <path d="M56 72h8l-4 4z" />
-              <path d="M60 76c0 2-3 2-4 1M60 76c0 2 3 2 4 1" />
-              <path d="M50 67c2-2 4-2 6 0M64 67c2-2 4-2 6 0" />
-              <path d="M43 92c0-5 4-8 8-8s8 3 8 8" />
-              <path d="M61 92c0-5 4-8 8-8s8 3 8 8" />
-            </g>
+            <BackgroundAnimal pose="peek" :bear="true" />
           </symbol>
           <symbol id="deco-honey" viewBox="0 0 120 120">
             <g fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
@@ -83,7 +35,7 @@
         <use :href="isBear ? '#cute-bear-sit' : '#cute-cat-sit'" />
       </svg>
       <svg class="deco deco-cat deco-cat-top" viewBox="0 0 120 120">
-        <use :href="isBear ? '#cute-bear-peek' : '#cute-cat-peek'" />
+        <BackgroundAnimal pose="yarn" :bear="isBear" />
       </svg>
       <PawPrintIcon class="deco deco-paw deco-paw-1" :size="34" color="currentColor" />
       <PawPrintIcon class="deco deco-paw deco-paw-2" :size="30" color="currentColor" />
@@ -122,56 +74,12 @@
           {{ copy.subtitle }}
         </p>
       </div>
-      <Tooltip :title="copy.mascotTip" placement="bottom-end" variant="island">
-        <button class="page-cat" type="button" :aria-label="copy.mascotTip" @click="openEgg">
-          <svg v-if="isBear" class="cat-mascot bear-mascot" viewBox="0 0 120 110" fill="none" aria-hidden="true">
-            <circle cx="60" cy="58" r="47" fill="#FBF1DE" stroke="#D8C19A" stroke-width="2.5" />
-            <circle cx="33" cy="30" r="14" fill="#C98F52" stroke="#794F27" stroke-width="3.5" />
-            <circle cx="87" cy="30" r="14" fill="#C98F52" stroke="#794F27" stroke-width="3.5" />
-            <circle cx="33" cy="30" r="6.5" fill="#EBC08C" />
-            <circle cx="87" cy="30" r="6.5" fill="#EBC08C" />
-            <path d="M38 76c0-11 10-18 22-18s22 7 22 18c0 11-10 18-22 18s-22-7-22-18Z" fill="#C98F52" stroke="#794F27" stroke-width="3.5" />
-            <path d="M60 18c19 0 33 14 33 32 0 19-15 32-33 32S27 69 27 50c0-18 14-32 33-32Z" fill="#D9A468" stroke="#794F27" stroke-width="3.5" />
-            <ellipse cx="60" cy="60" rx="19" ry="14.5" fill="#F6DFBC" />
-            <ellipse class="cat-eye" cx="47" cy="46" rx="3.2" ry="4.2" fill="#2A2A2A" />
-            <ellipse class="cat-eye" cx="73" cy="46" rx="3.2" ry="4.2" fill="#2A2A2A" />
-            <circle cx="48" cy="44.5" r="1" fill="#fff" />
-            <circle cx="74" cy="44.5" r="1" fill="#fff" />
-            <circle cx="37" cy="57" r="3.2" fill="#F4A6A4" opacity=".5" />
-            <circle cx="83" cy="57" r="3.2" fill="#F4A6A4" opacity=".5" />
-            <path d="M55 54h10l-5 5.5z" fill="#5A3A22" />
-            <path d="M60 59.5c0 3-4 3-5 1M60 59.5c0 3 4 3 5 1" stroke="#794F27" stroke-width="1.8" stroke-linecap="round" />
-            <path d="M44 76c8 5 24 5 32 0" stroke="#2A9D8F" stroke-width="7" stroke-linecap="round" />
-            <path class="cat-scarf" d="M46 78c-6 3-8 9-6 15" stroke="#2A9D8F" stroke-width="6" stroke-linecap="round" />
-            <ellipse cx="48" cy="97" rx="9" ry="6" fill="#F6DFBC" stroke="#794F27" stroke-width="3" />
-            <ellipse cx="72" cy="97" rx="9" ry="6" fill="#F6DFBC" stroke="#794F27" stroke-width="3" />
-            <path d="M45 97v3M48 96.6v3.6M51 97v3M69 97v3M72 96.6v3.6M75 97v3" stroke="#C9A87C" stroke-width="1.3" stroke-linecap="round" />
+      <button class="page-cat" :class="{ revealed: eggRevealed }" type="button" aria-label="打开隐藏彩蛋" @click="openEgg">
+          <svg class="cat-mascot" viewBox="0 0 120 110" fill="none" aria-hidden="true">
+            <AnimalArtwork :animal="isBear ? 'bear' : 'cat'" :pink="!isBear" transform="translate(10 3)" />
           </svg>
-          <svg v-else class="cat-mascot" viewBox="0 0 120 110" fill="none" aria-hidden="true">
-            <circle cx="60" cy="58" r="47" fill="#F7F3DF" stroke="#D4C4A8" stroke-width="2.5" />
-            <path class="cat-tail" d="M42 95c-15 2-25-7-21-20 2-8 10-12 16-8" stroke="#794F27" stroke-width="4" stroke-linecap="round" />
-            <path d="M42 92c-10-4-14-16-8-26 5-8 16-12 26-12s21 4 26 12c6 10 2 22-8 26-8 4-28 4-36 0Z" fill="#F7CBD3" stroke="#794F27" stroke-width="3.5" />
-            <path d="M40 34 36 8 57 20c2-1 4-1 6 0l21-12-4 26c4 4 6 9 6 15 0 12-11 21-26 24-15-3-26-12-26-24 0-6 2-11 6-15Z" fill="#F7CBD3" stroke="#794F27" stroke-width="3.5" stroke-linejoin="round" />
-            <path d="M43 27 41 14 53 21Z" fill="#F4A6A4" />
-            <path d="M77 27 79 14 67 21Z" fill="#F4A6A4" />
-            <ellipse class="cat-eye" cx="50" cy="46" rx="3.2" ry="4.2" fill="#2A2A2A" />
-            <ellipse class="cat-eye" cx="70" cy="46" rx="3.2" ry="4.2" fill="#2A2A2A" />
-            <circle cx="51" cy="44.5" r="1" fill="#fff" />
-            <circle cx="71" cy="44.5" r="1" fill="#fff" />
-            <circle cx="45" cy="54" r="3" fill="#F4A6A4" opacity=".55" />
-            <circle cx="75" cy="54" r="3" fill="#F4A6A4" opacity=".55" />
-            <path d="M56 54 64 54 60 58Z" fill="#F4A6A4" />
-            <path d="M60 58c0 3-4 3-5 1M60 58c0 3 4 3 5 1" stroke="#794F27" stroke-width="1.8" stroke-linecap="round" />
-            <path d="M44 52 30 49M44 58 30 57M76 52 90 49M76 58 90 57" stroke="#794F27" stroke-width="1.8" stroke-linecap="round" />
-            <path d="M48 68c8 5 26 5 34 0" stroke="#2A9D8F" stroke-width="7" stroke-linecap="round" />
-            <path class="cat-scarf" d="M50 70c-6 3-8 9-6 15" stroke="#2A9D8F" stroke-width="6" stroke-linecap="round" />
-            <ellipse cx="50" cy="98" rx="9" ry="6" fill="#FFF1F2" stroke="#794F27" stroke-width="3" />
-            <ellipse cx="72" cy="98" rx="9" ry="6" fill="#FFF1F2" stroke="#794F27" stroke-width="3" />
-            <path d="M46 98c0 2 2 3 4 3M76 98c0 2-2 3-4 3" stroke="#794F27" stroke-width="1.5" stroke-linecap="round" />
-          </svg>
-          <HeartIcon class="page-cat-heart" :size="17" color="#ff8fb1" />
+          <span class="mascot-hearts" aria-hidden="true"><span v-for="i in 2" :key="i" class="mascot-heart" :style="{ '--i': i }">♥</span></span>
         </button>
-      </Tooltip>
     </header>
 
     <Card class="player">
@@ -184,127 +92,7 @@
         <div ref="containerRef" class="video"></div>
 
         <transition name="tease-fade">
-          <div v-if="isLive && teasing" class="tease-overlay" aria-hidden="true">
-            <svg class="tease-ribbon ribbon-a" viewBox="0 0 800 240" preserveAspectRatio="none">
-              <path d="M-40 60C120-10 260 130 420 70S680-20 840 60" />
-            </svg>
-            <svg class="tease-ribbon ribbon-b" viewBox="0 0 800 240" preserveAspectRatio="none">
-              <path d="M-40 40C140 120 260 10 430 80S660 150 840 50" />
-            </svg>
-            <svg class="tease-ribbon ribbon-c" viewBox="0 0 800 240" preserveAspectRatio="none">
-              <path d="M-40 120C120 40 280 170 440 90S700 20 840 100" />
-            </svg>
-
-            <div class="tease-confetti">
-              <span v-for="piece in confetti" :key="piece.id" :style="piece.style"></span>
-            </div>
-
-            <div class="tease-wand">
-              <svg viewBox="0 0 200 200" fill="none">
-                <g class="tease-wand-swing">
-                  <!-- 奶油色衬底：任何画面上都能看清轮廓 -->
-                  <path
-                    d="M183 17 88 112"
-                    stroke="#fff7e6"
-                    stroke-width="15"
-                    stroke-linecap="round"
-                    opacity=".9"
-                  />
-                  <path
-                    d="M88 112c-8 9-15 16-21 22"
-                    stroke="#fff7e6"
-                    stroke-width="8"
-                    stroke-linecap="round"
-                    opacity=".9"
-                  />
-                  <path
-                    d="M69 131C58 134 48 142 41 153L35 148 37 158 29 158 34 166 27 169 34 175 28 181 38 181 40 189 48 181 53 188 58 177C68 161 73 144 69 131Z"
-                    fill="none"
-                    stroke="#fff7e6"
-                    stroke-width="12"
-                    stroke-linejoin="round"
-                    opacity=".9"
-                  />
-
-                  <!-- 棒身 -->
-                  <path d="M183 17 88 112" stroke="#8a5a2b" stroke-width="8" stroke-linecap="round" />
-                  <path
-                    d="M179 21 92 108"
-                    stroke="#c99a5e"
-                    stroke-width="2.6"
-                    stroke-linecap="round"
-                    opacity=".85"
-                  />
-                  <path d="M181 19 164 36" stroke="#19c8b9" stroke-width="9" stroke-linecap="round" />
-
-                  <!-- 绳子和羽毛 -->
-                  <path
-                    d="M88 112c-8 9-15 16-21 22"
-                    stroke="#8a5a2b"
-                    stroke-width="2.6"
-                    stroke-linecap="round"
-                  />
-                  <g class="tease-wand-fluff">
-                    <path
-                      d="M69 131C58 134 48 142 41 153L35 148 37 158 29 158 34 166 27 169 34 175 28 181 38 181 40 189 48 181 53 188 58 177C68 161 73 144 69 131Z"
-                      fill="#f7a8b8"
-                      stroke="#d97a93"
-                      stroke-width="2.6"
-                      stroke-linejoin="round"
-                    />
-                    <path
-                      d="M69 131C61 146 53 163 45 178"
-                      stroke="#d97a93"
-                      stroke-width="1.8"
-                      stroke-linecap="round"
-                    />
-                    <path
-                      d="M64 141C59 139 54 136 49 132M58 152C52 150 47 147 42 143M52 163C46 161 41 158 36 154"
-                      stroke="#d97a93"
-                      stroke-width="1.5"
-                      stroke-linecap="round"
-                      opacity=".75"
-                    />
-                    <path
-                      d="M65 137c-6 5-11 12-15 20"
-                      stroke="#ffd3dc"
-                      stroke-width="4"
-                      stroke-linecap="round"
-                      opacity=".8"
-                    />
-                    <circle cx="69" cy="131" r="3.4" fill="#d97a93" />
-                  </g>
-
-                  <!-- 铃铛 -->
-                  <path d="M69 131 82 138" stroke="#8a5a2b" stroke-width="2.2" />
-                  <circle cx="85" cy="144" r="5.6" fill="#ffd166" stroke="#b98a1c" stroke-width="2" />
-                  <circle cx="83" cy="142" r="1.6" fill="#fff7e6" />
-
-                  <!-- 小闪光 -->
-                  <path
-                    class="wand-spark spark-1"
-                    d="M118 44l2.2 5.4 5.4 2.2-5.4 2.2-2.2 5.4-2.2-5.4-5.4-2.2 5.4-2.2Z"
-                    fill="#ffd166"
-                  />
-                  <circle class="wand-spark spark-2" cx="48" cy="112" r="3" fill="#6fd3c7" />
-                  <circle class="wand-spark spark-3" cx="96" cy="164" r="2.4" fill="#f7a8b8" />
-                </g>
-              </svg>
-            </div>
-
-            <div class="tease-hud">
-              <div class="tease-chip">
-                <PawPrintIcon :size="12" color="currentColor" />
-                <span>{{ copy.teasingText }}</span>
-              </div>
-              <div class="tease-track">
-                <span
-                  class="tease-fill"
-                  :style="{ animationDuration: `${TEASE_DURATION_MS}ms` }"
-                ></span>
-              </div>
-            </div>
-          </div>
+          <TeaseEffects v-if="isLive && teasing" :label="copy.teasingText" :duration="TEASE_DURATION_MS" />
         </transition>
 
         <div v-if="rotateHint" class="rotate-hint">
@@ -402,30 +190,7 @@
             >
               <template #icon>
                 <span class="action-icon">
-                  <svg class="wand" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <path
-                      d="M4 20 15 9"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                    />
-                    <path
-                      d="M15 9c1.3-1.5 2.9-2.6 4.7-3.1"
-                      stroke="currentColor"
-                      stroke-width="1.3"
-                      stroke-linecap="round"
-                    />
-                    <g class="wand-tip">
-                      <path
-                        d="M16.8 6.4c1.1-2 2.8-3.3 4.8-3.6 1-.1 1.9.4 2.3 1.4-.2 2-1.3 3.8-3 4.9-1.4 1-3 .9-4.2-.2-.4-.9-.4-1.7.1-2.5Z"
-                        fill="#f7a8b8"
-                        stroke="#d97a93"
-                        stroke-width="1.1"
-                        stroke-linejoin="round"
-                      />
-                      <circle cx="17.6" cy="10.9" r="1.3" fill="#ffd166" stroke="#b98a1c" stroke-width=".7" />
-                    </g>
-                  </svg>
+                  <TeaserWand class="wand" />
                 </span>
               </template>
               <span class="action-label">{{ interactText }}</span>
@@ -545,7 +310,8 @@
         :aria-label="copy.cornerAria"
         @click="toggleCorner"
       >
-        <PawPrintIcon :size="30" color="currentColor" />
+        <CloseIcon v-if="cornerOpen" :size="22" color="currentColor" />
+        <PawPrintIcon v-else :size="23" color="currentColor" />
       </button>
     </div>
 
@@ -691,46 +457,7 @@
     </transition>
 
     <transition name="egg-fade">
-      <div v-if="eggOpen" class="egg-overlay" role="dialog" aria-modal="true" aria-label="给十七的彩蛋" @click.self="closeEgg">
-        <span
-          v-for="word in eggWords"
-          :key="word.id"
-          class="egg-word"
-          aria-hidden="true"
-          :style="{
-            left: word.left + '%',
-            '--size': word.size + 'px',
-            '--rot': word.rot + 'deg',
-            '--delay': word.delay + 's',
-            '--dur': word.duration + 's',
-            '--alpha': word.alpha,
-          }"
-          >娇娇</span
-        >
-        <figure
-          v-for="item in eggPhotos"
-          :key="item.id"
-          class="egg-photo"
-          :style="{
-            left: item.left + '%',
-            top: item.top + '%',
-            '--w': item.width + 'px',
-            '--rot': item.rot + 'deg',
-            '--spin': item.spin + 'deg',
-            '--delay': item.delay + 's',
-            '--dur': item.duration + 's',
-          }"
-        >
-          <img :src="eggPhoto" alt="" draggable="false" />
-        </figure>
-        <div class="egg-note">
-          <HeartIcon :size="30" color="#ff8fb1" />
-          <p>给十七：<br />{{ copy.eggWish }}</p>
-        </div>
-        <button class="egg-close" type="button" aria-label="关闭" @click="closeEgg">
-          <CloseIcon :size="20" color="currentColor" />
-        </button>
-      </div>
+      <CatKeepsake v-if="eggOpen" :photo="eggPhoto" :wish="copy.eggWish" @close="closeEgg" />
     </transition>
 
     <CompanionCat />
@@ -790,6 +517,11 @@ import { prepareTreeImage, type TreeImage } from './treeImage'
 import { composeShareCard } from './shareCard'
 import { loadPlayerSdk } from './playerSdk'
 import { copy, isBear, theme } from './theme'
+import CatKeepsake from './components/CatKeepsake.vue'
+import BackgroundAnimal from './components/BackgroundAnimal.vue'
+import TeaserWand from './components/TeaserWand.vue'
+import TeaseEffects from './components/TeaseEffects.vue'
+import AnimalArtwork from './components/AnimalArtwork.vue'
 import CompanionCat from './components/CompanionCat.vue'
 import DailyFortune from './components/DailyFortune.vue'
 import FindTheCat from './components/FindTheCat.vue'
@@ -841,19 +573,6 @@ const TEASE_DURATION_MS = LIGHT_DURATION_MS
 const cooldownLeft = ref(0)
 const COOLDOWN_MS = 30_000
 
-// 画面里的彩纸屑：位置和节奏在启动时随机一次，避免每次渲染都跳
-const CONFETTI_COLORS = ['#f7a8b8', '#ffd166', '#6fd3c7', '#f4b183', '#9db7f0']
-const confetti = Array.from({ length: 16 }, (_, index) => ({
-  id: index,
-  style: {
-    '--x': `${4 + Math.random() * 90}%`,
-    '--delay': `${(Math.random() * 2.6).toFixed(2)}s`,
-    '--dur': `${(2.4 + Math.random() * 2).toFixed(2)}s`,
-    '--rot': `${Math.round(Math.random() * 360)}deg`,
-    '--size': `${(6 + Math.random() * 5).toFixed(1)}px`,
-    '--color': CONFETTI_COLORS[index % CONFETTI_COLORS.length],
-  } as Record<string, string>,
-}))
 // 右下角小角落菜单
 const cornerOpen = ref(false)
 const huntFound = ref(false)
@@ -864,6 +583,8 @@ const touchMode = ref(false)
 const infoOpen = ref(false)
 // 彩蛋
 const eggOpen = ref(false)
+const eggRevealed = ref(false)
+let eggRevealTimer: ReturnType<typeof setTimeout> | null = null
 // 树洞
 const treeOpen = ref(false)
 const treeMessage = ref('')
@@ -885,28 +606,6 @@ const shareStatus = computed(() => {
   if (shareError.value) return copy.value.shareFail
   return copy.value.shareReady
 })
-interface EggPhotoItem {
-  id: number
-  left: number
-  top: number
-  width: number
-  rot: number
-  spin: number
-  delay: number
-  duration: number
-}
-interface EggWordItem {
-  id: number
-  left: number
-  size: number
-  rot: number
-  delay: number
-  duration: number
-  alpha: number
-}
-const eggPhotos = ref<EggPhotoItem[]>([])
-const eggWords = ref<EggWordItem[]>([])
-
 const isLive = computed(() => status.value === 'playing')
 const fullActive = computed(() => isFullscreen.value || pseudoFullscreen.value)
 const statusKey = computed(() =>
@@ -1562,7 +1261,7 @@ function onStageDoubleClick(event: MouseEvent) {
 
 function onKeydown(event: KeyboardEvent) {
   if (event.key !== 'Escape') return
-  if (eggOpen.value) {
+  if (eggOpen.value || eggRevealed.value) {
     closeEgg()
     return
   }
@@ -1574,75 +1273,22 @@ function onKeydown(event: KeyboardEvent) {
 }
 
 // ==================== 彩蛋 ====================
-function rand(min: number, max: number) {
-  return min + Math.random() * (max - min)
-}
-
-function buildEggScene() {
-  const vw = window.innerWidth
-  const vh = window.innerHeight
-  const mobile = vw <= 720
-  const cols = mobile ? 3 : 4
-  const rows = 3
-  const cellW = vw / cols
-  const cellH = vh / rows
-  const stamp = Date.now()
-  const photos: EggPhotoItem[] = []
-
-  for (let row = 0; row < rows; row++) {
-    for (let col = 0; col < cols; col++) {
-      const width = Math.round(mobile ? rand(96, 142) : rand(136, 200))
-      const cardH = (width - 12) * (1100 / 825) + 12
-      const rot = Math.round(rand(-24, 24))
-      const rad = (rot * Math.PI) / 180
-      const bboxW = Math.abs(width * Math.cos(rad)) + Math.abs(cardH * Math.sin(rad))
-      const bboxH = Math.abs(width * Math.sin(rad)) + Math.abs(cardH * Math.cos(rad))
-      const cx = cellW * (col + 0.5) + rand(-cellW * 0.24, cellW * 0.24)
-      const cy = cellH * (row + 0.5) + rand(-cellH * 0.18, cellH * 0.18)
-      const x = Math.min(Math.max(cx, bboxW / 2 + 6), vw - bboxW / 2 - 6)
-      const y = Math.min(Math.max(cy, bboxH / 2 + 6), vh - bboxH / 2 - 6)
-      const index = row * cols + col
-
-      photos.push({
-        id: stamp + index,
-        left: Math.round((x / vw) * 1000) / 10,
-        top: Math.round((y / vh) * 1000) / 10,
-        width,
-        rot,
-        spin: (2 + Math.floor(Math.random() * 2)) * 360,
-        delay: Math.round(rand(0, 0.3) * 100) / 100,
-        duration: Math.round(rand(1.3, 2) * 100) / 100,
-      })
-    }
-  }
-  eggPhotos.value = photos
-
-  const count = mobile ? 52 : 86
-  eggWords.value = Array.from({ length: count }, (_, index) => {
-    const duration = Math.round(rand(2.8, 6) * 100) / 100
-    return {
-      id: stamp + 500 + index,
-      left: Math.round(rand(0, 96)),
-      size: Math.round(mobile ? rand(13, 28) : rand(15, 42)),
-      rot: Math.round(rand(-32, 32)),
-      // 负延迟让文字一打开就已经铺满整个屏幕，避免出现空档
-      delay: -Math.round(rand(0, duration) * 100) / 100,
-      duration,
-      alpha: Math.round(rand(0.32, 0.72) * 100) / 100,
-    }
-  })
-}
-
 function openEgg() {
-  buildEggScene()
-  eggOpen.value = true
-  lockScroll(true)
+  if (eggRevealTimer || eggOpen.value) return
+  eggRevealed.value = true
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  eggRevealTimer = setTimeout(() => {
+    eggRevealTimer = null
+    eggOpen.value = true
+    lockScroll(true)
+  }, reduced ? 0 : 360)
 }
 
 function closeEgg() {
+  if (eggRevealTimer) clearTimeout(eggRevealTimer)
+  eggRevealTimer = null
+  eggRevealed.value = false
   eggOpen.value = false
-  eggPhotos.value = []
-  eggWords.value = []
   if (!pseudoFullscreen.value) lockScroll(false)
 }
 
@@ -1940,6 +1586,7 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
+  if (eggRevealTimer) clearTimeout(eggRevealTimer)
   if (toastTimer) clearTimeout(toastTimer)
   clearTeaseTimers()
   if (rotateHintTimer) clearTimeout(rotateHintTimer)
