@@ -79,3 +79,10 @@ interface HMPlayerInstance {
 interface Window {
   HMWebPlayer: new (options: HMPlayerOptions) => HMPlayerInstance
 }
+
+// Vue single-file component modules used by the standalone TypeScript check.
+declare module '*.vue' {
+  import type { DefineComponent } from 'vue'
+  const component: DefineComponent
+  export default component
+}

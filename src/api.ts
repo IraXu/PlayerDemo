@@ -41,7 +41,7 @@ export const LIGHT_DURATION_MS = 6000
 const encoder = new TextEncoder()
 const decoder = new TextDecoder()
 
-function padBytes(input: string, size: number): Uint8Array {
+function padBytes(input: string, size: number): Uint8Array<ArrayBuffer> {
   const src = encoder.encode(input)
   const out = new Uint8Array(size)
   out.set(src.subarray(0, size))
@@ -54,7 +54,7 @@ function toBase64(bytes: Uint8Array): string {
   return btoa(binary)
 }
 
-function fromBase64(value: string): Uint8Array {
+function fromBase64(value: string): Uint8Array<ArrayBuffer> {
   const binary = atob(value)
   const out = new Uint8Array(binary.length)
   for (let i = 0; i < binary.length; i++) out[i] = binary.charCodeAt(i)

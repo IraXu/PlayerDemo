@@ -107,9 +107,9 @@ export interface ThemeCopy {
 const COPY: Record<ThemeName, ThemeCopy> = {
   cat: {
     title: '十七的逗猫室',
-    subtitle: '一只猫，一台摄像头，和想来看他的人',
-    liveStatus: '猫猫丧丧の，尝试逗逗吧～',
-    idleStatus: '猫猫还没出镜',
+    subtitle: '一位猫同事，一张办公桌，等你来挑逗',
+    liveStatus: '已连接猫猫工位',
+    idleStatus: ' 工位待连接····',
     playTitle: '猫猫在屏幕里等你哦',
     playText: '轻点播放，看看猫猫此刻在做什么～',
     playAria: '播放猫猫画面',
@@ -142,7 +142,7 @@ const COPY: Record<ThemeName, ThemeCopy> = {
     huntAria: '躲起来的小猫',
     huntFoundToast: '找到猫猫啦！它今天躲在这儿，被你发现了～',
     huntDoneToast: '今天已经找到猫猫啦，明天它还会换个地方躲起来～',
-    treeDesc: '把想说的话悄悄放进树洞吧，只有树和猫会听到。',
+    treeDesc: '把想说的话悄悄放进树洞，不必急着找到答案。',
     treeSentToast: '已经悄悄投进树洞啦，猫猫会替你保密的～',
     treeSentBothToast: '留言和图片都悄悄投进树洞啦，猫猫会替你保密的～',
     shareLabel: '猫猫卡片',

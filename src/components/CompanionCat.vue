@@ -80,62 +80,26 @@
     :typewriter="false"
     :show-footer="false"
   >
-    <div class="mail-box">
-      <div class="mail-dates">
-        <button
-          class="mail-date-nav"
-          type="button"
-          :disabled="!canOlder"
-          aria-label="更早的留言"
-          @click="shiftDate(1)"
-        >
-          <ChevronLeftIcon :size="15" color="currentColor" />
-        </button>
-        <div ref="dateChipsRef" class="mail-date-chips" role="tablist" aria-label="留言日期">
-          <button
-            v-for="day in messageDates"
-            :key="day"
-            class="mail-date-chip"
-            :class="{ active: day === selectedDate }"
-            type="button"
-            role="tab"
-            :aria-selected="day === selectedDate"
-            @click="selectedDate = day"
-          >
-            {{ dateLabel(day) }}
-          </button>
-        </div>
-        <button
-          class="mail-date-nav"
-          type="button"
-          :disabled="!canNewer"
-          aria-label="更新的留言"
-          @click="shiftDate(-1)"
-        >
-          <ChevronRightIcon :size="15" color="currentColor" />
-        </button>
+    <div class="inbox-layout">
+      <div class="inbox-cover"><span>LETTERS FROM JIAOJIA</span><p>有些话，猫猫替我带给你。</p></div>
+      <div class="inbox-navigation" v-if="messageDates.length">
+        <button type="button" :disabled="!canOlder" aria-label="更早的留言" @click="shiftDate(1)"><ChevronLeftIcon :size="16"/></button>
+        <label><span>按日期阅读</span><select v-model="selectedDate" aria-label="留言日期"><option v-for="day in messageDates" :key="day" :value="day">{{ dateLabel(day) }}</option></select></label>
+        <button type="button" :disabled="!canNewer" aria-label="更新的留言" @click="shiftDate(-1)"><ChevronRightIcon :size="16"/></button>
       </div>
-
-      <div ref="chatListRef" class="chat-list">
-        <div v-for="item in dateMessages" :key="item.id" class="chat-row">
-          <span class="chat-avatar" aria-hidden="true">
-            <PawPrintIcon :size="16" color="#19a99b" />
-          </span>
-          <div class="chat-body">
-            <span class="chat-name">徐娇娇</span>
-            <p class="chat-bubble">{{ item.text }}</p>
-            <span v-if="item.time" class="chat-time">{{ timeLabel(item) }}</span>
-          </div>
-        </div>
+      <div ref="chatListRef" class="inbox-letters">
+        <article v-for="(item,i) in dateMessages" :key="item.id" class="inbox-letter"><div><span>娇娇</span><time v-if="item.time">{{ timeLabel(item) }}</time><span class="letter-index">{{ String(i + 1).padStart(2, '0') }}</span></div><p>{{ item.text }}</p></article>
+        <p v-if="!dateMessages.length" class="inbox-empty">今天的信还在路上，改天再来读读吧。</p>
       </div>
+      <span class="inbox-end">写给你的每一句，都留在这里。</span>
     </div>
   </Modal>
 </template>
 
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
-import { Modal } from 'animal-island-vue'
-import { ChevronLeftIcon, ChevronRightIcon, PawPrintIcon } from 'naive-icons-vue'
+import { Modal } from '../ui'
+import { ChevronLeftIcon, ChevronRightIcon, PawPrintIcon } from '../ui/icons'
 import { preloadSoundEffects, playBearCall, playChirp, playMeow, playPurr, playReveal, playYip, playYowl } from '../sfx'
 import AnimalArtwork from './AnimalArtwork.vue'
 import { copy, isBear } from '../theme'
@@ -268,7 +232,7 @@ function dateLabel(key: string) {
 
 /** 已经按日期分组了，时间只显示时分 */
 function timeLabel(message: OwnerMessage) {
-  return message.time ? message.time.slice(11) || message.time : ''
+  return message.time?.match(/[T ](\d{2}:\d{2})/)?.[1] ?? ''
 }
 
 /** 只有今天的留言才提醒，往日留言留在信箱里慢慢看 */
@@ -688,6 +652,8 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
+.inbox-cover{text-align:center;padding:4px 0 20px}.inbox-cover>span{font-size:8px;letter-spacing:.14em;color:#a2b4c0}.inbox-cover p{font-size:14px!important;color:#7894a8!important;margin:12px 0 0}.inbox-navigation{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 0;border-top:1px solid #e0e8ed;border-bottom:1px solid #e0e8ed}.inbox-navigation>button{width:32px;height:36px;background:#eef4f7;border:0;border-radius:5px;color:#87a4b7;display:grid;place-items:center}.inbox-navigation>button:disabled{opacity:.35}.inbox-navigation label{display:flex;flex-direction:column;align-items:center;gap:5px}.inbox-navigation label>span{font-size:8px;color:#a5b5c0}.inbox-navigation select{border:0;background:none;color:#7898af;font:11px inherit;max-width:200px;min-height:24px}.inbox-letters{max-height:48svh;overflow:auto;overscroll-behavior:contain}.inbox-letter{padding:20px 0;border-bottom:1px solid #e6edf1}.inbox-letter>div{display:flex;align-items:center;gap:10px;font-size:10px;color:#8fa6b6}.inbox-letter time{font-size:9px;color:#adbcc6}.letter-index{margin-left:auto;color:#b9c7d0;font-size:8px}.inbox-letter p{font-size:13px!important;line-height:2!important;color:#6d899d!important;white-space:pre-wrap;overflow-wrap:anywhere;margin:11px 0 0}.inbox-empty{text-align:center;padding:30px 10px;font-size:12px}.inbox-end{display:block;text-align:center;padding:20px 0 2px;color:#adbcc5;font-size:9px}
+
 .companion {
   position: fixed;
   top: 0;
@@ -722,7 +688,7 @@ onBeforeUnmount(() => {
   width: 100%;
   height: 100%;
   overflow: visible;
-  filter: drop-shadow(0 8px 12px rgba(121, 79, 39, 0.16));
+  filter: none;
 }
 
 /* 来做客的小狐狸：平时待在猫咪右后方，扑咬时压到最上层 */
@@ -736,7 +702,7 @@ onBeforeUnmount(() => {
   overflow: visible;
   pointer-events: none;
   transform-origin: 50% 92%;
-  filter: drop-shadow(0 8px 12px rgba(121, 79, 39, 0.16));
+  filter: none;
 }
 
 .companion-fox.lunge {
@@ -782,14 +748,14 @@ onBeforeUnmount(() => {
   bottom: calc(100% + 4px);
   padding: 4px 9px;
   border-radius: 11px;
-  border: 2px solid #d4c4a8;
-  background: #fffaf0;
-  color: #794f27;
+  border: 1px solid #D8E3EB;
+  background: #FAFBF8;
+  color: #829AAC;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 400;
   line-height: 1.2;
   white-space: nowrap;
-  box-shadow: 0 3px 0 #d4c9b4;
+  box-shadow: none;
   cursor: pointer;
   animation: companionBubbleIn 0.32s cubic-bezier(0.2, 0.8, 0.3, 1) both;
 }
@@ -803,23 +769,23 @@ onBeforeUnmount(() => {
   height: 8px;
   margin-left: -4px;
   margin-top: -5px;
-  background: #fffaf0;
-  border-right: 2px solid #d4c4a8;
-  border-bottom: 2px solid #d4c4a8;
+  background: #FAFBF8;
+  border-right: 1px solid #D8E3EB;
+  border-bottom: 1px solid #D8E3EB;
   border-bottom-right-radius: 2px;
   transform: rotate(45deg);
 }
 
 .companion-bubble.news {
-  color: #1d7f75;
-  border-color: #b7e3dd;
-  box-shadow: 0 3px 0 #cbe7e3;
+  color: #7293AA;
+  border-color: #C6DCEB;
+  box-shadow: none;
 }
 
 .companion-bubble.scene {
-  color: #b5534f;
-  border-color: #f1c9c4;
-  box-shadow: 0 3px 0 #f3dbd7;
+  color: #A48D98;
+  border-color: #E2D6DC;
+  box-shadow: none;
 }
 
 /* 咬人的吐槽气泡挂在狐狸头顶（狐狸中心在容器右侧约 88px 处） */
@@ -860,7 +826,7 @@ onBeforeUnmount(() => {
   padding: 0 11px;
   border: 1.5px solid #e8dcc8;
   border-radius: 999px;
-  background: #fffaf0;
+  background: #FAFBF8;
   color: #8f734f;
   font-family: inherit;
   font-size: 11.5px;
@@ -883,7 +849,7 @@ onBeforeUnmount(() => {
   color: #fff9e3;
   background: #19c8b9;
   border-color: #0ea99d;
-  box-shadow: 0 2px 0 #0b8f86;
+  box-shadow: none;
 }
 
 .mail-date-nav {
@@ -895,7 +861,7 @@ onBeforeUnmount(() => {
   padding: 0;
   border: 1.5px solid #e8dcc8;
   border-radius: 50%;
-  background: #fffaf0;
+  background: #FAFBF8;
   color: #8f734f;
   cursor: pointer;
   transition:
@@ -923,7 +889,7 @@ html[data-theme='bear'] .mail-date-chip.active,
 html[data-theme='bear'] .mail-date-chip.active:hover {
   background: #d99a3a;
   border-color: #b97c22;
-  box-shadow: 0 2px 0 #96631a;
+  box-shadow: none;
 }
 
 html[data-theme='bear'] .mail-date-nav:hover:not(:disabled) {
@@ -955,7 +921,7 @@ html[data-theme='bear'] .mail-date-nav:hover:not(:disabled) {
   height: 30px;
   margin-top: 17px;
   border-radius: 50%;
-  border: 2px solid #b7e3dd;
+  border: 2px solid #C6DCEB;
   background: #e5f8f5;
 }
 
@@ -978,16 +944,16 @@ html[data-theme='bear'] .mail-date-nav:hover:not(:disabled) {
   margin: 0;
   padding: 9px 12px;
   border-radius: 4px 14px 14px 14px;
-  border: 2px solid #d4c4a8;
-  background: #fffaf0;
-  color: #794f27;
+  border: 1px solid #D8E3EB;
+  background: #FAFBF8;
+  color: #829AAC;
   font-size: 13.5px;
   font-weight: 400;
   line-height: 1.6;
   text-align: left;
   white-space: pre-wrap;
   word-break: break-word;
-  box-shadow: 0 3px 0 #e9e0cd;
+  box-shadow: none;
 }
 
 .chat-time {

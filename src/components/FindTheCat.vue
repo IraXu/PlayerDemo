@@ -2,6 +2,7 @@
   <button
     v-if="!found"
     class="hunt-cat"
+    :class="{ searching }"
     :style="spot"
     type="button"
     :aria-label="copy.huntAria"
@@ -19,11 +20,12 @@
 
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { SparklesIcon } from 'naive-icons-vue'
+import { SparklesIcon } from '../ui/icons'
 import AnimalArtwork from './AnimalArtwork.vue'
 import { playBearCall, playMeow } from '../sfx'
 import { copy, isBear, theme } from '../theme'
 
+withDefaults(defineProps<{ searching?: boolean }>(), { searching: false })
 const found = defineModel<boolean>('found', { default: false })
 const emit = defineEmits<{ found: [] }>()
 

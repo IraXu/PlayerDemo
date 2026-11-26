@@ -3,86 +3,19 @@
     class="page"
     :class="{ immersive: pseudoFullscreen || isFullscreen, touch: touchMode, 'bear-day': isBear, teasing: teasing }"
   >
-    <div class="bg-decor" aria-hidden="true">
-      <svg class="deco-sprite" width="0" height="0">
-        <defs>
-          <symbol id="cute-cat-sit" viewBox="0 0 120 120">
-            <BackgroundAnimal pose="sleep" :bear="false" />
-          </symbol>
-          <symbol id="cute-cat-peek" viewBox="0 0 120 120">
-            <BackgroundAnimal pose="peek" :bear="false" />
-          </symbol>
-          <!-- 小熊日限定：把背景里的小猫换成小熊 -->
-          <symbol id="cute-bear-sit" viewBox="0 0 120 120">
-            <BackgroundAnimal pose="sleep" :bear="true" />
-          </symbol>
-          <symbol id="cute-bear-peek" viewBox="0 0 120 120">
-            <BackgroundAnimal pose="peek" :bear="true" />
-          </symbol>
-          <symbol id="deco-honey" viewBox="0 0 120 120">
-            <g fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M36 40h48l-7 58c-1 8-7 13-17 13s-16-5-17-13l-7-58Z" />
-              <path d="M32 32h56v8H32z" />
-              <path d="M48 62h24M46 78h28" opacity=".65" />
-            </g>
-          </symbol>
-        </defs>
-      </svg>
-      <svg class="deco deco-cat deco-cat-main" viewBox="0 0 120 120">
-        <use :href="isBear ? '#cute-bear-peek' : '#cute-cat-peek'" />
-      </svg>
-      <svg class="deco deco-cat deco-cat-side" viewBox="0 0 120 120">
-        <use :href="isBear ? '#cute-bear-sit' : '#cute-cat-sit'" />
-      </svg>
-      <svg class="deco deco-cat deco-cat-top" viewBox="0 0 120 120">
-        <BackgroundAnimal pose="yarn" :bear="isBear" />
-      </svg>
-      <PawPrintIcon class="deco deco-paw deco-paw-1" :size="34" color="currentColor" />
-      <PawPrintIcon class="deco deco-paw deco-paw-2" :size="30" color="currentColor" />
-      <PawPrintIcon class="deco deco-paw deco-paw-3" :size="28" color="currentColor" />
-      <PawPrintIcon class="deco deco-paw deco-paw-4" :size="26" color="currentColor" />
-      <PawPrintIcon class="deco deco-paw deco-paw-5" :size="24" color="currentColor" />
-      <PawPrintIcon class="deco deco-paw deco-paw-6" :size="22" color="currentColor" />
-      <PawPrintIcon class="deco deco-paw deco-paw-7" :size="20" color="currentColor" />
-      <FishIcon class="deco deco-fish deco-fish-1" :size="50" color="currentColor" />
-      <FishIcon class="deco deco-fish deco-fish-2" :size="34" color="currentColor" />
-      <BoneIcon v-if="!isBear" class="deco deco-bone deco-bone-1" :size="28" color="currentColor" />
-      <BoneIcon v-if="!isBear" class="deco deco-bone deco-bone-2" :size="22" color="currentColor" />
-      <template v-else>
-        <svg class="deco deco-bone deco-bone-1" width="30" height="30" viewBox="0 0 120 120">
-          <use href="#deco-honey" />
-        </svg>
-        <svg class="deco deco-bone deco-bone-2" width="24" height="24" viewBox="0 0 120 120">
-          <use href="#deco-honey" />
-        </svg>
-      </template>
-      <HeartIcon class="deco deco-heart deco-heart-1" :size="26" color="currentColor" />
-      <HeartIcon class="deco deco-heart deco-heart-2" :size="20" color="currentColor" />
-      <StarIcon class="deco deco-star deco-star-1" :size="24" color="currentColor" />
-      <CloudIcon class="deco deco-cloud deco-cloud-1" :size="120" color="currentColor" />
-      <CloudIcon class="deco deco-cloud deco-cloud-2" :size="88" color="currentColor" />
-    </div>
-
-    <header class="masthead">
-      <div class="brand">
-        <span v-if="isBear" class="bear-badge">小熊日限定</span>
-        <Title class="brand-title" size="middle" :color="isBear ? 'app-orange' : 'app-teal'">
-          {{ copy.title }}
-        </Title>
-        <p class="brand-sub">
-          <PawPrintIcon :size="14" color="currentColor" />
-          {{ copy.subtitle }}
-        </p>
-      </div>
+    <header class="site-header">
+      <a class="wordmark" href="#office" aria-label="回到十七的逗猫室"><span class="wordmark-icon"><PawPrintIcon :size="19"/></span><span>十七的逗猫室<small>THE EVERYDAY OFFICE</small></span></a>
+      <span class="header-date">{{ officeDate }} <span>宜 · 来逗猫</span></span>
       <button class="page-cat" :class="{ revealed: eggRevealed }" type="button" aria-label="打开隐藏彩蛋" @click="openEgg">
-          <svg class="cat-mascot" viewBox="0 0 120 110" fill="none" aria-hidden="true">
-            <AnimalArtwork :animal="isBear ? 'bear' : 'cat'" :pink="!isBear" transform="translate(10 3)" />
-          </svg>
-          <span class="mascot-hearts" aria-hidden="true"><span v-for="i in 2" :key="i" class="mascot-heart" :style="{ '--i': i }">♥</span></span>
-        </button>
+        <svg class="cat-mascot" viewBox="0 0 120 110" fill="none" aria-hidden="true"><AnimalArtwork :animal="isBear ? 'bear' : 'cat'" :pink="!isBear" transform="translate(10 3)" /></svg>
+        <span class="mascot-hearts" aria-hidden="true"><span v-for="i in 2" :key="i" class="mascot-heart" :style="{ '--i': i }">♥</span></span>
+      </button>
     </header>
 
-    <Card class="player">
+    <main id="office" class="office-main">
+      <div class="office-layout">
+        <section class="desk-panel">
+          <div class="player">
       <div
         ref="stageRef"
         :class="['stage', { live: isLive, pseudo: pseudoFullscreen, rotated }]"
@@ -101,238 +34,54 @@
         </div>
 
         <div v-if="!isLive" class="placeholder" :class="{ idle: status === 'idle' }">
-          <button
-            v-if="status === 'idle'"
-            class="play-btn"
-            type="button"
-            :aria-label="copy.playAria"
-            :title="copy.playAria"
-            @click.stop="openPlayback"
-          >
-            <PlayIcon :size="30" color="currentColor" />
-          </button>
-          <span v-else-if="status === 'error'" class="glyph">
-            <VideoOffIcon :size="32" color="currentColor" />
-          </span>
-          <SpinnerIcon v-else class="spinner" :size="34" color="#19c8b9" />
-
-          <h1>{{ placeholderTitle }}</h1>
-          <p>{{ placeholderText }}</p>
-
-          <Button v-if="status === 'error'" type="primary" size="small" class="retry" @click="connect">
-            <template #icon><RefreshIcon :size="16" color="currentColor" /></template>
-            重新连接
-          </Button>
+          <span class="print-index">THE OFFICE / 017</span>
+          <div class="waiting-art"><QuietWindow /></div>
+          <div class="waiting-copy">
+            <span class="waiting-eyebrow">今日工位，等你来逗。</span>
+            <h2>{{ status === 'idle' ? '猫猫正在暴躁赶工' : placeholderTitle }}</h2>
+            <p>{{ status === 'idle' ? '键盘快冒烟了，消息还没回完。\n点开工位，围观猫猫在线发疯。' : placeholderText }}</p>
+            <button v-if="status === 'idle'" class="play-btn" type="button" :aria-label="copy.playAria" @click.stop="openPlayback"><PlayIcon :size="13"/><span>开始逗猫</span><span aria-hidden="true">↗</span></button>
+            <Button v-else-if="status === 'error'" type="primary" class="retry" @click="connect"><RefreshIcon :size="14"/>重新连接</Button>
+            <span v-else class="connecting"><SpinnerIcon class="spinner" :size="17"/> 正在连接…</span>
+          </div>
+          <span class="print-caption">A DESK. A CAT. A LITTLE COMPANY.</span>
         </div>
 
-        <button
-          v-if="isLive"
-          class="stop-btn"
-          type="button"
-          aria-label="关闭播放"
-          :title="copy.stopTitle"
-          @click.stop="closePlayback"
-        >
-          <CloseIcon :size="18" color="currentColor" />
-        </button>
+        <PlayerControls v-if="isLive" :dock-target="controlsDockRef" :muted="muted" :volume="volumePercent" :quality="stream" :fullscreen="fullActive" :busy="interacting || teasing" :cooldown="cooldownLeft" @stop="closePlayback" @mute="toggleMute" @volume="onVolumeChange" @quality="onQualityChange(String($event))" @capture="takeScreenshot" @fullscreen="toggleFullscreen" @tease="triggerInteract" />
 
-        <div v-if="isLive" class="toolbar" @click.stop>
-          <Tabs
-            class="quality-tabs"
-            :items="qualityItems"
-            :model-value="String(stream)"
-            aria-label="清晰度"
-            @change="onQualityChange"
-          />
-
-          <span class="divider"></span>
-
-          <Tooltip :title="muted ? '开启声音' : '静音'" placement="top" variant="island">
-            <Button
-              class="icon"
-              type="text"
-              size="small"
-              :aria-label="muted ? '开启声音' : '静音'"
-              @click="toggleMute"
-            >
-              <template #icon>
-                <VolumeXIcon v-if="muted" :size="19" color="currentColor" />
-                <Volume2Icon v-else :size="19" color="currentColor" />
-              </template>
-            </Button>
-          </Tooltip>
-
-          <input
-            class="slider"
-            type="range"
-            min="0"
-            max="100"
-            step="1"
-            aria-label="音量"
-            :value="volumePercent"
-            :style="{ '--fill': `${volumePercent}%` }"
-            @input="onVolumeInput"
-          />
-
-          <Tooltip title="截图" placement="top" variant="island">
-            <Button class="icon" type="text" size="small" aria-label="截图" @click="takeScreenshot">
-              <template #icon><CameraIcon :size="19" color="currentColor" /></template>
-            </Button>
-          </Tooltip>
-
-          <Tooltip :title="interactHint" placement="top" variant="island">
-            <Button
-              class="action"
-              size="small"
-              :class="{ busy: interacting || teasing, cooling: cooldownLeft > 0 }"
-              :disabled="interactDisabled"
-              @click="triggerInteract"
-            >
-              <template #icon>
-                <span class="action-icon">
-                  <TeaserWand class="wand" />
-                </span>
-              </template>
-              <span class="action-label">{{ interactText }}</span>
-            </Button>
-          </Tooltip>
-
-          <Tooltip :title="fullActive ? '退出全屏' : '全屏'" placement="top" variant="island">
-            <Button class="icon" type="text" size="small" aria-label="全屏" @click="toggleFullscreen">
-              <template #icon>
-                <MinimizeIcon v-if="fullActive" :size="19" color="currentColor" />
-                <MaximizeIcon v-else :size="19" color="currentColor" />
-              </template>
-            </Button>
-          </Tooltip>
-        </div>
       </div>
-    </Card>
+            <div ref="controlsDockRef" class="mobile-controls-dock"></div>
+          </div>
 
-    <Collapse v-model:expanded="infoOpen" class="info">
-      <template #question>
-        <span class="info-question">
-          <PawPrintIcon class="info-cat" :size="20" color="#19c8b9" />
-          <span class="info-name">{{ device?.name || '设备信息' }}</span>
-        </span>
-      </template>
-      <dl class="info-list">
-        <div class="info-cell">
-          <dt><QrCodeIcon :size="14" color="currentColor" /> DID</dt>
-          <dd class="mono">{{ device?.did || did }}</dd>
-        </div>
-        <div class="info-cell">
-          <dt><IdCardIcon :size="14" color="currentColor" /> License</dt>
-          <dd class="mono">{{ device?.license || '—' }}</dd>
-        </div>
-        <div class="info-cell">
-          <dt><CpuIcon :size="14" color="currentColor" /> 固件版本</dt>
-          <dd>{{ device?.version || '—' }}</dd>
-        </div>
-        <div class="info-cell">
-          <dt><HardDriveIcon :size="14" color="currentColor" /> MAC</dt>
-          <dd class="mono">{{ device?.mac || '—' }}</dd>
-        </div>
-        <div class="info-cell">
-          <dt><WifiIcon :size="14" color="currentColor" /> 所连 WiFi</dt>
-          <dd>{{ device?.ssid || '—' }}</dd>
-        </div>
-      </dl>
-    </Collapse>
+          <div class="desk-status" role="status"><span>{{ statusLabel }}</span><span>速速逗猫，快乐一整天，哈哈！</span></div>
+        </section>
 
-    <footer class="meta">
-      <span class="dot" :class="statusKey"></span>
-      <span class="state">{{ statusLabel }}</span>
-      <span class="grow"></span>
-      <Tooltip title="刷新画面" placement="top" variant="island">
-        <Button class="ghost" type="text" size="small" aria-label="刷新" @click="connect">
-          <template #icon><RefreshIcon :size="17" color="currentColor" /></template>
-        </Button>
-      </Tooltip>
-    </footer>
 
-    <Footer class="page-footer" :text="copy.footer" />
+      </div>
+      <section class="office-note" aria-label="办公室小记"><span>OFFICE NOTE</span><p>不用每一分钟都有意义。<br class="mobile-break"/> 有时，只是一起待着就很好。</p><span class="note-symbol" aria-hidden="true">⌁</span></section>
+    </main>
+    <footer class="site-footer"><span>十七的逗猫室</span><span>GOOD COMPANY, EVERY DAY.</span><span>慢一点，也没关系。</span></footer>
 
-    <div class="corner-slot" :class="{ open: cornerOpen }">
-      <transition name="corner">
-        <div v-if="cornerOpen" class="corner-menu" role="menu" :aria-label="copy.cornerTitle">
-          <p class="corner-title">
-            <PawPrintIcon :size="14" color="#19c8b9" />
-            {{ copy.cornerTitle }}
-          </p>
-
-          <button class="corner-item" type="button" role="menuitem" @click="openFortuneFromMenu">
-            <span class="corner-icon fortune">
-              <StickyNoteIcon :size="17" color="currentColor" />
-            </span>
-            <span class="corner-text">
-              <strong>{{ copy.fortuneTitle }}</strong>
-              <small>抽一支今天的签</small>
-            </span>
-          </button>
-
-          <button class="corner-item" type="button" role="menuitem" @click="openHuntFromMenu">
-            <span class="corner-icon hunt">
-              <SearchIcon :size="17" color="currentColor" />
-            </span>
-            <span class="corner-text">
-              <strong>{{ huntFound ? copy.huntFoundLabel : copy.huntLabel }}</strong>
-              <small>{{ huntFound ? copy.huntFoundDesc : copy.huntDesc }}</small>
-            </span>
-          </button>
-
-          <button class="corner-item" type="button" role="menuitem" @click="openShareFromMenu">
-            <span class="corner-icon share">
-              <ShareIcon :size="17" color="currentColor" />
-            </span>
-            <span class="corner-text">
-              <strong>{{ copy.shareLabel }}</strong>
-              <small>{{ copy.shareDesc }}</small>
-            </span>
-          </button>
-
-          <button class="corner-item" type="button" role="menuitem" @click="openTreeFromMenu">
-            <span class="corner-icon tree">
-              <TreeIcon :size="17" color="currentColor" />
-            </span>
-            <span class="corner-text">
-              <strong>树洞</strong>
-              <small>把心事悄悄投进去</small>
-            </span>
-          </button>
-        </div>
-      </transition>
-
-      <button
-        class="corner-fab"
-        type="button"
-        :aria-expanded="cornerOpen"
-        :aria-label="copy.cornerAria"
-        @click="toggleCorner"
-      >
-        <CloseIcon v-if="cornerOpen" :size="22" color="currentColor" />
-        <PawPrintIcon v-else :size="23" color="currentColor" />
-      </button>
-    </div>
-
+    <Modal v-model:open="huntOpen" :title="huntFound ? '找到猫猫了' : '工间寻猫'" :width="400">
+      <div class="hunt-guide"><span class="tool-kicker">A TINY HIDE & SEEK</span><BreakStamp kind="cat"/><h3>{{ huntFound ? '原来你躲在这里。' : huntSearching ? '它在某个角落，等你发现。' : '有位同事，偷偷离开了工位。' }}</h3><p>{{ huntFound ? '今天的小猫已找到。明天会换一个位置，记得再来看看。' : copy.huntHints[huntHintIndex % copy.huntHints.length] }}</p><div class="hunt-steps" v-if="!huntFound"><span>01 关闭提示</span><span>02 看看边缘</span><span>03 点一下小猫</span></div></div>
+      <template #footer><Button v-if="!huntFound" @click="huntHintIndex++">换个提示</Button><Button type="primary" @click="huntSearching = !huntFound; huntOpen = false">{{ huntFound ? '收好这个发现' : '回页面找找' }}</Button></template>
+    </Modal>
     <DailyFortune ref="fortuneRef" />
-    <FindTheCat v-model:found="huntFound" @found="onCatFound" />
+    <FindTheCat :searching="huntSearching" v-model:found="huntFound" @found="onCatFound" />
 
-    <Modal v-model:open="treeOpen" variant="default" :typewriter="false" :width="460">
-      <div class="tree-hole">
-        <div class="tree-head">
-          <TreeIcon :size="38" color="#19c8b9" />
-          <h2>树洞</h2>
-          <Typewriter :speed="55" :trigger="treeOpen" @done="treeTyped = true">
-            <p :class="{ typed: treeTyped }">{{ copy.treeDesc }}</p>
-          </Typewriter>
-        </div>
+    <Modal v-model:open="treeOpen" :title="treeSent ? '树洞收到了' : '树洞'" :width="460">
+      <div v-if="treeSent" class="letter-success"><BreakStamp kind="tree"/><span class="tool-kicker">A LITTLE HOLLOW FOR YOUR THOUGHTS</span><h3>心事放下了，人轻一点。</h3><p>这段话已经提交到树洞。谢谢你愿意把心事留在这里。</p></div>
+      <div v-else class="tree-hole">
+        <div class="letter-header"><BreakStamp kind="tree"/><div><span class="tool-kicker">A QUIET LITTLE HOLLOW</span><h3>有些话，说给树洞听。</h3><p>开心的、委屈的、还没想明白的，都可以。</p></div></div>
+        <label class="letter-label" for="office-letter">想对树洞说的话 <span>关掉窗口，草稿还在</span></label>
         <textarea
           v-model="treeMessage"
+          id="office-letter"
+          :disabled="treeSending"
           class="tree-input"
           maxlength="500"
           rows="5"
-          placeholder="写下你的心事…"
+          placeholder="树洞，我想说…"
           aria-label="树洞留言"
         ></textarea>
 
@@ -356,6 +105,7 @@
             </div>
             <button
               class="tree-image-remove"
+              :disabled="treeSending"
               type="button"
               aria-label="移除图片"
               @click="removeTreeImage"
@@ -363,7 +113,7 @@
               ×
             </button>
           </div>
-          <button v-else class="tree-image-add" type="button" @click="treeFileRef?.click()">
+          <button v-else class="tree-image-add" :disabled="treeSending" type="button" @click="treeFileRef?.click()">
             <ImageIcon :size="16" color="currentColor" />
             添加图片（可选）
           </button>
@@ -375,31 +125,13 @@
           <span v-if="treeError" class="tree-error">{{ treeError }}</span>
         </div>
       </div>
-      <template #footer>
-        <Button type="default" @click="treeOpen = false">先不投了</Button>
-        <Button
-          class="tree-submit"
-          type="primary"
-          :loading="treeSending"
-          :disabled="!treeMessage.trim() || treeSending || treeImageLoading"
-          @click="submitTreeHole"
-        >
-          投入树洞
-        </Button>
-      </template>
+      <template #footer><Button v-if="treeSent" type="primary" @click="treeOpen = false">把心事留在这里</Button><template v-else><Button :disabled="treeSending" @click="treeOpen = false">暂存草稿</Button><Button class="tree-submit" type="primary" :disabled="!treeMessage.trim() || treeSending || treeImageLoading" @click="submitTreeHole">{{ treeSending ? '正在投递…' : '悄悄放进树洞 ↗' }}</Button></template></template>
     </Modal>
 
-    <Modal v-model:open="shareOpen" variant="default" :typewriter="false" :width="480">
-      <div class="share-card">
-        <div class="share-head">
-          <span class="share-badge">
-            <ShareIcon :size="13" color="currentColor" />
-            {{ copy.shareLabel }}
-          </span>
-          <h2>{{ copy.shareDesc }}</h2>
-          <p>{{ shareStatus }}</p>
-        </div>
-
+    <Modal v-model:open="shareOpen" title="带走这一刻" :width="480">
+      <div v-if="!isLive" class="share-before"><BreakStamp kind="photo"/><span class="tool-kicker">A POSTCARD FROM THE OFFICE</span><h3>先见到它，再留下这一刻。</h3><p>卡片会用正在播放的真实画面制作，附上日期和今日猫签。</p></div>
+      <div v-else class="share-card">
+        <div class="postcard-heading"><span class="tool-kicker">A POSTCARD FROM THE OFFICE</span><p aria-live="polite">{{ shareBusy ? '正在把此刻装进卡片…' : shareError ? '这次没留住，我们再试一次。' : shareSaved ? '已准备下载，可在浏览器下载记录中查看。' : '画面、日期和猫签，一起留给你。' }}</p></div>
         <div class="share-stage">
           <template v-if="shareBusy">
             <div class="share-skeleton" aria-hidden="true">
@@ -409,7 +141,7 @@
               <div class="share-skeleton__fortune"></div>
             </div>
             <div class="share-busy" role="status" aria-live="polite">
-              <SpinnerIcon class="spinner" :size="18" color="#19c8b9" />
+              <SpinnerIcon class="spinner" :size="18" color="#8BA7BC" />
               <span>{{ copy.shareLoading }}</span>
             </div>
           </template>
@@ -420,10 +152,7 @@
             </span>
             <strong>{{ copy.shareErrorTitle }}</strong>
             <p>{{ copy.shareFail }}</p>
-            <button class="share-retry" type="button" @click="generateShareCard">
-              <RefreshIcon :size="14" color="currentColor" />
-              {{ copy.shareRetry }}
-            </button>
+
           </div>
 
           <figure v-else-if="shareUrl" class="share-polaroid">
@@ -435,21 +164,7 @@
           {{ copy.shareCardTip }}
         </p>
       </div>
-      <template #footer>
-        <Button class="share-cancel" type="default" @click="shareOpen = false">先不分享</Button>
-        <Button
-          type="primary"
-          class="share-save"
-          :disabled="!shareUrl || shareBusy"
-          @click="saveShareCard"
-        >
-          <template #icon>
-            <CheckIcon v-if="shareSaved" :size="16" color="currentColor" />
-            <DownloadIcon v-else :size="16" color="currentColor" />
-          </template>
-          {{ shareSaved ? copy.shareSavedLabel : copy.shareSave }}
-        </Button>
-      </template>
+      <template #footer><Button v-if="!isLive" type="primary" @click="startSharePlayback">打开工位并制作卡片 ↗</Button><template v-else><Button :disabled="shareBusy" @click="generateShareCard"><RefreshIcon :size="13"/>重新取一帧</Button><Button class="share-save" type="primary" :disabled="!shareUrl || shareBusy" @click="saveShareCard"><DownloadIcon :size="14"/>{{ shareSaved ? '再次保存卡片' : '保存卡片' }}</Button></template></template>
     </Modal>
 
     <transition name="fade">
@@ -460,50 +175,27 @@
       <CatKeepsake v-if="eggOpen" :photo="eggPhoto" :wish="copy.eggWish" @close="closeEgg" />
     </transition>
 
+    <BreakMenu :searching="huntSearching" :found="huntFound" :immersive="fullActive" @action="onBreakAction" />
     <CompanionCat />
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { Button, Card, Collapse, Footer, Modal, Tabs, Title, Tooltip, Typewriter } from 'animal-island-vue'
+import { Button, Modal } from './ui'
 import {
-  BoneIcon,
-  CameraIcon,
-  CheckIcon,
-  CloseIcon,
-  CloudIcon,
-  CpuIcon,
-  DownloadIcon,
-  FishIcon,
-  HardDriveIcon,
-  HeartIcon,
-  IdCardIcon,
-  ImageIcon,
-  MaximizeIcon,
-  MinimizeIcon,
-  PawPrintIcon,
   PlayIcon,
-  QrCodeIcon,
+  DownloadIcon,
+  ImageIcon,
+  PawPrintIcon,
   RefreshIcon,
-  SearchIcon,
-  ShareIcon,
   SmartphoneIcon,
   SpinnerIcon,
-  StarIcon,
-  StickyNoteIcon,
-  TreeIcon,
-  VideoOffIcon,
-  Volume2Icon,
-  VolumeXIcon,
-  WifiIcon,
-} from 'naive-icons-vue'
+} from './ui/icons'
 import {
   interact,
   LIGHT_DURATION_MS,
-  queryDevice,
   queryStream,
-  type DeviceInfo,
   type StreamInfo,
 } from './api'
 import eggPhoto from './assets/easter-egg.jpg'
@@ -518,8 +210,10 @@ import { composeShareCard } from './shareCard'
 import { loadPlayerSdk } from './playerSdk'
 import { copy, isBear, theme } from './theme'
 import CatKeepsake from './components/CatKeepsake.vue'
-import BackgroundAnimal from './components/BackgroundAnimal.vue'
-import TeaserWand from './components/TeaserWand.vue'
+import PlayerControls from './components/PlayerControls.vue'
+import BreakStamp from './components/BreakStamp.vue'
+import BreakMenu from './components/BreakMenu.vue'
+import QuietWindow from './components/QuietWindow.vue'
 import TeaseEffects from './components/TeaseEffects.vue'
 import AnimalArtwork from './components/AnimalArtwork.vue'
 import CompanionCat from './components/CompanionCat.vue'
@@ -531,6 +225,7 @@ const TREE_WEBHOOK = 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=ab1da
 
 const containerRef = ref<HTMLElement>()
 const stageRef = ref<HTMLElement>()
+const controlsDockRef = ref<HTMLElement>()
 const status = ref<'idle' | 'loading' | 'switching' | 'playing' | 'error'>('idle')
 const errorMsg = ref('')
 const QUALITY_KEY = 'cat-stream-quality'
@@ -550,10 +245,6 @@ function initialQuality(): 0 | 1 {
 }
 
 const stream = ref<0 | 1>(initialQuality())
-const qualityItems = [
-  { key: '0', label: '超清' },
-  { key: '1', label: '高清' },
-]
 const muted = ref(true)
 const volumePercent = ref(60)
 const fps = ref(0)
@@ -564,7 +255,6 @@ const isFullscreen = ref(false)
 const pseudoFullscreen = ref(false)
 const rotated = ref(false)
 const rotateHint = ref(false)
-const device = ref<DeviceInfo | null>(null)
 const interacting = ref(false)
 // 逗猫棒动画时长：和硬件侧的互动窗口保持一致
 const teasing = ref(false)
@@ -573,14 +263,17 @@ const TEASE_DURATION_MS = LIGHT_DURATION_MS
 const cooldownLeft = ref(0)
 const COOLDOWN_MS = 30_000
 
-// 右下角小角落菜单
-const cornerOpen = ref(false)
+// Office date stamp and break-time dialogs
+const officeDate = new Intl.DateTimeFormat('zh-CN', { month: '2-digit', day: '2-digit', weekday: 'short' }).format(new Date())
+const huntOpen = ref(false)
+const shareAfterPlayback = ref(false)
+const huntSearching = ref(false)
+const huntHintIndex = ref(0)
+const treeSent = ref(false)
 const huntFound = ref(false)
 const fortuneRef = ref<{ openNote: () => void } | null>(null)
 // 触屏设备不展示悬浮提示，避免提示浮层干扰点击
 const touchMode = ref(false)
-// 设备信息默认折叠
-const infoOpen = ref(false)
 // 彩蛋
 const eggOpen = ref(false)
 const eggRevealed = ref(false)
@@ -594,23 +287,15 @@ const treeImageLoading = ref(false)
 const treeImageError = ref('')
 const treeFileRef = ref<HTMLInputElement | null>(null)
 const treeError = ref('')
-const treeTyped = ref(false)
 // 分享卡片
 const shareOpen = ref(false)
 const shareBusy = ref(false)
 const shareError = ref(false)
 const shareSaved = ref(false)
 const shareUrl = ref('')
-const shareStatus = computed(() => {
-  if (shareBusy.value) return copy.value.shareLoading
-  if (shareError.value) return copy.value.shareFail
-  return copy.value.shareReady
-})
+
 const isLive = computed(() => status.value === 'playing')
 const fullActive = computed(() => isFullscreen.value || pseudoFullscreen.value)
-const statusKey = computed(() =>
-  status.value === 'playing' ? 'ok' : status.value === 'error' ? 'bad' : 'wait',
-)
 const statusLabel = computed(() => {
   if (status.value === 'playing') return copy.value.liveStatus
   if (status.value === 'error') return '未连接'
@@ -630,16 +315,8 @@ const placeholderText = computed(() => {
 const interactDisabled = computed(
   () => interacting.value || teasing.value || cooldownLeft.value > 0,
 )
-const interactText = computed(() => {
-  if (interacting.value || teasing.value) return copy.value.interactingLabel
-  if (cooldownLeft.value > 0) return copy.value.cooldownLabel
-  return copy.value.interactLabel
-})
-const interactHint = computed(() => {
-  if (teasing.value) return copy.value.teasingTip
-  if (cooldownLeft.value > 0) return copy.value.cooldownTip
-  return copy.value.interactTip
-})
+
+
 
 const MAX_RECONNECT_ATTEMPTS = 4
 const RECONNECT_MAX_DELAY = 12_000
@@ -667,15 +344,6 @@ function showToast(message: string) {
   toast.value = message
   if (toastTimer) clearTimeout(toastTimer)
   toastTimer = setTimeout(() => (toast.value = ''), 2000)
-}
-
-/** 非关键请求让路首屏：空闲时再查设备信息 */
-function runWhenIdle(task: () => void) {
-  const win = window as Window & {
-    requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number
-  }
-  if (win.requestIdleCallback) win.requestIdleCallback(task, { timeout: 2500 })
-  else window.setTimeout(task, 800)
 }
 
 // ==================== 播放器 ====================
@@ -1065,14 +733,6 @@ function onQualityChange(key: string) {
 }
 
 // ==================== 设备信息 / 互动 ====================
-async function loadDevice() {
-  try {
-    device.value = await queryDevice()
-  } catch {
-    /* 信息获取失败不影响播放 */
-  }
-}
-
 function clearTeaseTimers() {
   if (teaseEndTimer) clearTimeout(teaseEndTimer)
   if (cooldownTimer) clearInterval(cooldownTimer)
@@ -1160,10 +820,6 @@ function onVolumeChange(value: number | number[]) {
   }
 }
 
-function onVolumeInput(event: Event) {
-  onVolumeChange(Number((event.target as HTMLInputElement).value))
-}
-
 function takeScreenshot() {
   if (!player) return
   try {
@@ -1244,7 +900,7 @@ async function toggleFullscreen() {
 
 function isToolbarEvent(event: Event) {
   const target = event.target as Element | null
-  return Boolean(target?.closest?.('.toolbar, button, a, input, .animal-tooltip'))
+  return Boolean(target?.closest?.('.toolbar, button, a, input, .ui-tooltip'))
 }
 
 function onStageTap(event: MouseEvent) {
@@ -1265,10 +921,6 @@ function onKeydown(event: KeyboardEvent) {
     closeEgg()
     return
   }
-  if (cornerOpen.value) {
-    cornerOpen.value = false
-    return
-  }
   if (pseudoFullscreen.value) exitPseudoFullscreen()
 }
 
@@ -1281,7 +933,7 @@ function openEgg() {
     eggRevealTimer = null
     eggOpen.value = true
     lockScroll(true)
-  }, reduced ? 0 : 360)
+  }, reduced ? 0 : 520)
 }
 
 function closeEgg() {
@@ -1295,7 +947,7 @@ function closeEgg() {
 // ==================== 树洞 ====================
 function openTreeHole() {
   treeError.value = ''
-  treeTyped.value = false
+  treeSent.value = false
   treeOpen.value = true
   // 提前拿 IP，等用户写完时基本已经就绪
   void loadNetworkInfo()
@@ -1373,10 +1025,10 @@ async function submitTreeHole() {
       if (!queued) await postToTreeHole(payload)
     }
 
-    treeOpen.value = false
+    treeSent.value = true
     treeMessage.value = ''
     removeTreeImage()
-    showToast(image ? copy.value.treeSentBothToast : copy.value.treeSentToast)
+    // Keep the confirmation inside the letter dialog.
   } catch {
     if (textSent) {
       treeOpen.value = false
@@ -1458,19 +1110,9 @@ function onOnline() {
 }
 
 // ==================== 找猫 / 找熊 ====================
-let huntHintIndex = 0
-
-function onHuntHint() {
-  const hints = copy.value.huntHints
-  showToast(hints[huntHintIndex++ % hints.length])
-}
-
 function onCatFound() {
-  showToast(copy.value.huntFoundToast)
-}
-
-function onHuntDone() {
-  showToast(copy.value.huntDoneToast)
+  huntSearching.value = false
+  huntOpen.value = true
 }
 
 // ==================== 分享卡片 ====================
@@ -1480,15 +1122,22 @@ function releaseShareCard() {
 }
 
 async function openShareFromMenu() {
-  closeCorner()
-  if (!isLive.value || !player) {
-    showToast(copy.value.shareHint)
-    return
-  }
-
   shareOpen.value = true
-  await generateShareCard()
+  if (isLive.value && player) await generateShareCard()
 }
+function startSharePlayback() {
+  shareAfterPlayback.value = true
+  shareOpen.value = false
+  void openPlayback()
+}
+watch(isLive, async live => {
+  if (live && shareAfterPlayback.value) {
+    shareAfterPlayback.value = false
+    shareOpen.value = true
+    await generateShareCard()
+  }
+})
+watch(status, value => { if (value === 'error' || value === 'idle') shareAfterPlayback.value = false })
 
 async function generateShareCard() {
   if (!player) return
@@ -1542,47 +1191,33 @@ watch(shareOpen, (open) => {
 })
 
 // ==================== 小角落菜单 ====================
-function toggleCorner() {
-  cornerOpen.value = !cornerOpen.value
+function onBreakAction(action: 'fortune' | 'hunt' | 'share' | 'tree') {
+  if (action === 'fortune') openFortuneFromMenu()
+  else if (action === 'hunt') openHuntFromMenu()
+  else if (action === 'share') void openShareFromMenu()
+  else openTreeFromMenu()
 }
-
-function closeCorner() {
-  cornerOpen.value = false
-}
-
 function openFortuneFromMenu() {
-  closeCorner()
   fortuneRef.value?.openNote()
 }
 
 function openHuntFromMenu() {
-  closeCorner()
-  if (huntFound.value) onHuntDone()
-  else onHuntHint()
+  huntOpen.value = true
 }
 
 function openTreeFromMenu() {
-  closeCorner()
   openTreeHole()
-}
-
-function onDocumentClick(event: MouseEvent) {
-  if (!cornerOpen.value) return
-  const target = event.target as Element | null
-  if (!target?.closest?.('.corner-slot')) cornerOpen.value = false
 }
 
 onMounted(() => {
   touchMode.value = isTouchDevice()
   document.addEventListener('fullscreenchange', onFullscreenChange)
   document.addEventListener('visibilitychange', onVisibilityChange)
-  document.addEventListener('click', onDocumentClick)
   window.addEventListener('resize', onViewportResize)
   window.addEventListener('orientationchange', onViewportResize)
   window.visualViewport?.addEventListener('resize', onViewportResize)
   window.addEventListener('keydown', onKeydown)
   window.addEventListener('online', onOnline)
-  runWhenIdle(() => void loadDevice())
 })
 
 onBeforeUnmount(() => {
@@ -1594,7 +1229,6 @@ onBeforeUnmount(() => {
   clearHiddenSuspendTimer()
   document.removeEventListener('fullscreenchange', onFullscreenChange)
   document.removeEventListener('visibilitychange', onVisibilityChange)
-  document.removeEventListener('click', onDocumentClick)
   window.removeEventListener('resize', onViewportResize)
   window.removeEventListener('orientationchange', onViewportResize)
   window.visualViewport?.removeEventListener('resize', onViewportResize)

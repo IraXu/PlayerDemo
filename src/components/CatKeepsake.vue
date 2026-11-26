@@ -1,6 +1,6 @@
 <template>
   <div ref="scene" class="surprise-scene" role="dialog" aria-modal="true" aria-label="给十七的彩蛋" tabindex="-1" @click.self="$emit('close')" @keydown.tab.prevent="closeButton?.focus()">
-    <div class="surprise-halo" aria-hidden="true"></div>
+
     <div class="surprise-words" aria-hidden="true">
       <span v-for="item in words" :key="item.id" :style="item.style">{{ item.id % 4 === 0 ? '♡' : '娇娇' }}</span>
     </div>
@@ -33,19 +33,18 @@ onMounted(() => { previousFocus = document.activeElement as HTMLElement; closeBu
 onBeforeUnmount(() => previousFocus?.focus({ preventScroll: true }))
 </script>
 <style scoped>
-.surprise-scene{position:fixed;inset:0;z-index:80;overflow:hidden;isolation:isolate;background:radial-gradient(ellipse at 50% 35%,#573949df,#211e2cf5);outline:none}
-.surprise-halo{position:absolute;inset:-30%;background:radial-gradient(ellipse at center,#efa8c12b,transparent 60%);animation:haloPulse 7s ease-in-out infinite;pointer-events:none}
+.surprise-scene{position:fixed;inset:0;z-index:80;overflow:hidden;isolation:isolate;background:#647b91;outline:none}
 .surprise-words{position:absolute;inset:0;z-index:2;pointer-events:none;mask-image:linear-gradient(transparent,#000 12%,#000 85%,transparent)}
-.surprise-words span{position:absolute;left:var(--left);top:-10%;font:600 var(--size)/1.2 system-ui;letter-spacing:.12em;color:#ffd9e4;text-shadow:0 2px 18px #f9a3c24d;opacity:0;animation:nameFall var(--duration) var(--delay) linear infinite;white-space:nowrap}
+.surprise-words span{position:absolute;left:var(--left);top:-10%;font:600 var(--size)/1.2 system-ui;letter-spacing:.12em;color:#ffd9e4;opacity:0;animation:nameFall var(--duration) var(--delay) linear infinite;white-space:nowrap}
 .surprise-photo{position:absolute;left:var(--x);top:var(--y);width:clamp(100px,14vw,205px);margin:0;z-index:1;pointer-events:none;transform:translate(-50%,-50%) rotate(var(--angle)) scale(var(--depth));animation:photoBurst .95s var(--delay) cubic-bezier(.16,.8,.25,1) both}
-.surprise-photo-card{padding:7px 7px 0;border:1px solid #fff7ed;background:#fff8ef;box-shadow:0 10px 25px #140e214d;border-radius:4px}.surprise-photo-float .surprise-photo-card{animation:photoFloat 5s ease-in-out infinite}
+.surprise-photo-card{padding:7px 7px 0;border:1px solid #fff7ed;background:#fff8ef;border-radius:4px}.surprise-photo-float .surprise-photo-card{animation:photoFloat 5s ease-in-out infinite}
 .surprise-photo img{display:block;width:100%;height:auto;aspect-ratio:825/1100;object-fit:cover;border-radius:2px}
 figcaption{text-align:center;color:#b2888e;font:11px/2.5 system-ui;letter-spacing:1px}
-.surprise-note{position:absolute;z-index:3;left:50%;bottom:7%;transform:translateX(-50%);width:max-content;max-width:88%;padding:18px 30px 22px;border:1px solid #fff7eb77;border-radius:22px;text-align:center;color:#fff0ed;background:linear-gradient(135deg,#492e40cc,#322b3bcc);box-shadow:0 12px 40px #160e2926;animation:noteBloom .8s .55s both}
+.surprise-note{position:absolute;z-index:3;left:50%;bottom:7%;transform:translateX(-50%);width:max-content;max-width:88%;padding:18px 30px 22px;border:1px solid #fff7eb77;border-radius:22px;text-align:center;color:#fff0ed;background:#536e85;animation:noteBloom .8s .55s both}
 .surprise-note-heart{display:block;font:36px/1 system-ui;color:#f1b1c8;margin-bottom:10px}
 .surprise-eyebrow{font:10px/1.4 system-ui;letter-spacing:2px;color:#dfb5c1}
 p{font-size:12px;line-height:1.8;margin:0;color:#e5cbd1}
-.surprise-close{position:absolute;z-index:4;top:max(20px,env(safe-area-inset-top));right:22px;display:grid;place-items:center;width:40px;height:40px;border:1px solid #fff5ec66;border-radius:50%;background:#3f2d4199;color:#fff5ee;font:26px/1 system-ui;cursor:pointer;transition:background .2s,transform .2s}
+.surprise-close{position:absolute;z-index:4;top:max(20px,env(safe-area-inset-top));right:22px;display:grid;place-items:center;width:40px;height:40px;border:1px solid #fff5ec66;border-radius:50%;background:#536e85;color:#fff5ee;font:26px/1 system-ui;cursor:pointer;transition:background .2s,transform .2s}
 .surprise-close:hover{background:#895c71;transform:rotate(90deg)}.surprise-close:focus-visible{outline:2px solid #f1b1c8;outline-offset:4px}
 .surprise-hint{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);z-index:4;font-size:10px;letter-spacing:1px;color:#ead6dd99;white-space:nowrap;pointer-events:none}
 @keyframes photoBurst{from{opacity:0;transform:translate(calc(-50% + (50vw - var(--x)) * .7),65vh) rotate(calc(var(--angle) - 65deg)) scale(.12)}to{opacity:1;transform:translate(-50%,-50%) rotate(var(--angle)) scale(var(--depth))}}

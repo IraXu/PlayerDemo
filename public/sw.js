@@ -3,7 +3,7 @@
  * 只接管导航请求、构建产物和图标；wasm / 播放器资源交给浏览器自己的缓存。
  * 发版后如需清掉旧产物缓存，把 VERSION 加一即可。
  */
-const VERSION = 'v1'
+const VERSION = 'v2'
 const CACHE = `shiqi-cat-room-${VERSION}`
 const scope = self.registration.scope
 

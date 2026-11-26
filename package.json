@@ -9,7 +9,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "animal-island-vue": "^2.0.0",
     "vue": "^3.5.46"
   },
   "devDependencies": {
