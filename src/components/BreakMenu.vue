@@ -1,9 +1,26 @@
 <template>
   <aside id="breaks" class="break-menu" :hidden="immersive" aria-label="工间休息">
-    <button ref="trigger" class="break-trigger" type="button" aria-label="工间休息" aria-haspopup="dialog" :aria-expanded="opened" aria-controls="break-sheet" @click="openMenu">
-      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <g class="cup"><path d="M5 10h12v5a6 6 0 0 1-12 0Z" fill="#DDEAD9"/><path d="M5 10h12v5a6 6 0 0 1-12 0ZM17 11h2a2.5 2.5 0 0 1 0 5h-2M4 22h15" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></g>
-        <g class="steam" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path class="steam-a" d="M9 3v3"/><path class="steam-b" d="M14 2v4"/></g>
+    <button ref="trigger" class="break-trigger" type="button" title="茶水间 · 工间休息" aria-label="茶水间 · 工间休息" aria-haspopup="dialog" :aria-expanded="opened" aria-controls="break-sheet" @click="openMenu">
+      <svg class="pantry-art" viewBox="0 0 52 44" fill="none" aria-hidden="true">
+        <g class="pantry-items" stroke="#86A0B1" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+          <g stroke="#9DB8C9" stroke-width="1.4" fill="none">
+            <path class="steam steam-a" d="M2.8 13.2q-2.2-2 0-4t0-3.6"/>
+            <path class="steam steam-b" d="M6.6 12.2q-2-1.8 0-3.6t0-3.2"/>
+            <path class="steam steam-c" d="M39.8 22.6q-2.2-2 0-4t0-3.4"/>
+          </g>
+          <!-- 茶壶 -->
+          <path d="M6.5 24c0-1.6 4.3-2.8 9.5-2.8s9.5 1.2 9.5 2.8v4.6c0 4.8-4.3 8.3-9.5 8.3s-9.5-3.5-9.5-8.3Z" fill="#E7EFE7"/>
+          <path d="M11 21.6c0-2.1 2.2-3.7 5-3.7s5 1.6 5 3.7" fill="#E7EFE7"/>
+          <path d="M10 21.8h12" fill="none"/>
+          <circle cx="16" cy="16.6" r="1.4" fill="#CBDCD8" stroke-width="1.2"/>
+          <path d="M8.6 21.6C6 20.8 4 18.4 2.8 15.4L1.5 16.8C2.8 19.8 4.8 22.5 7.2 25Z" fill="#E7EFE7"/>
+          <path d="M25.4 24.2c4.2.2 6.2 2.6 6.2 5.4s-2 5-6.2 5.2" fill="none" stroke-width="1.7"/>
+          <!-- 茶杯 -->
+          <path d="M35.6 25.4h9.4v4.6a4.7 4.7 0 0 1-9.4 0Z" fill="#FAFBF7"/>
+          <path d="M45 26.6h1.2a2.1 2.1 0 0 1 0 4.2H45" fill="none" stroke-width="1.3"/>
+          <ellipse cx="40.3" cy="36" rx="6.8" ry="1.6" fill="#FAFBF7" stroke="#A9C0CE"/>
+        </g>
+        <path d="M3 37.8h46" stroke="#C5D5DF" stroke-width="1.2" stroke-linecap="round"/>
       </svg>
       <i v-if="searching && !found" class="trigger-dot" aria-label="找猫中"></i>
     </button>
@@ -74,18 +91,22 @@ watch(() => props.immersive, immersive => { if (immersive) closeMenu() })
 onBeforeUnmount(closeMenu)
 </script>
 <style scoped>
-.break-menu{position:fixed;right:24px;bottom:max(24px,env(safe-area-inset-bottom));z-index:20;color:#668773}
+.break-menu{position:fixed;right:20px;bottom:calc(52px + env(safe-area-inset-bottom));z-index:20;color:#809AAD}
 .break-menu[hidden]{display:none}
-.break-trigger{position:relative;display:grid;place-items:center;width:44px;height:44px;padding:0;border:1px solid #CCDCD0;border-radius:50%;background:#F7FAF3;color:inherit;font-family:inherit;font-size:11px;font-weight:400;line-height:1;cursor:pointer;transition:background .18s,border-color .18s}
-.break-trigger>svg{width:22px;height:22px;flex:none;overflow:visible}
-.cup{transform-box:fill-box;transform-origin:50% 85%;animation:cupSip 5s ease-in-out infinite}
+.break-trigger{position:relative;display:grid;place-items:center;width:56px;height:48px;padding:2px 4px 0;border:0;border-radius:9px;background:none;font-family:inherit;cursor:pointer;transition:background .2s}
+.pantry-art{display:block;width:100%;height:100%;overflow:visible}
+.pantry-items{transform-origin:50% 100%;transition:transform .3s cubic-bezier(.34,1.56,.64,1)}
+@media(hover:hover){.break-trigger:hover{background:#F1F5F0}.break-trigger:hover .pantry-items{transform:translateY(-2px)}}
+.break-trigger:active .pantry-items{transform:translateY(0)}
 .steam{transform-box:fill-box;transform-origin:50% 100%}
-.steam-a{animation:steamRise 3.2s ease-out infinite}
-.steam-b{animation:steamRise 3.2s ease-out -1.6s infinite}
-@media(hover:hover){.break-trigger:hover{background:#EAF2E4;border-color:#ADC8B3}}
-@media(hover:hover){.break-trigger:hover .cup{animation:cupSip 2.4s ease-in-out infinite}}
-.trigger-dot{position:absolute;right:4px;top:4px;width:5px;height:5px;border-radius:50%;background:#86A791}
-.break-sheet{position:fixed;inset:auto 24px 82px auto;margin:0;width:300px;max-width:calc(100vw - 32px);max-height:calc(100dvh - 32px);overflow:auto;padding:20px 14px 12px;border:1px solid #D8E3E7;border-radius:16px;background:#FAFBF7;color:#617E91;box-shadow:none;overscroll-behavior:contain}
+.steam-a{animation:steamRise 3.4s ease-out infinite}
+.steam-b{animation:steamRise 3.4s ease-out -1.1s infinite}
+.steam-c{animation:steamRise 3.6s ease-out -.4s infinite}
+.steam-d{animation:steamRise 3.6s ease-out -1.8s infinite}
+/* 触屏没有悬停：小场景轻轻起伏一下，提示可以点开 */
+@media(hover:none){.pantry-items{animation:pantryBob 6s ease-in-out infinite}.break-trigger:active .pantry-items{animation:none;transform:translateY(1px)}}
+.trigger-dot{position:absolute;right:4px;top:2px;width:5px;height:5px;border-radius:50%;background:#86A791}
+.break-sheet{position:fixed;inset:auto 24px 128px auto;transform-origin:100% 100%;margin:0;width:300px;max-width:calc(100vw - 32px);max-height:calc(100dvh - 32px);overflow:auto;padding:20px 14px 12px;border:1px solid #D8E3E7;border-radius:16px;background:#FAFBF7;color:#617E91;box-shadow:none;overscroll-behavior:contain}
 .break-sheet::backdrop{background:rgb(41 63 76 / .17)}
 .break-sheet[open]{animation:breakOpen .2s ease-out}
 .sheet-header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 9px 15px;border-bottom:1px solid #E2E9EB;margin-bottom:5px}
@@ -109,10 +130,10 @@ onBeforeUnmount(closeMenu)
 @media(hover:hover){.tree-tool:hover{background:#EDF3E9;color:#5D7E62}}
 .found-tick{stroke:#6F9277;stroke-width:2;paint-order:stroke;stroke-linecap:round}
 .search-dot{position:absolute;left:32px;top:10px;width:4px;height:4px;border-radius:50%;background:#88A995}
-@keyframes breakOpen{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
-@keyframes cupSip{0%,68%,100%{transform:translateY(0) rotate(0)}74%{transform:translateY(-.6px) rotate(-4deg)}80%{transform:translateY(.4px) rotate(4deg)}86%{transform:translateY(-.3px) rotate(-2deg)}}
+@keyframes breakOpen{from{opacity:0;transform:translateY(7px) rotate(-1.2deg)}to{opacity:1;transform:translateY(0) rotate(0)}}
 @keyframes steamRise{0%{opacity:0;transform:translateY(3px) scaleY(.5)}28%{opacity:.85}60%,100%{opacity:0;transform:translateY(-3.5px) scaleY(1.15)}}
-@media(max-width:720px){.break-menu{right:16px;bottom:calc(16px + env(safe-area-inset-bottom))}.break-sheet{inset:auto auto calc(12px + env(safe-area-inset-bottom)) 50%;transform:translateX(-50%);width:calc(100% - 24px);max-width:420px;max-height:calc(100dvh - 24px - env(safe-area-inset-bottom));padding:21px 14px 14px;border-radius:19px}.break-sheet[open]{animation:sheetOpen .22s ease-out}.sheet-header{padding-bottom:16px}.break-tool{min-height:60px;padding-inline:13px;gap:16px}.tool-copy strong{font-size:13px}}
+@keyframes pantryBob{0%,86%,100%{transform:none}92%{transform:translateY(-1.5px)}96%{transform:translateY(0)}}
+@media(max-width:720px){.break-menu{right:14px;bottom:calc(52px + env(safe-area-inset-bottom))}.break-trigger{width:60px;height:50px}.break-sheet{inset:auto auto calc(12px + env(safe-area-inset-bottom)) 50%;transform:translateX(-50%);width:calc(100% - 24px);max-width:420px;max-height:calc(100dvh - 24px - env(safe-area-inset-bottom));padding:21px 14px 14px;border-radius:19px}.break-sheet[open]{animation:sheetOpen .22s ease-out}.sheet-header{padding-bottom:16px}.break-tool{min-height:60px;padding-inline:13px;gap:16px}.tool-copy strong{font-size:13px}}
 @keyframes sheetOpen{from{opacity:0;translate:0 8px}to{opacity:1;translate:0 0}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>

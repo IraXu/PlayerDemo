@@ -1,56 +1,216 @@
 <template>
   <svg class="office-print" viewBox="0 0 520 370" fill="none" aria-hidden="true">
-    <!-- A small, frontal portrait: pointed ears, cheek tufts, whiskers and two typing paws. -->
+    <defs>
+      <clipPath id="office-cat-clip"><rect x="100" y="90" width="220" height="192"/></clipPath>
+    </defs>
     <g stroke-linecap="round" stroke-linejoin="round">
-      <path d="M104 216V91a18 18 0 0 1 18-18h86a18 18 0 0 1 18 18v125" fill="#DCE8EF"/>
-      <path d="M114 206V94a11 11 0 0 1 11-11h79a11 11 0 0 1 11 11v112" fill="#EFF4F4"/>
-      <path d="M165 84v121M115 143h99" stroke="#D1DFE8" stroke-width="3"/>
-      <path d="m130 183 18-24 18 24 23-32 25 32v22H115v-22Z" fill="#DDE7E3"/>
-      <path d="M169 211c0-24 23-44 54-44s55 20 55 44v81H169Z" fill="#A8BFCE"/>
-      <path d="M185 216c0-18 16-33 38-33s39 15 39 33v69h-77Z" fill="#B9CEDB"/>
-      <path class="office-tail" d="M187 267c-30 16-54 3-51-17 2-14 18-17 21-6" stroke="#B7B7A8" stroke-width="13"/>
-      <path d="M192 196q30-15 60 0l17 70h-94Z" fill="#DCDACD"/>
-      <path d="M210 207q13 5 26 0l10 52h-47Z" fill="#F8F5EB"/>
-      <g class="cat-head">
-        <path d="m167 127-5-46q-1-7 5-4l34 24q21-7 43 0l34-24q6-3 5 4l-4 46q10 12 9 29l8 7-11 3 4 8-14 1q-15 25-53 25t-53-25l-14-1 4-8-11-3 8-7q-1-17 10-29Z" fill="#F8F5EB" stroke="#A6AEA8" stroke-width="1.6"/>
-        <path d="m174 112-3-22 20 15ZM254 105l20-15-3 22Z" fill="#CFB5BD"/>
-        <path d="M213 104v13M223 102v15M233 104v13" stroke="#C2C4B5" stroke-width="4"/>
-        <path d="m186 139 17 5M242 144l17-5" stroke="#586D76" stroke-width="2.5"/>
-        <path d="M190 152h11M244 152h11" stroke="#586D76" stroke-width="2.8"/>
-        <path d="m218 163 5 4 5-4Z" fill="#B5919D"/>
-        <path d="M223 167v6m0 0q-6 6-11 0m11 0q6 6 11 0" stroke="#7E8984" stroke-width="1.7"/>
-        <path d="m178 159-19-3m20 10-20 3m107-10 19-3m-20 10 20 3" stroke="#9DAAA6" stroke-width="1.5"/>
-        <g class="rage-mark" stroke="#BE9EAC" stroke-width="2"><path d="M251 125v-5h5m5 5v-5h-5m-5 10v5h5m5-5v5h-5"/></g>
+      <!-- 显示器支架 -->
+      <path d="M402 238h12v36h-12Z" fill="#B4C9D7"/>
+      <path d="M380 274h56l-2 8h-52Z" fill="#B4C9D7" stroke="#9AB4C6" stroke-width="1.2"/>
+
+      <!-- 猫：沿用站内统一的猫咪插画，坐在桌子后面 -->
+      <g class="office-cat-bob">
+        <g clip-path="url(#office-cat-clip)">
+          <g class="office-cat" transform="translate(118 118) scale(1.9)">
+            <AnimalArtwork animal="cat" />
+          </g>
+        </g>
       </g>
-      <!-- The screen sits beside the cat, leaving the entire face and both paws visible. -->
+      <!-- 生气眉毛 + 汗滴 + 怒气 + 心声 -->
+      <rect x="200" y="223.2" width="26" height="13" fill="#F3ECDD"/>
+      <path d="M207.6 224.6q5.4-1.2 10.8 0-1 7.6-5.4 9.4-4.4-1.8-5.4-9.4Z" fill="#9C6B7A"/>
+      <path d="M210.4 230.8q2.6 2.8 5.2 0" stroke="#D8A9B4" stroke-width="1.4" fill="none"/>
+      <path d="M177 190 196 196.4M249 190 230 196.4" stroke="#77889A" stroke-width="2.2"/>
+      <path d="M254 186q7 9 0 13-7-4 0-13Z" fill="#C6DDE9"/>
+      <g class="anger-steam" stroke="#C6A9B1" stroke-width="1.6" fill="none" stroke-linecap="round">
+        <path d="M211 157q-5-5 0-10t0-8"/>
+        <path d="M225 153q-4.5-4.5 0-9t0-7"/>
+      </g>
+      <g class="anger-mark"><g transform="translate(260 174)">
+        <g stroke="#C08E9B" stroke-width="1.8" fill="none" stroke-linecap="round">
+          <path d="M-4.4-2.3C-1.5-2.9 1.5-2.9 4.4-2.3"/>
+          <path d="M-4.4 2.3C-1.5 1.7 1.5 1.7 4.4 2.3"/>
+          <path d="M-2.3-4.4C-2.9-1.5-2.9 1.5-2.3 4.4"/>
+          <path d="M2.3-4.4C1.7-1.5 1.7 1.5 2.3 4.4"/>
+        </g>
+      </g></g>
+      <g class="office-think">
+        <path d="M113 132h42a9 9 0 0 1 9 9v12a9 9 0 0 1-9 9l8 12-15-12h-35a9 9 0 0 1-9-9v-12a9 9 0 0 1 9-9Z" fill="#FBFCF7" stroke="#D3E1E9" stroke-width="1.2"/>
+        <text x="112" y="151" fill="#7E97A9" font-size="5.4" font-family="'PingFang SC',system-ui,sans-serif">在改了…</text>
+      </g>
+
+      <!-- 桌子 -->
+      <path d="M56 282h448v9H56Z" fill="#C9CDC4"/>
+      <path d="M96 291v56m368-56v56" stroke="#AEBAB9" stroke-width="5"/>
+
+      <!-- 键盘 -->
+      <path d="M150 261h158v18H150Z" fill="#EAF1F5" stroke="#B9CEDA" stroke-width="1.2"/>
+      <path d="M157 268h144M157 273h144" stroke="#CBDDE7" stroke-width="3.2" stroke-dasharray="5 3"/>
+      <!-- 打字爪 -->
+      <g class="cat-paw paw-left">
+        <path d="M181 240q-5 14 1 26" stroke="#EFE7D7" stroke-width="11" fill="none"/>
+        <path d="M178 278q0-13 13-13t13 13Z" fill="#F8F5EB" stroke="#ADB5AC" stroke-width="1.2"/>
+        <path d="M185 278v-3m6 3v-3m6 3v-3" stroke="#B9BDB1" stroke-width="1.1"/>
+      </g>
+      <g class="cat-paw paw-right">
+        <path d="M255 240q5 14-1 26" stroke="#EFE7D7" stroke-width="11" fill="none"/>
+        <path d="M232 278q0-13 13-13t13 13Z" fill="#F8F5EB" stroke="#ADB5AC" stroke-width="1.2"/>
+        <path d="M239 278v-3m6 3v-3m6 3v-3" stroke="#B9BDB1" stroke-width="1.1"/>
+      </g>
+      <g class="typing-marks" stroke="#8DABBE" stroke-width="2" stroke-linecap="round"><path d="M176 268l-9-2M175 273l-8 3M260 268l9-2M261 273l8 3"/></g>
+      <g class="flying-key"><rect x="212" y="250" width="9" height="7" rx="2" fill="#D7E6EF" stroke="#9DB8CA" stroke-width="1.1"/></g>
+
+      <!-- 显示器：VS Code / DeepSeek / Codex 同屏 -->
       <g class="office-monitor">
-        <path d="m318 118 118 10v116l-118-10Z" fill="#91AFC4" stroke="#7C9BB0" stroke-width="1.5"/>
-        <path d="m327 128 100 9v96l-100-9Z" fill="#F9FAF5"/>
-        <path d="m327 128 100 9v13l-100-9Z" fill="#D5E4ED"/>
-        <path d="m337 154 29 2m-29 9 64 5m-64 7 48 4" stroke="#BACDD8" stroke-width="2.5"/>
-        <path d="m337 191 76 6v22l-76-6Z" fill="#E4EBDF"/>
-        <path d="m346 203 29 2" stroke="#A6B79D" stroke-width="2.5"/>
-        <path d="M370 240v30m-17 1h37" stroke="#8AA7BA" stroke-width="5"/>
-        <g class="notification"><rect x="408" y="115" width="31" height="19" rx="9.5" fill="#BE9FAC"/><text x="423.5" y="128" fill="#FFFDF8" font-size="10" font-family="system-ui" text-anchor="middle">99+</text></g>
+        <path d="M318 92h186v141a8 8 0 0 1-8 8H326a8 8 0 0 1-8-8Z" fill="#93B1C6" stroke="#7E9DB2" stroke-width="1.5"/>
+        <path d="M326 100h170v132H326Z" fill="#F8FAF6"/>
+        <path d="M326 100h170v13H326Z" fill="#E3EDF3"/>
+        <circle cx="333" cy="106.5" r="1.8" fill="#C5D6DF"/><circle cx="339" cy="106.5" r="1.8" fill="#C5D6DF"/><circle cx="345" cy="106.5" r="1.8" fill="#C5D6DF"/>
+        <path d="M352 103h38v10h-38Z" fill="#FBFCF8"/>
+        <text x="355" y="110.4" font-size="4.6" fill="#6F8B9D" font-family="ui-monospace,monospace">App.vue</text>
+        <text x="394" y="110.4" font-size="4.4" fill="#A8BAC4" font-family="ui-monospace,monospace">cat.ts</text>
+        <rect x="452" y="102.5" width="9" height="9" rx="2" fill="#7FA5BE"/>
+        <path d="m455.5 105 2 1.7-2 1.7" stroke="#FBFCF8" stroke-width="1.1"/>
+        <text x="464" y="110.2" font-size="4" fill="#8299A8" font-family="'PingFang SC',system-ui,sans-serif">VS Code</text>
+        <!-- 文件侧栏 -->
+        <path d="M326 113h18v119h-18Z" fill="#EDF3F6"/>
+        <rect x="330" y="120" width="10" height="10" rx="2" fill="#CBDCE6"/>
+        <rect x="330" y="135" width="10" height="10" rx="2" fill="#A9C4D6"/>
+        <rect x="330" y="150" width="10" height="10" rx="2" fill="#CBDCE6"/>
+        <path d="M330 214h10M330 220h7" stroke="#CBDCE6" stroke-width="2"/>
+        <!-- 代码编辑区 -->
+        <path d="M344 113h96v119h-96Z" fill="#FCFDF9"/>
+        <g fill="#B8C7D0" font-size="3.8" font-family="ui-monospace,monospace">
+          <text x="347" y="123">1</text><text x="347" y="133">2</text><text x="347" y="143">3</text><text x="347" y="153">4</text><text x="347" y="163">5</text><text x="347" y="173">6</text><text x="347" y="183">7</text><text x="347" y="193">8</text><text x="347" y="203">9</text><text x="347" y="213">10</text><text x="347" y="223">11</text>
+        </g>
+        <g stroke-width="2.4">
+          <path d="M357 121h24" stroke="#AFC9D9"/>
+          <path d="M385 121h20" stroke="#C9D8C4"/>
+          <path d="M357 131h12m8 0h22" stroke="#D2C3CB"/>
+          <path d="M365 141h32" stroke="#AFC9D9"/>
+          <path d="M365 151h18" stroke="#C9D8C4"/>
+          <path d="M365 161h28" stroke="#C1D3DE"/>
+          <path d="M357 171h14" stroke="#D2C3CB"/>
+          <path d="M365 181h36" stroke="#AFC9D9"/>
+          <path d="M365 191h22" stroke="#C9D8C4"/>
+          <path d="M357 201h40" stroke="#C1D3DE"/>
+          <path d="M365 211h26" stroke="#AFC9D9"/>
+          <path d="M357 221h30" stroke="#C9D8C4"/>
+        </g>
+        <rect class="cursor" x="390" y="218" width="2" height="5" fill="#6E93AD"/>
+        <!-- DeepSeek / Codex 面板 -->
+        <path d="M440 113h56v119h-56Z" fill="#F3F7F4"/>
+        <rect x="444" y="117" width="48" height="46" rx="3" fill="#E2EEF6" stroke="#CFE1EC" stroke-width="1"/>
+        <path d="M448 124q3-3 6 0t6 0q-1 4-6 4t-6-4Z" fill="#6E93AD"/>
+        <text x="463" y="125.5" font-size="4.2" fill="#5E8199" font-family="'PingFang SC',system-ui,sans-serif">deepseek</text>
+        <rect x="448" y="130" width="36" height="9" rx="2" fill="#FBFCF8"/>
+        <path d="M451 134h24" stroke="#BBD2E0" stroke-width="2"/>
+        <rect x="448" y="142" width="29" height="7" rx="2" fill="#FBFCF8" opacity=".8"/>
+        <rect x="448" y="153" width="40" height="7" rx="2" fill="#FBFCF8" stroke="#CFE0EA" stroke-width=".8"/>
+        <path d="m482 156.5 2 1.4-2 1.4" stroke="#7FA0B6" stroke-width="1"/>
+        <rect x="444" y="169" width="48" height="52" rx="3" fill="#EFF4EC" stroke="#DEE8D8" stroke-width="1"/>
+        <path d="m451 176 1.3 3.2 3.2 1.3-3.2 1.3-1.3 3.2-1.3-3.2-3.2-1.3 3.2-1.3Z" fill="#8FAE8B"/>
+        <text x="457" y="180.5" font-size="4.2" fill="#7D977A" font-family="'PingFang SC',system-ui,sans-serif">codex</text>
+        <path d="M448 186h38M448 192h30M448 198h34" stroke="#DCE7D8" stroke-width="2.2"/>
+        <rect x="448" y="207" width="40" height="3" rx="1.5" fill="#DDE7DA"/>
+        <rect x="448" y="207" width="24" height="3" rx="1.5" fill="#9BB697"/>
+        <text x="448" y="217" font-size="3.4" fill="#9AAE97" font-family="'PingFang SC',system-ui,sans-serif">生成中…</text>
+        <!-- 未读角标 -->
+        <g class="notification"><rect x="482" y="92" width="26" height="14" rx="7" fill="#C09CA9"/><text x="495" y="101.6" font-size="6" fill="#FFFDF8" text-anchor="middle" font-family="system-ui">99+</text></g>
       </g>
-      <path d="M92 281h369v9H92Z" fill="#C8CCC5"/>
-      <path d="M109 290v45m335-45v45" stroke="#AEBAB9" stroke-width="5"/>
-      <path d="m172 267 120-2 17 14H159Z" fill="#C8DAE7" stroke="#98B3C6" stroke-width="1.2"/>
-      <path d="m175 270 113-2m-118 6 123-2" stroke="#90ABBE" stroke-width="2" stroke-dasharray="4 4"/>
-      <path d="m211 277 40-1" stroke="#90ABBE" stroke-width="2"/>
-      <g class="cat-paw paw-left"><path d="M198 219q-5 17-5 36" stroke="#DCDACD" stroke-width="20"/><path d="M182 258q1-11 12-11t14 11v6h-26Z" fill="#F8F5EB" stroke="#ADB5AC" stroke-width="1.2"/><path d="M191 258v4m7-4v4" stroke="#B9BDB1" stroke-width="1.2"/></g>
-      <g class="cat-paw paw-right"><path d="M247 219q9 16 17 34" stroke="#DCDACD" stroke-width="20"/><path d="M253 258q0-11 12-11t14 11v6h-26Z" fill="#F8F5EB" stroke="#ADB5AC" stroke-width="1.2"/><path d="M262 258v4m7-4v4" stroke="#B9BDB1" stroke-width="1.2"/></g>
-      <g class="typing-marks" stroke="#8DABBE" stroke-width="2"><path d="m181 240-5-6m38 7 4-7m29 6-4-6m39 7 5-6"/></g>
-      <g class="flying-key"><rect x="217" y="236" width="10" height="8" rx="2" fill="#D7E6EF" stroke="#9DB8CA" stroke-width="1.2"/></g>
-      <path d="M115 258h22l-3 22h-16Z" fill="#AABFAD"/>
-      <path d="M126 256v-27" stroke="#8CA991" stroke-width="2"/><path d="M126 245q-16-1-15-15 15 0 15 15m0-8q1-16 14-18 2 14-14 18" fill="#B6C8B5"/>
-      <path d="M408 257h22v23h-22Z" fill="#ECEDDF" stroke="#B1B9A8" stroke-width="1.2"/><path d="M430 261c12-1 12 13 0 12" stroke="#B1B9A8" stroke-width="2"/>
-      <path class="office-steam" d="M418 249q-6-6 0-12" stroke="#B4C5CA" stroke-width="1.5"/>
+
+      <!-- 企微消息卡：从屏幕上方溢出来 -->
+      <g class="office-wecom">
+        <rect x="262" y="58" width="92" height="58" rx="6" fill="#FBFCF7" stroke="#D6E3EA" stroke-width="1.2"/>
+        <rect x="268" y="64" width="9" height="9" rx="2.4" fill="#96B8A0"/>
+        <path d="M270.5 68.5h4" stroke="#FBFCF7" stroke-width="1.2"/>
+        <text x="281" y="71.5" font-size="4.8" fill="#779184" font-family="'PingFang SC',system-ui,sans-serif">企微</text>
+        <circle cx="344" cy="66" r="5" fill="#C09CA9"/>
+        <text x="344" y="68.2" font-size="3.8" fill="#FFFDF8" text-anchor="middle" font-family="system-ui">99+</text>
+        <rect x="268" y="77" width="50" height="10" rx="3" fill="#F1F6F1"/>
+        <path d="M272 82h34" stroke="#BFD3C3" stroke-width="2"/>
+        <rect x="286" y="91" width="52" height="10" rx="3" fill="#DDEBE1"/>
+        <path d="M290 96h36" stroke="#A9C4AF" stroke-width="2"/>
+      </g>
+
+      <!-- 聊天窗口溢出到屏幕边缘 -->
+      <g class="office-chat office-chat-a">
+        <path d="M297 149h23a7 7 0 0 1 7 7v4a7 7 0 0 1-7 7h-11l-8 9v-9h-4a7 7 0 0 1-7-7v-4a7 7 0 0 1 7-7Z" fill="#FBFCF7" stroke="#D6E3EA" stroke-width="1.2"/>
+        <text x="296" y="161.6" font-size="5.2" fill="#7E97A9" font-family="'PingFang SC',system-ui,sans-serif">你来一下</text>
+      </g>
+      <g class="office-chat office-chat-b">
+        <rect x="300" y="176" width="64" height="20" rx="8" fill="#DDEBE1" stroke="#C4D8CB" stroke-width="1.2"/>
+        <text x="308" y="189" font-size="5" fill="#6E8C79" font-family="'PingFang SC',system-ui,sans-serif">需求又变了</text>
+        <circle cx="358" cy="181" r="3" fill="#C09CA9"/>
+      </g>
+
+      <!-- 桌面小物 -->
+      <path d="M78 260h20l-3 22H81Z" fill="#AABFAD"/>
+      <path d="M88 258v-24" stroke="#8CA991" stroke-width="2"/>
+      <path d="M88 246q-15-1-14-14 14 0 14 14m0-8q1-15 13-17 2 13-13 17" fill="#B6C8B5"/>
+      <g transform="rotate(-3 333 274)">
+        <path d="M314 264h38v20h-38Z" fill="#FBFCF7" stroke="#D8E3E9" stroke-width="1.1"/>
+        <text x="318" y="270" font-size="3.8" fill="#A5B6C0" font-family="'PingFang SC',system-ui,sans-serif">需求 v3</text>
+        <path d="M318 275h26M318 279h20" stroke="#C6D5DD" stroke-width="1.6"/>
+      </g>
+      <g transform="rotate(3 369 270)">
+        <path d="M356 258h26v22h-26Z" fill="#F6F1DC" stroke="#E4DCC2" stroke-width="1"/>
+        <path d="m373 258 9 9h-9Z" fill="#EAE3CA"/>
+        <text x="360" y="266" font-size="4" fill="#A79A78" font-family="'PingFang SC',system-ui,sans-serif">TODO</text>
+        <path d="M360 271h17M360 275h12" stroke="#D8CFB4" stroke-width="1.6"/>
+      </g>
+      <path d="M444 256h20v22h-20Z" fill="#EFF2E4" stroke="#BCC5B0" stroke-width="1.2"/>
+      <path d="M464 261c11-1 11 12 0 11" stroke="#BCC5B0" stroke-width="2"/>
+      <path class="office-steam" d="M452 249q-6-6 0-12" stroke="#B4C5CA" stroke-width="1.5"/>
+      <g class="office-hotfix"><g transform="rotate(7 502 142)">
+        <path d="M492 130h21v18h-21Z" fill="#F6F1DC" stroke="#E0D7BA" stroke-width="1"/>
+        <text x="495" y="141.5" font-size="3.8" fill="#A79A78" font-family="'PingFang SC',system-ui,sans-serif">hotfix</text>
+        <path d="M495 145h11" stroke="#DED4B6" stroke-width="1.4"/>
+      </g></g>
+      <!-- 提示条：从屏幕顶边挤出来 -->
+      <g class="office-toast"><g transform="rotate(-2 440 94)">
+        <rect x="412" y="86" width="56" height="16" rx="8" fill="#F7ECEF" stroke="#E3CDD3" stroke-width="1"/>
+        <circle cx="421" cy="94" r="2.6" fill="#C09CA9"/>
+        <text x="427" y="96.2" font-size="4.8" fill="#A4778A" font-family="'PingFang SC',system-ui,sans-serif">构建失败</text>
+      </g></g>
     </g>
   </svg>
 </template>
+<script setup lang="ts">
+import AnimalArtwork from './AnimalArtwork.vue'
+</script>
 <style scoped>
-.office-print{display:block;width:100%;height:auto;overflow:visible}.cat-head{transform-box:view-box;transform-origin:223px 194px;animation:catHuff .8s ease-in-out infinite}.cat-paw{transform-box:view-box;transform-origin:198px 218px;animation:typing .3s ease-in-out infinite}.paw-right{transform-origin:247px 218px;animation-delay:-.15s}.office-tail{transform-box:fill-box;transform-origin:right center;animation:tailFlick 1s ease-in-out infinite}.office-monitor{transform-box:fill-box;transform-origin:center bottom;animation:monitorShake .6s ease-in-out infinite}.rage-mark,.notification{transform-box:fill-box;transform-origin:center;animation:angerPulse 1.6s ease-in-out infinite}.typing-marks{animation:typingFlash .3s steps(2) infinite}.flying-key{animation:keyFly 1.5s ease-out infinite}.office-steam{animation:steam 3s ease-in-out infinite}
-@keyframes typing{50%{transform:translateY(-11px) rotate(-4deg)}}@keyframes catHuff{50%{transform:translateY(2px) rotate(-2deg)}}@keyframes tailFlick{50%{transform:rotate(13deg)}}@keyframes monitorShake{50%{transform:rotate(.4deg)}}@keyframes angerPulse{50%{transform:scale(1.08)}}@keyframes typingFlash{50%{opacity:0}}@keyframes keyFly{0%{opacity:0;transform:translateY(24px)}20%{opacity:1}90%,100%{opacity:0;transform:translate(4px,-14px) rotate(30deg)}}@keyframes steam{50%{opacity:.2;transform:translateY(-4px)}}
+.office-print{display:block;width:100%;height:auto;overflow:visible}
+.office-cat-bob{transform-box:fill-box;transform-origin:50% 100%;animation:catWork 3.2s ease-in-out infinite}
+.office-cat :deep(.companion-eye){transform-box:fill-box;transform-origin:center;animation:catBlink 7s ease-in-out infinite}
+.office-cat :deep(.companion-tail){transform-box:fill-box;transform-origin:right center;animation:tailFlick 1.8s ease-in-out infinite}
+.office-think{transform-box:fill-box;transform-origin:center;animation:floatSoft 6s ease-in-out infinite}
+.anger-steam{animation:steam 2.8s ease-in-out infinite}
+.anger-mark{transform-box:fill-box;transform-origin:center;animation:angerPulse 1.4s ease-in-out infinite}
+.cat-paw{transform-box:fill-box;transform-origin:50% 20%;animation:typing .32s ease-in-out infinite}
+.paw-right{animation-delay:-.16s}
+.office-monitor{transform-box:fill-box;transform-origin:center bottom;animation:monitorShake 1s ease-in-out infinite}
+.notification{transform-box:fill-box;transform-origin:center;animation:badgePulse 2.4s ease-in-out infinite}
+.office-wecom{transform-box:fill-box;transform-origin:center;animation:floatSoft 4.8s ease-in-out infinite}
+.office-chat{transform-box:fill-box;transform-origin:center;animation:floatSoft 5.4s ease-in-out infinite}
+.office-chat-b{animation-delay:-1.8s}
+.typing-marks{animation:typingFlash .32s steps(2) infinite}
+.flying-key{animation:keyFly 1.6s ease-out infinite}
+.office-steam{animation:steam 3s ease-in-out infinite}
+.cursor{animation:cursorBlink 1.1s steps(1) infinite}
+.office-hotfix{transform-box:fill-box;transform-origin:center;animation:floatSoft 6.4s ease-in-out infinite}
+.office-toast{transform-box:fill-box;transform-origin:center;animation:floatSoft 5.6s ease-in-out infinite;animation-delay:-1.4s}
+@keyframes typing{50%{transform:translateY(-6px) rotate(-3deg)}}
+@keyframes catWork{50%{transform:translateY(1.5px)}}
+@keyframes catBlink{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.12)}}
+@keyframes tailFlick{50%{transform:rotate(10deg)}}
+@keyframes monitorShake{50%{transform:rotate(.4deg)}}
+@keyframes angerPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.16)}}
+@keyframes badgePulse{50%{transform:scale(1.08)}}
+@keyframes floatSoft{50%{transform:translateY(-2px)}}
+@keyframes typingFlash{50%{opacity:.15}}
+@keyframes keyFly{0%{opacity:0;transform:translateY(18px)}25%{opacity:1}85%,100%{opacity:0;transform:translate(6px,-12px) rotate(26deg)}}
+@keyframes steam{50%{opacity:.25;transform:translateY(-4px)}}
+@keyframes cursorBlink{50%{opacity:0}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important}.flying-key{opacity:0}}
 </style>
