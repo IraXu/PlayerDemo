@@ -40,7 +40,7 @@
             <span class="waiting-eyebrow">今日工位，等你来逗。</span>
             <h2>{{ status === 'idle' ? '猫猫正在暴躁赶工' : placeholderTitle }}</h2>
             <p>{{ status === 'idle' ? '键盘快冒烟了，消息还没回完\n连接猫猫，围观猫猫在线发疯！' : placeholderText }}</p>
-            <button v-if="status === 'idle'" class="play-btn" type="button" :aria-label="copy.playAria" @click.stop="openPlayback"><PlayIcon :size="13"/><span>开始逗猫</span></button>
+            <button v-if="status === 'idle'" class="play-btn" type="button" :aria-label="copy.playAria" @pointerenter="warmUpPlayer" @focus="warmUpPlayer" @click.stop="openPlayback"><PlayIcon :size="13"/><span>开始逗猫</span></button>
             <Button v-else-if="status === 'error'" type="primary" class="retry" @click="connect"><RefreshIcon :size="14"/>重新连接</Button>
             <span v-else class="connecting"><SpinnerIcon class="spinner" :size="17"/> 正在连接…</span>
           </div>
@@ -198,7 +198,7 @@ import {
   queryStream,
   type StreamInfo,
 } from './api'
-import eggPhoto from './assets/easter-egg.jpg'
+import eggPhoto from './assets/easter-egg.webp'
 import {
   buildTreeHoleMessage,
   getClientInfo,
@@ -677,6 +677,12 @@ async function connect() {
   }
 }
 
+// 悬停/聚焦播放按钮时先拉起 SDK 主文件，点击后少等一个网络往返
+function warmUpPlayer() {
+  if (status.value !== 'idle' && status.value !== 'error') return
+  void loadPlayerSdk().catch(() => undefined)
+}
+
 // 点击播放按钮才建立视频通道，避免进入页面自动拉流
 async function openPlayback() {
   if (status.value !== 'idle' && status.value !== 'error') return
@@ -1112,7 +1118,7 @@ function onOnline() {
 // ==================== 找猫 / 找熊 ====================
 function onCatFound() {
   huntSearching.value = false
-  huntOpen.value = true
+  showToast(copy.value.huntFoundToast)
 }
 
 // ==================== 分享卡片 ====================

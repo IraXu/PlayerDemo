@@ -1,11 +1,13 @@
 /**
  * 十七的逗猫室 PWA 外壳缓存。
- * 只接管导航请求、构建产物和图标；wasm / 播放器资源交给浏览器自己的缓存。
- * 发版后如需清掉旧产物缓存，把 VERSION 加一即可。
+ * 接管导航请求、构建产物、图标，以及播放器 SDK 的运行时文件（hmwebplayer / worker / wasm）。
+ * 播放器文件不带 hash 且 GitHub Pages 只给 max-age=600，这里用 cache-first 长期缓存，
+ * 发版后把 VERSION 加一即可清掉旧缓存。
  */
-const VERSION = 'v2'
+const VERSION = 'v3'
 const CACHE = `shiqi-cat-room-${VERSION}`
 const scope = self.registration.scope
+const BASE = new URL(scope).pathname
 
 const SHELL = [
   scope,
@@ -16,6 +18,18 @@ const SHELL = [
   `${scope}icons/icon-maskable-512.png`,
   `${scope}icons/apple-touch-icon.png`,
 ]
+
+// 海康播放器 SDK 的运行时文件：不进 install 预缓存（首次访问不该拉几 MB），命中后再长期缓存
+const PLAYER_ASSETS = new Set(
+  [
+    'hmwebplayer.js',
+    'worker.js',
+    'videodec.wasm',
+    'videodec_simd.wasm',
+    'audiodec.wasm',
+    'hmbusiness.wasm',
+  ].map((name) => `${BASE}${name}`),
+)
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -64,9 +78,29 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
+  // 播放器运行时：cache-first，避免过期后重复下载解码器
+  if (PLAYER_ASSETS.has(url.pathname)) {
+    event.respondWith(
+      caches.match(request).then((hit) => {
+        if (hit) return hit
+        return fetch(request).then((response) => {
+          if (response.ok) {
+            const copy = response.clone()
+            caches
+              .open(CACHE)
+              .then((cache) => cache.put(request, copy))
+              .catch(() => undefined)
+          }
+          return response
+        })
+      }),
+    )
+    return
+  }
+
   // 构建产物用 stale-while-revalidate，其余请求放行
   const isAsset =
-    url.pathname.startsWith(`${scope}assets/`) || url.pathname.startsWith(`${scope}icons/`)
+    url.pathname.startsWith(`${BASE}assets/`) || url.pathname.startsWith(`${BASE}icons/`)
   if (!isAsset) return
 
   event.respondWith(

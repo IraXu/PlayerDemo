@@ -1,11 +1,13 @@
 <template>
   <button
-    v-if="!found"
+    v-if="!found || burst"
     class="hunt-cat"
-    :class="{ searching }"
+    :class="{ searching, caught: burst }"
     :style="spot"
     type="button"
     :aria-label="copy.huntAria"
+    :tabindex="burst ? -1 : 0"
+    :disabled="found"
     @click="catchCat"
   >
     <svg viewBox="0 0 100 100" fill="none" aria-hidden="true">
@@ -14,7 +16,10 @@
   </button>
 
   <span v-if="burst" class="hunt-burst" :style="spot" aria-hidden="true">
-    <SparklesIcon :size="44" color="#ffd166" />
+    <span class="hunt-ring"></span>
+    <span class="hunt-spark spark-a"><SparklesIcon :size="40" color="#ffd166" /></span>
+    <span class="hunt-spark spark-b"><SparklesIcon :size="24" color="#ffd166" /></span>
+    <span class="hunt-spark spark-c"><SparklesIcon :size="18" color="#ff9db4" /></span>
   </span>
 </template>
 
@@ -156,12 +161,46 @@ onBeforeUnmount(() => {
 .hunt-burst {
   position: fixed;
   z-index: 13;
-  display: grid;
-  place-items: center;
   width: 46px;
   height: 46px;
   pointer-events: none;
-  animation: huntBurst 1.1s ease-out forwards;
+}
+
+.hunt-cat.caught {
+  opacity: 0;
+  transform: scale(1.45);
+  animation: none;
+  pointer-events: none;
+}
+
+.hunt-ring {
+  position: absolute;
+  inset: 6px;
+  border: 1.5px solid #ffd166;
+  border-radius: 50%;
+  opacity: 0;
+  animation: huntRing 0.85s ease-out forwards;
+}
+
+.hunt-spark {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  opacity: 0;
+  animation: huntSpark 0.9s ease-out forwards;
+}
+
+.spark-b {
+  --dx: 16px;
+  --dy: -20px;
+  animation-delay: 0.06s;
+}
+
+.spark-c {
+  --dx: -18px;
+  --dy: -12px;
+  animation-delay: 0.12s;
 }
 
 @keyframes huntBreathe {
@@ -176,17 +215,28 @@ onBeforeUnmount(() => {
   }
 }
 
-@keyframes huntBurst {
+@keyframes huntRing {
+  0% {
+    opacity: 0.85;
+    transform: scale(0.3);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2.1);
+  }
+}
+
+@keyframes huntSpark {
   0% {
     opacity: 0;
-    transform: scale(0.4) rotate(-20deg);
+    transform: translate(0, 0) scale(0.25) rotate(-14deg);
   }
-  40% {
+  35% {
     opacity: 1;
   }
   100% {
     opacity: 0;
-    transform: scale(1.7) rotate(18deg);
+    transform: translate(calc(var(--dx, 0px) * 2), calc(var(--dy, 0px) * 2)) scale(1.4) rotate(10deg);
   }
 }
 
@@ -199,8 +249,12 @@ onBeforeUnmount(() => {
 
 @media (prefers-reduced-motion: reduce) {
   .hunt-cat,
-  .hunt-burst {
+  .hunt-ring,
+  .hunt-spark {
     animation: none;
+  }
+  .hunt-spark.spark-a {
+    opacity: 1;
   }
 }
 </style>
