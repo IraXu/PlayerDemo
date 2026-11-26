@@ -1,6 +1,6 @@
 <template>
   <div class="companion" :class="[mode, { leftward: facing < 0, invite: showInvite }]" :style="style">
-    <button class="companion-btn" type="button" :aria-label="copy.companionAria" @pointerenter="preloadCommonSounds" @click="onCatClick">
+    <button class="companion-btn" type="button" :aria-label="copy.companionAria" title="长按查看留言" @pointerenter="preloadCommonSounds" @pointerdown="onCatPointerDown" @pointermove="onCatPointerMove" @pointerup="onCatPointerUp" @pointerleave="cancelLongPress" @pointercancel="cancelLongPress" @contextmenu.prevent @click="onCatClick">
       <span
         v-if="bubbleHint"
         class="companion-bubble"
@@ -81,15 +81,44 @@
     :show-footer="false"
   >
     <div class="inbox-layout">
-      <div class="inbox-cover"><span>LETTERS FROM JIAOJIA</span><p>有些话，猫猫替我带给你。</p></div>
-      <div class="inbox-navigation" v-if="messageDates.length">
-        <button type="button" :disabled="!canOlder" aria-label="更早的留言" @click="shiftDate(1)"><ChevronLeftIcon :size="16"/></button>
-        <label><span>按日期阅读</span><select v-model="selectedDate" aria-label="留言日期"><option v-for="day in messageDates" :key="day" :value="day">{{ dateLabel(day) }}</option></select></label>
-        <button type="button" :disabled="!canNewer" aria-label="更新的留言" @click="shiftDate(-1)"><ChevronRightIcon :size="16"/></button>
+      <div class="inbox-cover"><span>LETTERS FROM JIAOJIAO</span><p>有些话，猫猫替我带给你。</p></div>
+      <div class="inbox-datebar">
+        <button class="inbox-date-trigger" :class="{ open: calendarOpen }" type="button" :aria-expanded="calendarOpen" @click="toggleCalendar">
+          <span class="inbox-date-text">{{ selectedDateLabel }}</span>
+          <span class="inbox-date-count">{{ dayMessages.length }} 封</span>
+          <ChevronDownIcon :size="12" class="inbox-date-caret"/>
+        </button>
+      </div>
+      <div v-if="calendarOpen" class="inbox-calendar">
+        <div class="inbox-calendar-head">
+          <button class="inbox-calendar-nav" type="button" :disabled="!canOlderMonth" aria-label="上个月" @click="shiftMonth(1)"><ChevronLeftIcon :size="14"/></button>
+          <strong>{{ monthLabel(selectedMonth) }}</strong>
+          <button class="inbox-calendar-nav" type="button" :disabled="!canNewerMonth" aria-label="下个月" @click="shiftMonth(-1)"><ChevronRightIcon :size="14"/></button>
+        </div>
+        <div class="inbox-calendar-week" aria-hidden="true"><span v-for="w in weekdays" :key="w">{{ w }}</span></div>
+        <div class="inbox-calendar-grid">
+          <template v-for="cell in calendarCells" :key="cell.key">
+            <span v-if="cell.blank" class="inbox-calendar-blank" aria-hidden="true"></span>
+            <button
+              v-else
+              class="inbox-calendar-day"
+              :class="{ has: cell.has, active: cell.date === selectedDate, today: cell.date === today }"
+              type="button"
+              :disabled="!cell.has"
+              :aria-label="`${cell.date}${cell.has ? ' 有留言' : ''}`"
+              :aria-pressed="cell.date === selectedDate"
+              @click="selectDay(cell.date)"
+            ><span>{{ cell.day }}</span><i v-if="cell.has" class="inbox-calendar-dot" aria-hidden="true"></i></button>
+          </template>
+        </div>
       </div>
       <div ref="chatListRef" class="inbox-letters">
-        <article v-for="(item,i) in dateMessages" :key="item.id" class="inbox-letter"><div><span>娇娇</span><time v-if="item.time">{{ timeLabel(item) }}</time><span class="letter-index">{{ String(i + 1).padStart(2, '0') }}</span></div><p>{{ item.text }}</p></article>
-        <p v-if="!dateMessages.length" class="inbox-empty">今天的信还在路上，改天再来读读吧。</p>
+        <article v-for="(item,i) in dayMessages" :key="item.id" class="inbox-letter" :class="{ latest: item.id === latestMessage?.id }">
+          <div class="inbox-letter-head"><span class="letter-name">娇娇</span><span v-if="item.id === latestMessage?.id" class="letter-latest">最新</span><time v-if="item.time">{{ timeLabel(item) }}</time><span class="letter-index">{{ String(i + 1).padStart(2, '0') }}</span></div>
+          <p>{{ item.text }}</p>
+          <p v-if="item.wish" class="letter-wish">{{ item.wish }}</p>
+        </article>
+        <p v-if="!dayMessages.length" class="inbox-empty">这一天的信还在路上，改天再来读读吧。</p>
       </div>
       <span class="inbox-end">写给你的每一句，都留在这里。</span>
     </div>
@@ -99,7 +128,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { Modal } from '../ui'
-import { ChevronLeftIcon, ChevronRightIcon, PawPrintIcon } from '../ui/icons'
+import { ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon } from '../ui/icons'
 import { preloadSoundEffects, playBearCall, playChirp, playMeow, playPurr, playReveal, playYip, playYowl } from '../sfx'
 import AnimalArtwork from './AnimalArtwork.vue'
 import { copy, isBear } from '../theme'
@@ -118,6 +147,7 @@ interface OwnerMessage {
   id: string
   text: string
   time?: string
+  wish?: string
 }
 
 interface Heart {
@@ -156,9 +186,11 @@ const ownerMessage = ref<OwnerMessage | null>(null)
 const hasNews = ref(false)
 const messageOpen = ref(false)
 const chatListRef = ref<HTMLElement | null>(null)
-const dateChipsRef = ref<HTMLElement | null>(null)
-// 信箱里按天切换，只列出有留言的日期
+// 信箱按天浏览：日期用一张带留言标记的小日历选择
 const selectedDate = ref('')
+const selectedMonth = ref('')
+const calendarOpen = ref(false)
+const weekdays = ['一', '二', '三', '四', '五', '六', '日']
 
 const style = computed<Record<string, string>>(() => ({
   transform: `translate3d(${pos.x}px, ${pos.y}px, 0)`,
@@ -186,7 +218,7 @@ const chatMessages = computed(() => {
 // 只看时间最新的一条来判断要不要提示“有话对你说”，和数组顺序无关
 const latestMessage = computed(() => chatMessages.value[0] ?? null)
 
-// 有留言的日期，新的在前；信箱里只在这些日期之间切换
+// 有留言的日期 / 月份
 const messageDates = computed(() => {
   const days = new Set<string>()
   messages.value.forEach((item) => {
@@ -195,21 +227,71 @@ const messageDates = computed(() => {
   return [...days].sort((a, b) => b.localeCompare(a))
 })
 
-const selectedIndex = computed(() => messageDates.value.indexOf(selectedDate.value))
-const canOlder = computed(() => selectedIndex.value >= 0 && selectedIndex.value < messageDates.value.length - 1)
-const canNewer = computed(() => selectedIndex.value > 0)
+const messageDateSet = computed(() => new Set(messageDates.value))
 
-// 当前选中日期的留言，当天的按时间倒序
-const dateMessages = computed(() => {
+const messageMonths = computed(() => {
+  const months = new Set<string>()
+  messages.value.forEach((item) => {
+    if (item.time) months.add(item.time.slice(0, 7))
+  })
+  return [...months].sort((a, b) => b.localeCompare(a))
+})
+
+const monthIndex = computed(() => messageMonths.value.indexOf(selectedMonth.value))
+const canOlderMonth = computed(() => monthIndex.value >= 0 && monthIndex.value < messageMonths.value.length - 1)
+const canNewerMonth = computed(() => monthIndex.value > 0)
+
+// 选中日期的留言，按时间倒序
+const dayMessages = computed(() => {
   if (!selectedDate.value) return []
   return messages.value
     .filter((item) => item.time?.startsWith(selectedDate.value))
     .sort((a, b) => b.time!.localeCompare(a.time!))
 })
 
-function shiftDate(step: number) {
-  const next = messageDates.value[selectedIndex.value + step]
-  if (next) selectedDate.value = next
+const today = computed(() => todayKey())
+
+// 日期按钮上显示的文字
+const selectedDateLabel = computed(() => {
+  if (!selectedDate.value) return ''
+  const [year, month, day] = selectedDate.value.split('-').map(Number)
+  if (selectedDate.value === today.value) return `今天 · ${month}月${day}日`
+  const weekday = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'][new Date(year, month - 1, day).getDay()]
+  const yearPrefix = year === new Date().getFullYear() ? '' : `${year}年`
+  return `${yearPrefix}${month}月${day}日 ${weekday}`
+})
+
+// 日历格子：有留言的日子亮起并带一个圆点
+const calendarCells = computed(() => {
+  if (!selectedMonth.value) return []
+  const [year, month] = selectedMonth.value.split('-').map(Number)
+  const offset = (new Date(year, month - 1, 1).getDay() + 6) % 7
+  const total = new Date(year, month, 0).getDate()
+  const cells: { key: string; day: number; date: string; has: boolean; blank: boolean }[] = []
+  for (let i = 0; i < offset; i++) cells.push({ key: `blank-${i}`, day: 0, date: '', has: false, blank: true })
+  for (let d = 1; d <= total; d++) {
+    const date = `${selectedMonth.value}-${String(d).padStart(2, '0')}`
+    cells.push({ key: date, day: d, date, has: messageDateSet.value.has(date), blank: false })
+  }
+  return cells
+})
+
+function shiftMonth(step: number) {
+  const next = messageMonths.value[monthIndex.value + step]
+  if (next) selectedMonth.value = next
+}
+
+function toggleCalendar() {
+  calendarOpen.value = !calendarOpen.value
+  if (calendarOpen.value) {
+    selectedMonth.value = selectedDate.value.slice(0, 7) || messageMonths.value[0] || ''
+  }
+}
+
+function selectDay(date: string) {
+  if (!date) return
+  selectedDate.value = date
+  calendarOpen.value = false
 }
 
 function dateKeyOf(date: Date) {
@@ -221,16 +303,12 @@ function todayKey() {
   return dateKeyOf(new Date())
 }
 
-function dateLabel(key: string) {
-  if (key === todayKey()) return '今天'
-  const yesterday = new Date()
-  yesterday.setDate(yesterday.getDate() - 1)
-  if (key === dateKeyOf(yesterday)) return '昨天'
-  const [, month, day] = key.split('-')
-  return `${Number(month)}月${Number(day)}日`
+function monthLabel(month: string) {
+  const [year, m] = month.split('-')
+  return `${year}年${Number(m)}月`
 }
 
-/** 已经按日期分组了，时间只显示时分 */
+/** 已经按天筛选了，时间只显示时分 */
 function timeLabel(message: OwnerMessage) {
   return message.time?.match(/[T ](\d{2}:\d{2})/)?.[1] ?? ''
 }
@@ -454,7 +532,53 @@ function scheduleInvite(delay = 4000) {
   }, delay)
 }
 
+// 长按小猫查看留言：没有新留言时也能回看信箱
+const LONG_PRESS_MS = 500
+let pressTimer: ReturnType<typeof setTimeout> | null = null
+let pressStart = { x: 0, y: 0 }
+let longPressReady = false
+let suppressClick = false
+
+function cancelLongPress() {
+  if (pressTimer) {
+    clearTimeout(pressTimer)
+    pressTimer = null
+  }
+  longPressReady = false
+}
+
+function onCatPointerDown(event: PointerEvent) {
+  if (event.pointerType === 'mouse' && event.button !== 0) return
+  cancelLongPress()
+  suppressClick = false
+  pressStart = { x: event.clientX, y: event.clientY }
+  pressTimer = setTimeout(() => {
+    pressTimer = null
+    if (!messages.value.length) return
+    longPressReady = true
+  }, LONG_PRESS_MS)
+}
+
+function onCatPointerMove(event: PointerEvent) {
+  if (!pressTimer) return
+  if (Math.hypot(event.clientX - pressStart.x, event.clientY - pressStart.y) > 12) cancelLongPress()
+}
+
+function onCatPointerUp() {
+  const shouldOpen = longPressReady
+  cancelLongPress()
+  if (!shouldOpen) return
+  // 等这一轮 pointerup/click 结束再开弹窗，避免点击穿透到遮罩把信箱关掉
+  suppressClick = true
+  setTimeout(() => {
+    suppressClick = false
+    openMessageDialog()
+  }, 0)
+}
+
 function onCatClick() {
+  // 长按触发时不执行摸摸/小剧场
+  if (suppressClick || longPressReady) return
   // 有未读留言时，打开信箱
   if (hasNews.value && ownerMessage.value) {
     openMessageDialog()
@@ -495,8 +619,10 @@ function openMessageDialog() {
 
   resetScene()
   ownerMessage.value = message
-  // 默认停在最新留言那天，再左右切换去看往日的
+  // 默认停在最新留言那天，再用日历回看往日的
   selectedDate.value = message.time?.slice(0, 10) || messageDates.value[0] || ''
+  selectedMonth.value = selectedDate.value.slice(0, 7) || messageMonths.value[0] || ''
+  calendarOpen.value = false
   hasNews.value = false
   messageOpen.value = true
   showInvite.value = false
@@ -510,22 +636,16 @@ function openMessageDialog() {
   playReveal()
 }
 
-async function scrollActiveDateIntoView() {
-  await nextTick()
-  const el = dateChipsRef.value
-  const chip = el?.querySelector<HTMLElement>('.mail-date-chip.active')
-  if (!el || !chip) return
-  const box = el.getBoundingClientRect()
-  const rect = chip.getBoundingClientRect()
-  el.scrollLeft += rect.left - box.left - box.width / 2 + rect.width / 2
-}
+watch(selectedDate, () => {
+  void scrollChatToTop()
+})
 
 watch(messageOpen, (open) => {
   if (open) {
     void scrollChatToTop()
-    void scrollActiveDateIntoView()
     return
   }
+  calendarOpen.value = false
   // 关掉信箱后小猫恢复走动
   if (mode.value === 'speak') {
     mode.value = 'sit'
@@ -561,9 +681,9 @@ async function loadOwnerMessage() {
       // 正在看信箱时来了新留言，直接续在聊天记录里
       if (messageOpen.value) {
         selectedDate.value = latest.time?.slice(0, 10) || selectedDate.value
+        selectedMonth.value = selectedDate.value.slice(0, 7) || selectedMonth.value
         markMessageRead(latest)
         void scrollChatToTop()
-        void scrollActiveDateIntoView()
         return
       }
 
@@ -644,6 +764,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
   clearTimer()
   clearSceneTimers()
+  cancelLongPress()
   if (inviteTimer) clearTimeout(inviteTimer)
   if (pollTimer) clearInterval(pollTimer)
   document.removeEventListener('visibilitychange', onVisibilityChange)
@@ -652,7 +773,49 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-.inbox-cover{text-align:center;padding:4px 0 20px}.inbox-cover>span{font-size:8px;letter-spacing:.14em;color:#a2b4c0}.inbox-cover p{font-size:14px!important;color:#7894a8!important;margin:12px 0 0}.inbox-navigation{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 0;border-top:1px solid #e0e8ed;border-bottom:1px solid #e0e8ed}.inbox-navigation>button{width:32px;height:36px;background:#eef4f7;border:0;border-radius:5px;color:#87a4b7;display:grid;place-items:center}.inbox-navigation>button:disabled{opacity:.35}.inbox-navigation label{display:flex;flex-direction:column;align-items:center;gap:5px}.inbox-navigation label>span{font-size:8px;color:#a5b5c0}.inbox-navigation select{border:0;background:none;color:#7898af;font:11px inherit;max-width:200px;min-height:24px}.inbox-letters{max-height:48svh;overflow:auto;overscroll-behavior:contain}.inbox-letter{padding:20px 0;border-bottom:1px solid #e6edf1}.inbox-letter>div{display:flex;align-items:center;gap:10px;font-size:10px;color:#8fa6b6}.inbox-letter time{font-size:9px;color:#adbcc6}.letter-index{margin-left:auto;color:#b9c7d0;font-size:8px}.inbox-letter p{font-size:13px!important;line-height:2!important;color:#6d899d!important;white-space:pre-wrap;overflow-wrap:anywhere;margin:11px 0 0}.inbox-empty{text-align:center;padding:30px 10px;font-size:12px}.inbox-end{display:block;text-align:center;padding:20px 0 2px;color:#adbcc5;font-size:9px}
+.inbox-cover{text-align:center;padding:2px 0 18px}.inbox-cover>span{font-size:8px;letter-spacing:.14em;color:#a2b4c0}.inbox-cover p{font-size:14px!important;color:#7894a8!important;margin:12px 0 0}
+/* 日期切换：一个日期按钮，点开是带留言圆点的小日历 */
+.inbox-datebar{display:flex;justify-content:center;padding:0 1px 12px;margin:0 0 4px;border-bottom:1px solid #e6edf1}
+.inbox-date-trigger{display:inline-flex;align-items:center;gap:8px;min-height:32px;padding:0 13px;border:1px solid #d9e5ec;border-radius:999px;background:#f7fafb;color:#6f8ea3;font:11px/1 inherit;letter-spacing:.02em;cursor:pointer;transition:background .16s,border-color .16s}
+@media(hover:hover){.inbox-date-trigger:hover{background:#eef5f8;border-color:#bcd2df}}
+.inbox-date-trigger.open{background:#eef5f8;border-color:#bcd2df}
+.inbox-date-trigger:focus-visible{outline:2px solid #9fbfd5;outline-offset:2px}
+.inbox-date-text{pointer-events:none}
+.inbox-date-count{padding-left:9px;border-left:1px solid #dde8ee;color:#9cb0be;font-size:9px;pointer-events:none}
+.inbox-date-caret{color:#93aebf;pointer-events:none;transition:transform .18s}
+.inbox-date-trigger.open .inbox-date-caret{transform:rotate(180deg)}
+.inbox-calendar{padding:10px 4px 6px;margin:0 0 4px;border-bottom:1px solid #e6edf1}
+.inbox-calendar-head{display:flex;align-items:center;justify-content:space-between;padding:0 6px 6px}
+.inbox-calendar-head strong{font-size:11px;font-weight:400;color:#6f8ea3;letter-spacing:.04em}
+.inbox-calendar-nav{display:grid;place-items:center;width:26px;height:26px;padding:0;border:1px solid #e0e9ee;border-radius:50%;background:#fbfcf8;color:#8ba6b7;cursor:pointer;transition:background .16s,color .16s,border-color .16s}
+@media(hover:hover){.inbox-calendar-nav:hover:not(:disabled){background:#eef5f8;border-color:#c3d7e2;color:#5f8299}}
+.inbox-calendar-nav:disabled{opacity:.3;cursor:default}
+.inbox-calendar-week{display:grid;grid-template-columns:repeat(7,1fr);padding:4px 0 3px}
+.inbox-calendar-week span{text-align:center;font-size:8px;color:#a8b8c2}
+.inbox-calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.inbox-calendar-blank{height:32px}
+.inbox-calendar-day{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;height:32px;padding:0;border:0;border-radius:6px;background:none;color:#b3c0c8;font:10.5px/1 inherit;cursor:default}
+.inbox-calendar-day.has{color:#64859c;cursor:pointer}
+@media(hover:hover){.inbox-calendar-day.has:hover{background:#eef5f8}}
+.inbox-calendar-day.today{color:#4f7590;box-shadow:inset 0 0 0 1px #cddfe9}
+.inbox-calendar-day.active{background:#88abc3;color:#fff;box-shadow:none}
+.inbox-calendar-day.today.active{box-shadow:inset 0 0 0 1px #fff}
+.inbox-calendar-day:focus-visible{outline:2px solid #9fbfd5;outline-offset:1px}
+.inbox-calendar-dot{width:3px;height:3px;border-radius:50%;background:#9ab4c5}
+.inbox-calendar-day.active .inbox-calendar-dot{background:#fff}
+.inbox-letters{max-height:44svh;overflow:auto;overscroll-behavior:contain;padding:14px 2px 2px}
+.inbox-letter{padding:17px 18px 15px;border:1px solid #e3eaef;border-radius:6px;background:#fcfcf8}
+.inbox-letter+.inbox-letter{margin-top:12px}
+.inbox-letter.latest{background:#f8fbfc;border-color:#d3e2ec}
+.inbox-letter-head{display:flex;align-items:center;gap:9px;font-size:10px;color:#8fa6b6}
+.letter-name{font-size:11px;color:#6f8ea3;letter-spacing:.04em}
+.letter-latest{padding:2px 7px;border:1px solid #d6e5ee;border-radius:999px;background:#eef5f9;color:#7e9fb4;font-size:7px;line-height:1.4;letter-spacing:.14em}
+.inbox-letter time{font-size:9px;color:#adbcc6}
+.letter-index{margin-left:auto;color:#b9c7d0;font-size:8px}
+.inbox-letter p{font-size:13px!important;line-height:2!important;color:#6d899d!important;white-space:pre-wrap;overflow-wrap:anywhere;margin:11px 0 0}
+.inbox-letter .letter-wish{margin-top:13px;font-size:11px!important;line-height:1.6!important;color:#94acbb!important;text-align:right;letter-spacing:.06em}
+.inbox-empty{text-align:center;padding:30px 10px;font-size:12px}
+.inbox-end{display:block;text-align:center;padding:18px 0 2px;color:#adbcc5;font-size:9px}
 
 .companion {
   position: fixed;
@@ -676,6 +839,8 @@ onBeforeUnmount(() => {
   cursor: pointer;
   pointer-events: auto;
   -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  user-select: none;
 }
 
 .companion-btn:focus-visible {
@@ -791,110 +956,6 @@ onBeforeUnmount(() => {
 /* 咬人的吐槽气泡挂在狐狸头顶（狐狸中心在容器右侧约 88px 处） */
 .companion-bubble.fox-bubble {
   left: 88px;
-}
-
-.mail-box {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  width: 100%;
-}
-
-.mail-dates {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.mail-date-chips {
-  display: flex;
-  flex: 1;
-  gap: 6px;
-  min-width: 0;
-  padding: 2px;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-
-.mail-date-chips::-webkit-scrollbar {
-  display: none;
-}
-
-.mail-date-chip {
-  flex: none;
-  height: 26px;
-  padding: 0 11px;
-  border: 1.5px solid #e8dcc8;
-  border-radius: 999px;
-  background: #FAFBF8;
-  color: #8f734f;
-  font-family: inherit;
-  font-size: 11.5px;
-  font-weight: 600;
-  line-height: 1;
-  cursor: pointer;
-  transition:
-    color 0.16s ease,
-    border-color 0.16s ease,
-    background 0.16s ease;
-}
-
-.mail-date-chip:hover {
-  color: #0e7f75;
-  border-color: #19c8b9;
-}
-
-.mail-date-chip.active,
-.mail-date-chip.active:hover {
-  color: #fff9e3;
-  background: #19c8b9;
-  border-color: #0ea99d;
-  box-shadow: none;
-}
-
-.mail-date-nav {
-  display: grid;
-  flex: none;
-  place-items: center;
-  width: 26px;
-  height: 26px;
-  padding: 0;
-  border: 1.5px solid #e8dcc8;
-  border-radius: 50%;
-  background: #FAFBF8;
-  color: #8f734f;
-  cursor: pointer;
-  transition:
-    color 0.16s ease,
-    border-color 0.16s ease;
-}
-
-.mail-date-nav:hover:not(:disabled) {
-  color: #0e7f75;
-  border-color: #19c8b9;
-}
-
-.mail-date-nav:disabled {
-  opacity: 0.35;
-  cursor: default;
-}
-
-/* 小熊日：日期选中态跟着换成蜂蜜色 */
-html[data-theme='bear'] .mail-date-chip:hover:not(.active) {
-  color: #a9761d;
-  border-color: #d99a3a;
-}
-
-html[data-theme='bear'] .mail-date-chip.active,
-html[data-theme='bear'] .mail-date-chip.active:hover {
-  background: #d99a3a;
-  border-color: #b97c22;
-  box-shadow: none;
-}
-
-html[data-theme='bear'] .mail-date-nav:hover:not(:disabled) {
-  color: #a9761d;
-  border-color: #d99a3a;
 }
 
 .chat-list {

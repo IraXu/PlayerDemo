@@ -5,6 +5,7 @@ export const CameraIcon=icon('CameraIcon','M3 7h4l2-3h6l2 3h4v13H3ZM16 13a4 4 0 
 export const CheckIcon=icon('CheckIcon','m4 12 5 5L20 6')
 export const ChevronLeftIcon=icon('ChevronLeftIcon','m15 5-7 7 7 7')
 export const ChevronRightIcon=icon('ChevronRightIcon','m9 5 7 7-7 7')
+export const ChevronDownIcon=icon('ChevronDownIcon','m5 9 7 7 7-7')
 export const CloseIcon=icon('CloseIcon','m6 6 12 12M18 6 6 18')
 export const CloudIcon=icon('CloudIcon','M4 4h16v16H4ZM8 8h8M8 12h8M8 16h5')
 export const CpuIcon=icon('CpuIcon','M7 7h10v10H7ZM10 10h4v4h-4M9 3v4M15 3v4M9 17v4M15 17v4M3 9h4M3 15h4M17 9h4M17 15h4')
