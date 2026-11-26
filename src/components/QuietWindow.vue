@@ -1,9 +1,23 @@
 <template>
   <svg class="office-print" viewBox="0 0 520 370" fill="none" aria-hidden="true">
     <defs>
-      <clipPath id="office-cat-clip"><rect x="100" y="90" width="220" height="192"/></clipPath>
+      <clipPath id="office-cat-clip"><rect x="100" y="90" width="220" height="220"/></clipPath>
     </defs>
     <g stroke-linecap="round" stroke-linejoin="round">
+      <!-- 办公椅：正常尺寸的转椅，窄靠背、薄坐垫和五爪底座，刚好够一只打工猫坐 -->
+      <g class="office-chair">
+        <path d="M211 307h4v23h-4Z" fill="#9CAFB0" stroke="#86999B" stroke-width="1"/>
+        <path d="M213 330 176 343M213 330 250 343M213 330 195 347M213 330 231 347" stroke="#9CAFB0" stroke-width="3.6" stroke-linecap="round"/>
+        <circle cx="175" cy="344" r="2.8" fill="#87999B"/>
+        <circle cx="251" cy="344" r="2.8" fill="#87999B"/>
+        <circle cx="194" cy="348" r="2.8" fill="#87999B"/>
+        <circle cx="232" cy="348" r="2.8" fill="#87999B"/>
+        <circle cx="213" cy="331" r="4.2" fill="#9CAFB0" stroke="#86999B" stroke-width="1"/>
+        <path d="M152 303C145 268 147 224 154 200 159 182 170 171 186 168 197 166 229 166 240 168 256 171 267 182 272 200 279 224 281 268 274 303Z" fill="#C4D8CC" stroke="#A2BCB0" stroke-width="1.3"/>
+        <path d="M155 274c8 2 16 3 24 3M271 274c-8 2-16 3-24 3" stroke="#AFC7BB" stroke-width="1.1" fill="none"/>
+        <path d="M164 297h98c7 0 12 3 12 7s-5 7-12 7H164c-7 0-12-3-12-7s5-7 12-7Z" fill="#C4D8CC" stroke="#A2BCB0" stroke-width="1.3"/>
+        <path d="M164 301c21-3 77-3 98 0" stroke="#AFC7BB" stroke-width="1" fill="none"/>
+      </g>
       <!-- 显示器支架 -->
       <path d="M402 238h12v36h-12Z" fill="#B4C9D7"/>
       <path d="M380 274h56l-2 8h-52Z" fill="#B4C9D7" stroke="#9AB4C6" stroke-width="1.2"/>
@@ -16,12 +30,15 @@
           </g>
         </g>
       </g>
-      <!-- 生气眉毛 + 汗滴 + 怒气 + 心声 -->
-      <rect x="200" y="223.2" width="26" height="13" fill="#F3ECDD"/>
-      <path d="M207.6 224.6q5.4-1.2 10.8 0-1 7.6-5.4 9.4-4.4-1.8-5.4-9.4Z" fill="#9C6B7A"/>
-      <path d="M210.4 230.8q2.6 2.8 5.2 0" stroke="#D8A9B4" stroke-width="1.4" fill="none"/>
-      <path d="M177 190 196 196.4M249 190 230 196.4" stroke="#77889A" stroke-width="2.2"/>
+      <!-- 痛苦赶工：八字眉、垮嘴、汗滴和眼泪；鼻子保留猫咪原本的小鼻子 -->
+      <rect x="203.5" y="227.3" width="19" height="7.9" fill="#F3ECDD"/>
+      <path d="M213 224.4v6.4" stroke="#758697" stroke-width="1.3" fill="none"/>
+      <path d="M205.8 230.8q3.6-3.6 7.2 0q3.6-3.6 7.2 0" stroke="#9C6B7A" stroke-width="1.7" fill="none"/>
+      <path d="M177 196 195 192M249 196 231 192" stroke="#77889A" stroke-width="2.2"/>
+      <path d="M183 213q5 2.2 10 0M233 213q5 2.2 10 0" stroke="#C9B9A9" stroke-width="1.2" fill="none" opacity=".85"/>
       <path d="M254 186q7 9 0 13-7-4 0-13Z" fill="#C6DDE9"/>
+      <path d="M174 191q-6 8 0 11 6-3 0-11Z" fill="#C6DDE9"/>
+      <path d="M242.2 210.8q3.6 5 0 7.2-3.6-2.2 0-7.2Z" fill="#9CC9DD"/>
       <g class="anger-steam" stroke="#C6A9B1" stroke-width="1.6" fill="none" stroke-linecap="round">
         <path d="M211 157q-5-5 0-10t0-8"/>
         <path d="M225 153q-4.5-4.5 0-9t0-7"/>
@@ -35,8 +52,8 @@
         </g>
       </g></g>
       <g class="office-think">
-        <path d="M113 132h42a9 9 0 0 1 9 9v12a9 9 0 0 1-9 9l8 12-15-12h-35a9 9 0 0 1-9-9v-12a9 9 0 0 1 9-9Z" fill="#FBFCF7" stroke="#D3E1E9" stroke-width="1.2"/>
-        <text x="112" y="151" fill="#7E97A9" font-size="5.4" font-family="'PingFang SC',system-ui,sans-serif">在改了…</text>
+        <path d="M105 126h48a10 10 0 0 1 10 10v14a10 10 0 0 1-10 10l9 14-17-14h-40a10 10 0 0 1-10-10v-14a10 10 0 0 1 10-10Z" fill="#FBFCF7" stroke="#D3E1E9" stroke-width="1.2"/>
+        <text x="113" y="148.5" fill="#6C8A9E" font-size="9" font-family="'PingFang SC',system-ui,sans-serif">在改了…</text>
       </g>
 
       <!-- 桌子 -->
@@ -124,7 +141,7 @@
         <rect x="262" y="58" width="92" height="58" rx="6" fill="#FBFCF7" stroke="#D6E3EA" stroke-width="1.2"/>
         <rect x="268" y="64" width="9" height="9" rx="2.4" fill="#96B8A0"/>
         <path d="M270.5 68.5h4" stroke="#FBFCF7" stroke-width="1.2"/>
-        <text x="281" y="71.5" font-size="4.8" fill="#779184" font-family="'PingFang SC',system-ui,sans-serif">企微</text>
+        <text x="281" y="71.5" font-size="6.5" fill="#6B8676" font-family="'PingFang SC',system-ui,sans-serif">企微</text>
         <circle cx="344" cy="66" r="5" fill="#C09CA9"/>
         <text x="344" y="68.2" font-size="3.8" fill="#FFFDF8" text-anchor="middle" font-family="system-ui">99+</text>
         <rect x="268" y="77" width="50" height="10" rx="3" fill="#F1F6F1"/>
@@ -135,13 +152,13 @@
 
       <!-- 聊天窗口溢出到屏幕边缘 -->
       <g class="office-chat office-chat-a">
-        <path d="M297 149h23a7 7 0 0 1 7 7v4a7 7 0 0 1-7 7h-11l-8 9v-9h-4a7 7 0 0 1-7-7v-4a7 7 0 0 1 7-7Z" fill="#FBFCF7" stroke="#D6E3EA" stroke-width="1.2"/>
-        <text x="296" y="161.6" font-size="5.2" fill="#7E97A9" font-family="'PingFang SC',system-ui,sans-serif">你来一下</text>
+        <path d="M281 140h44a8 8 0 0 1 8 8v12a8 8 0 0 1-8 8h-12l-9 10v-10h-23a8 8 0 0 1-8-8v-12a8 8 0 0 1 8-8Z" fill="#FBFCF7" stroke="#D6E3EA" stroke-width="1.2"/>
+        <text x="287" y="157" font-size="8" fill="#6C8A9E" font-family="'PingFang SC',system-ui,sans-serif">你来一下</text>
       </g>
       <g class="office-chat office-chat-b">
-        <rect x="300" y="176" width="64" height="20" rx="8" fill="#DDEBE1" stroke="#C4D8CB" stroke-width="1.2"/>
-        <text x="308" y="189" font-size="5" fill="#6E8C79" font-family="'PingFang SC',system-ui,sans-serif">需求又变了</text>
-        <circle cx="358" cy="181" r="3" fill="#C09CA9"/>
+        <rect x="300" y="180" width="64" height="28" rx="9" fill="#DDEBE1" stroke="#C4D8CB" stroke-width="1.2"/>
+        <text x="312" y="198" font-size="8" fill="#5E7F6A" font-family="'PingFang SC',system-ui,sans-serif">需求又变了</text>
+        <circle cx="356" cy="187" r="3.2" fill="#C09CA9"/>
       </g>
 
       <!-- 桌面小物 -->
@@ -171,7 +188,7 @@
       <g class="office-toast"><g transform="rotate(-2 440 94)">
         <rect x="412" y="86" width="56" height="16" rx="8" fill="#F7ECEF" stroke="#E3CDD3" stroke-width="1"/>
         <circle cx="421" cy="94" r="2.6" fill="#C09CA9"/>
-        <text x="427" y="96.2" font-size="4.8" fill="#A4778A" font-family="'PingFang SC',system-ui,sans-serif">构建失败</text>
+        <text x="427" y="96.2" font-size="6.5" fill="#96697C" font-family="'PingFang SC',system-ui,sans-serif">构建失败</text>
       </g></g>
     </g>
   </svg>
