@@ -40,7 +40,7 @@
             <span class="waiting-eyebrow">今日工位，等你来逗。</span>
             <h2>{{ status === 'idle' ? '猫猫正在暴躁赶工' : placeholderTitle }}</h2>
             <p>{{ status === 'idle' ? '键盘快冒烟了，消息还没回完。\n点开工位，围观猫猫在线发疯。' : placeholderText }}</p>
-            <button v-if="status === 'idle'" class="play-btn" type="button" :aria-label="copy.playAria" @click.stop="openPlayback"><PlayIcon :size="13"/><span>开始逗猫</span><span aria-hidden="true">↗</span></button>
+            <button v-if="status === 'idle'" class="play-btn" type="button" :aria-label="copy.playAria" @click.stop="openPlayback"><PlayIcon :size="13"/><span>开始逗猫</span></button>
             <Button v-else-if="status === 'error'" type="primary" class="retry" @click="connect"><RefreshIcon :size="14"/>重新连接</Button>
             <span v-else class="connecting"><SpinnerIcon class="spinner" :size="17"/> 正在连接…</span>
           </div>
