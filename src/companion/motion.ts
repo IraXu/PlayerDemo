@@ -1,5 +1,5 @@
 /** Scene coordinates are shared by both actors: a mouth can actually meet its target. */
-export type TheaterScene = 'pet' | 'nuzzle' | 'bite' | 'grape' | 'coffee'
+export type TheaterScene = 'pet' | 'nuzzle' | 'bite' | 'grape' | 'coffee' | 'cry'
 export type Expression = 'calm' | 'content' | 'curious' | 'mischief' | 'surprised'
 export interface BiteTarget { x: number; y: number; label: string }
 export interface ActorPose {
@@ -14,8 +14,9 @@ export interface SceneFrame {
   coffee?: { x: number; y: number; angle: number; opacity: number; held: number; sip: number }
   biteMark: number; foxInFront: boolean; bitePoint: { x: number; y: number }
 }
-export const durations: Record<TheaterScene, number> = { pet: 2.8, nuzzle: 5.8, bite: 5.1, grape: 7.4, coffee: 8.4 }
+export const durations: Record<TheaterScene, number> = { pet: 2.8, nuzzle: 5.8, bite: 5.1, grape: 7.4, coffee: 8.4, cry: 8.2 }
 export const cues: Record<TheaterScene, { at: number; name: string }[]> = {
+  cry: [{ at: 1.2, name: 'sob' }, { at: 5.2, name: 'comfort' }],
   coffee: [{ at: 1, name: 'coffee-fox' }, { at: 4.4, name: 'coffee-cat' }],
   pet: [{ at: .45, name: 'hearts' }],
   nuzzle: [{ at: 1.55, name: 'contact' }, { at: 1.7, name: 'hearts' }, { at: 2.65, name: 'hearts' }, { at: 3.5, name: 'hearts' }],
@@ -221,10 +222,27 @@ export function sampleScene(scene: TheaterScene, t: number, target: BiteTarget, 
       angle: -5 * lift, opacity: fox.opacity, held: lift, sip,
     }
   }
+  if (scene === 'cry') {
+    const hug = ramp(t, .3, 1.5) * (1 - ramp(t, 6.6, 7.7))
+    const sob = pulse(t, 1.2, 1.7, 5.7)
+    // Three short sniffles, with a breath between each, settle into the hug.
+    const breath = pulse(t, 1.4, 1.65, 2.2) + pulse(t, 2.5, 2.75, 3.3) + pulse(t, 3.7, 3.95, 4.6)
+    const tremble = Math.sin(t * 23) * sob * breath
+    cat.x = 15 * hug; fox.x = 89 - 43 * hug + 48 * ramp(t, 7.4, 8.2)
+    cat.lean = 12 * hug; fox.lean = -7 * hug
+    cat.head = 9 * hug + tremble * 1.5; cat.headY = 2 * hug + breath * .7
+    cat.y = tremble * .65; cat.squash = 1 - .035 * breath
+    cat.blink = 1 - .88 * hug; cat.jaw = (4 + 7 * breath) * sob
+    cat.earLeft = -18 * hug; cat.earRight = 17 * hug
+    cat.pawRight = -75 * hug; fox.pawLeft = 65 * hug
+    fox.head = -8 * hug + Math.sin(t * 4) * hug * 2
+    fox.blink = 1 - .8 * hug; fox.tail = Math.sin(t * 2) * 4
+    frame.sparkle = pulse(t, 5.2, 5.7, 6.7)
+  }
   if (reduced) {
     // Keep the story's expressions and open mouth, without travel, shaking or floating.
-    Object.assign(cat, { x: scene === 'nuzzle' ? 10 : 0, y: 0, lean: 0, squash: 1, head: 0, headX: 0, headY: 0, tail: 0, earLeft: 0, earRight: 0, pawLeft: 0, pawRight: 0 })
-    Object.assign(fox, { x: scene === 'nuzzle' ? 70 : 88, y: 0, lean: 0, squash: 1, head: 0, headX: 0, headY: 0, tail: 0, earLeft: 0, earRight: 0, pawLeft: 0, pawRight: 0, opacity: scene === 'pet' ? 0 : 1 })
+    Object.assign(cat, { x: scene === 'cry' ? 15 : scene === 'nuzzle' ? 10 : 0, y: 0, lean: 0, squash: 1, head: 0, headX: 0, headY: 0, tail: 0, earLeft: 0, earRight: 0, pawLeft: 0, pawRight: 0 })
+    Object.assign(fox, { x: scene === 'cry' ? 46 : scene === 'nuzzle' ? 70 : 88, y: 0, lean: 0, squash: 1, head: 0, headX: 0, headY: 0, tail: 0, earLeft: 0, earRight: 0, pawLeft: 0, pawRight: 0, opacity: scene === 'pet' ? 0 : 1 })
     frame.impact = frame.sniff = frame.sparkle = 0
     if (frame.coffee) frame.coffee = { x: fox.x + 44, y: 60, angle: 0, opacity: 1, held: 0, sip: 0 }
   }

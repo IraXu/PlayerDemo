@@ -1,4 +1,5 @@
-import { createScenePicker, interactionScenes } from '../src/companion/selection.ts'
+import { createWalkRoute, sampleWalkRoute, sampleWalkPair, leashPath } from '../src/companion/dogWalk.ts'
+import { createScenePicker, interactionScenes, createDogPicker, dogStyles } from '../src/companion/selection.ts'
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { catBitePoint, cues, durations, foxMouth, sampleScene } from '../src/companion/motion.ts'
@@ -130,8 +131,8 @@ test('reduced motion removes travel and body movement while keeping mouth and ex
         for (const key of ['y', 'lean', 'head', 'headX', 'headY', 'tail', 'earLeft', 'earRight', 'pawLeft', 'pawRight'] as const) assert.equal(pose[key], 0)
         assert.equal(pose.squash, 1)
       }
-      assert.equal(cat.x, scene === 'nuzzle' ? 10 : 0)
-      assert.equal(fox.x, scene === 'nuzzle' ? 70 : 88)
+      assert.equal(cat.x, scene === 'cry' ? 15 : scene === 'nuzzle' ? 10 : 0)
+      assert.equal(fox.x, scene === 'cry' ? 46 : scene === 'nuzzle' ? 70 : 88)
       assert.equal(impact + sniff + sparkle, 0)
     }
   }
@@ -208,31 +209,140 @@ test('coffee keeps the head attached and the lifted cup above the floor', () => 
 })
 
 
-test('ordinary scene draws have five equal buckets; after two repeats the other four have equal buckets', () => {
-  for (let i = 0; i < 5; i++) {
-    let random = (i + .5) / 5
-    const pick = createScenePicker(() => random)
-    assert.equal(pick(), interactionScenes[i])
-    assert.equal(pick(), interactionScenes[i])
-    const otherScenes = interactionScenes.filter(scene => scene !== interactionScenes[i])
-    for (let j = 0; j < 4; j++) {
-      let n = 0
-      const draw = createScenePicker(() => n++ < 2 ? (i + .5) / 5 : (j + .5) / 4)
-      draw(); draw()
-      assert.equal(draw(), otherScenes[j])
+test('every remaining scene has an equal bucket at every position in a round', () => {
+  function checkPrefix(indices: number[], remaining: readonly TheaterScene[]) {
+    for (let i = 0; i < remaining.length; i++) {
+      for (const fraction of [.01, .5, .99]) {
+        let draw = 0
+        const pick = createScenePicker(() => {
+          const step = draw++
+          const rank = step < indices.length ? indices[step]! : i
+          const offset = step < indices.length ? .5 : fraction
+          return (rank + offset) / (interactionScenes.length - step)
+        })
+        for (let step = 0; step < indices.length; step++) pick()
+        assert.equal(pick(), remaining[i])
+      }
+      checkPrefix([...indices, i], remaining.filter((_, index) => index !== i))
+    }
+  }
+  checkPrefix([], interactionScenes)
+})
+
+test('each round contains every scene exactly once, including across refills', () => {
+  let seed = 42
+  const seededRandom = () => { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed / 2 ** 32 }
+  for (const random of [() => 0, () => .999999, () => .5, seededRandom]) {
+    const pick = createScenePicker(random)
+    for (let round = 0; round < 100; round++) {
+      const drawn = Array.from({ length: interactionScenes.length }, () => pick())
+      assert.equal(new Set(drawn).size, interactionScenes.length)
+      assert.deepEqual([...drawn].sort(), [...interactionScenes].sort())
     }
   }
 })
 
-test('a constant random source still cannot produce three consecutive identical scenes', () => {
-  for (const value of [0, .21, .41, .61, .99]) {
-    const pick = createScenePicker(() => value)
-    let last = '', count = 0
-    for (let i = 0; i < 1000; i++) {
-      const scene = pick()
-      count = scene === last ? count + 1 : 1
-      assert.ok(count <= 2)
-      last = scene
+test('starting a new round restores equal eligibility for all scenes', () => {
+  for (let i = 0; i < interactionScenes.length; i++) {
+    let draw = 0
+    const pick = createScenePicker(() => draw++ < interactionScenes.length ? 0 : (i + .5) / interactionScenes.length)
+    for (let step = 0; step < interactionScenes.length; step++) pick()
+    assert.equal(pick(), interactionScenes[i])
+  }
+})
+
+test('cry scene brings the pair together, sobs, then releases the hug', () => {
+  const approaching = sampleScene('cry', 0, targets[0]!)
+  const hugging = sampleScene('cry', 3, targets[0]!)
+  assert.ok(hugging.fox.x - hugging.cat.x < 35)
+  assert.ok(approaching.fox.x - approaching.cat.x > 85)
+  assert.ok(hugging.cat.pawRight < -60)
+  assert.ok(hugging.fox.pawLeft > 50)
+  assert.ok(hugging.cat.blink < .2)
+  assert.ok(sampleScene('cry', 7.9, targets[0]!).cat.pawRight > -1)
+  assert.deepEqual(cues.cry.map(cue => cue.name), ['sob', 'comfort'])
+})
+
+
+test('random dog walks traverse a broad curve while keeping the pair in bounds', () => {
+  for (const width of [320, 390, 1280]) {
+    const bounds = { minX: 16, maxX: width - 170, minY: 110, maxY: 550 }
+    for (const randomValue of [0, .25, .5, .75, .999]) {
+      for (const startX of [bounds.minX, bounds.maxX]) {
+        const start = { x: startX, y: 300 }
+        const route = createWalkRoute(start, bounds, () => randomValue)
+        assert.deepEqual(sampleWalkRoute(route, 0), start)
+        assert.deepEqual(sampleWalkRoute(route, 1), route.end)
+        assert.ok(Math.abs(route.end.x - start.x) >= (bounds.maxX - bounds.minX) * .77)
+        for (let step = 0; step <= 100; step++) {
+          const point = sampleWalkRoute(route, step / 100)
+          assert.ok(point.x >= bounds.minX - 1e-8 && point.x <= bounds.maxX + 1e-8)
+          assert.ok(point.y >= bounds.minY - 1e-8 && point.y <= bounds.maxY + 1e-8)
+        }
+      }
+    }
+    const start = { x: bounds.minX, y: 300 }
+    assert.notDeepEqual(createWalkRoute(start, bounds, () => .1), createWalkRoute(start, bounds, () => .9))
+  }
+})
+
+test('leash keeps its exact hand and collar endpoints as its slack moves', () => {
+  const hand = { x: 123.25, y: 211.5 }, collar = { x: 178.75, y: 201.25 }
+  for (const time of [0, .2, 1, 3]) {
+    const path = leashPath(hand, collar, time)
+    assert.ok(path.startsWith(`M${hand.x} ${hand.y} Q`))
+    assert.ok(path.endsWith(` ${collar.x} ${collar.y}`))
+  }
+})
+
+
+test('the dog follows behind the cat for the entire walk in both directions', () => {
+  for (const direction of ['left', 'right'] as const) {
+    for (const width of [320, 390, 1280]) {
+      for (const value of [0, .25, .75, .999]) {
+        const bounds = { minX: 100, maxX: width - 100, minY: 110, maxY: 550 }
+        const start = { x: direction === 'right' ? bounds.minX : bounds.maxX, y: 300 }
+        const offset = { x: direction === 'right' ? -80 : 92, y: 14 }
+        const route = createWalkRoute(start, bounds, () => value, direction)
+        let previous = start
+        for (let step = 0; step <= 200; step++) {
+          const pair = sampleWalkPair(route, step / 200, offset)
+          if (direction === 'right') {
+            assert.ok(pair.cat.x >= previous.x - 1e-8)
+            assert.ok(pair.cat.x - pair.dog.x >= 80 - 1e-8, 'dog must stay behind the cat when moving right')
+          } else {
+            assert.ok(pair.cat.x <= previous.x + 1e-8)
+            assert.ok(pair.dog.x - pair.cat.x >= 92 - 1e-8, 'dog must stay behind the cat when moving left')
+          }
+          previous = pair.cat
+        }
+      }
+    }
+  }
+})
+
+
+test('each dog round shows all three dogs once before refilling', () => {
+  for (const value of [0, .2, .5, .999]) {
+    const pick = createDogPicker(() => value)
+    for (let round = 0; round < 100; round++) {
+      const dogs = Array.from({ length: dogStyles.length }, () => pick())
+      assert.deepEqual([...dogs].sort(), [...dogStyles].sort())
+    }
+  }
+})
+
+test('dog draws are uniform among remaining dogs and independent from cat scenes', () => {
+  for (let first = 0; first < 3; first++) {
+    for (let second = 0; second < 2; second++) {
+      let draw = 0
+      const pick = createDogPicker(() => draw++ === 0 ? (first + .5) / 3 : (second + .5) / 2)
+      assert.equal(pick(), dogStyles[first])
+      const remaining = dogStyles.filter((_, index) => index !== first)
+      const scene = createScenePicker(() => 0)
+      for (let i = 0; i < 10; i++) scene()
+      assert.equal(pick(), remaining[second])
+      assert.equal(pick(), remaining[1 - second])
     }
   }
 })

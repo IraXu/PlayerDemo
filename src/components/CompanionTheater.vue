@@ -3,7 +3,13 @@
     <ellipse :cx="frame.cat.x + 50" cy="94" :rx="26 + Math.min(0, frame.cat.y) * .2" ry="3" fill="#A58B71" opacity=".12"/>
     <ellipse v-if="scene !== 'pet'" :cx="frame.fox.x + 50" cy="94" :rx="Math.max(12, 25 + Math.min(0, frame.fox.y) * .2)" ry="3" fill="#A58B71" :opacity="frame.fox.opacity * .12"/>
     <CompanionActor v-if="!frame.foxInFront && scene !== 'pet'" animal="fox" :pose="frame.fox" :holding="(frame.coffee?.held ?? 0) > .1"/>
-    <CompanionActor animal="cat" :pose="frame.cat"/>
+    <CompanionActor animal="cat" :pose="frame.cat" :crying="tearStrength"/>
+    <g v-if="scene === 'cry'" :opacity="Math.min(1, Math.max(0, (elapsed - 1) * 2)) * Math.min(1, Math.max(0, 7 - elapsed))" stroke="#758697" stroke-width="1.65" stroke-linecap="round">
+      <path :d="`M${frame.cat.x + 62} 73 Q${frame.cat.x + 90} 79 ${frame.fox.x + 68} 72`" fill="none" stroke="#F3ECDD" stroke-width="9"/>
+      <ellipse :cx="frame.fox.x + 68" cy="72" rx="6" ry="4" fill="#F8F5EC"/>
+      <path :d="`M${frame.fox.x + 32} 71 Q${frame.cat.x + 30} 83 ${frame.cat.x + 28} ${68 + (reducedMotion ? 0 : Math.sin(elapsed * 4.5) * 1.4)}`" fill="none" stroke="#DFAD89" stroke-width="8"/>
+      <ellipse :cx="frame.cat.x + 28" :cy="68 + (reducedMotion ? 0 : Math.sin(elapsed * 4.5) * 1.4)" rx="6" ry="4" fill="#FFF7E8"/>
+    </g>
     <CompanionActor v-if="frame.foxInFront" animal="fox" :pose="frame.fox" :holding="(frame.coffee?.held ?? 0) > .1"/>
     <g v-if="frame.coffee" class="theater-coffee" :transform="`translate(${frame.coffee.x} ${frame.coffee.y}) rotate(${frame.coffee.angle})`" :opacity="frame.coffee.opacity">
       <image :href="coffeePhoto" x="-9.5" y="0" width="17.25" height="34" preserveAspectRatio="xMidYMid meet"/>
@@ -45,6 +51,11 @@ import { actorSpeechAnchor, cues, durations, foxMouth, sampleScene, type BiteTar
 const props = defineProps<{ scene: TheaterScene; target: BiteTarget; reducedMotion: boolean; grapesVisible: boolean }>()
 const emit = defineEmits<{ cue: [name: string]; finish: []; anchors: [points: { cat: { x: number; y: number }; fox: { x: number; y: number } }] }>()
 const elapsed = ref(0)
+const tearStrength = computed(() => {
+  if (props.scene !== 'cry') return 0
+  const smooth = (value: number) => { const x = Math.max(0, Math.min(1, value)); return x * x * (3 - 2 * x) }
+  return smooth((elapsed.value - 1.15) / .65) * (1 - smooth((elapsed.value - 5.1) / 1.1))
+})
 const frame = computed(() => sampleScene(props.scene, elapsed.value, props.target, props.reducedMotion))
 watch(frame, value => emit('anchors', { cat: actorSpeechAnchor(value.cat), fox: actorSpeechAnchor(value.fox) }), { immediate: true })
 const sniffAnchor = computed(() => foxMouth(frame.value.fox))

@@ -192,6 +192,8 @@ const dialogue = computed<{ speaker: 'cat' | 'fox'; text: string }>(() => {
   if (hasNews.value) return { speaker: 'cat', text: '有话对你说' }
   if (scene.value === 'nuzzle' && scenePhase.value === 'contact') return { speaker: 'cat', text: '蹭蹭～再贴一会儿～' }
   if (scene.value === 'bite' && scenePhase.value === 'reveal') return { speaker: 'fox', text: `嗷呜！轻轻咬到${biteTarget.value.label}了` }
+  if (scene.value === 'cry' && scenePhase.value === 'contact') return { speaker: 'cat', text: '呜呜呜…抱紧一点…' }
+  if (scene.value === 'cry' && scenePhase.value === 'reveal') return { speaker: 'fox', text: '娇娇不哭，我在呢～' }
   if (scene.value === 'coffee' && scenePhase.value === 'contact') return { speaker: 'fox', text: '必须喝口冰的了！' }
   if (scene.value === 'coffee' && scenePhase.value === 'reveal') return { speaker: 'cat', text: '我也想喝' }
   if (scene.value === 'grape' && scenePhase.value === 'reveal') return { speaker: 'fox', text: '是葡萄味哎' }
@@ -391,6 +393,26 @@ const MESSAGE_URL = `${import.meta.env.BASE_URL}messages.json`
 const READ_KEY = 'cat-owner-message-read'
 const POLL_INTERVAL = 60_000
 let readId = ''
+const SEEN_KEY = `${READ_KEY}-contents-v2`
+let seenContents = new Set<string>()
+function contentKey(message: OwnerMessage) {
+  return JSON.stringify([message.text.trim(), message.image || '', message.wish || ''])
+}
+function syncReadState() {
+  try {
+    readId = localStorage.getItem(READ_KEY) || readId
+    const stored = JSON.parse(localStorage.getItem(SEEN_KEY) || '[]')
+    if (Array.isArray(stored)) for (const key of stored) if (typeof key === 'string') seenContents.add(key)
+  } catch { /* Storage may be unavailable. Keep the in-memory read state. */ }
+}
+function onReadStorage(event: StorageEvent) {
+  if (event.key !== READ_KEY && event.key !== SEEN_KEY && event.key !== null) return
+  syncReadState()
+  if (ownerMessage.value && (readId === ownerMessage.value.id || seenContents.has(contentKey(ownerMessage.value)))) {
+    hasNews.value = false
+    if (mode.value === 'speak' && !messageOpen.value) { mode.value = 'sit'; schedule() }
+  }
+}
 
 const rand = (min: number, max: number) => min + Math.random() * (max - min)
 
@@ -619,6 +641,8 @@ function startCoffee() {
   beginScene('coffee', 'sit')
 }
 function onSceneCue(cue: string) {
+  if (cue === 'sob') { scenePhase.value = 'contact'; return }
+  if (cue === 'comfort') { scenePhase.value = 'reveal'; playPurr(); burstHearts(30); return }
   if (cue === 'coffee-fox') { scenePhase.value = 'contact'; return }
   if (cue === 'coffee-cat') { scenePhase.value = 'reveal'; return }
   if (cue === 'contact') {
@@ -734,13 +758,14 @@ function onCatClick() {
     pet()
     return
   }
-  // Ordinary draws are uniform across five scenes; a two-scene streak excludes one next time.
+  // 每轮从尚未播放的剧场中等概率抽取，全部触发后开启新一轮。
   const selected = pickInteractionScene()
   const actions: Record<TheaterScene, { label: string; start: () => void }> = {
     pet: { label: '摸摸', start: pet },
     nuzzle: { label: '狐狸蹭蹭小剧场', start: startNuzzle },
     bite: { label: '狐狸扑咬小剧场', start: startBite },
     grape: { label: '葡萄味小剧场', start: startGrape },
+    cry: { label: '猫猫抱着狐狸哭小剧场', start: () => beginScene('cry', 'sit') },
     coffee: { label: '狐狸喝咖啡小剧场', start: startCoffee },
   }
   reportInteraction(actions[selected].label)
@@ -748,8 +773,11 @@ function onCatClick() {
 }
 
 function markMessageRead(message: OwnerMessage) {
+  syncReadState()
   readId = message.id
+  for (const item of messages.value) seenContents.add(contentKey(item))
   try {
+    localStorage.setItem(SEEN_KEY, JSON.stringify([...seenContents]))
     localStorage.setItem(READ_KEY, message.id)
   } catch {
     /* 隐私模式下忽略 */
@@ -827,7 +855,14 @@ async function loadOwnerMessage() {
     ownerMessage.value = latest
 
     // 只有“今天的 + 还没看过的”留言才提醒；往日留言收在信箱里回看
-    if (latest.id !== readId && isToday(latest)) {
+    syncReadState()
+    // Migrate the previous single-ID receipt before content-based comparisons.
+    const previousRead = valid.find(item => item.id === readId)
+    if (previousRead && !seenContents.has(contentKey(previousRead))) {
+      seenContents.add(contentKey(previousRead))
+      try { localStorage.setItem(SEEN_KEY, JSON.stringify([...seenContents])) } catch { /* Keep memory receipt. */ }
+    }
+    if (latest.id !== readId && !seenContents.has(contentKey(latest)) && isToday(latest)) {
       // 正在看信箱时来了新留言，直接续在聊天记录里
       if (messageOpen.value) {
         selectedDate.value = latest.time?.slice(0, 10) || selectedDate.value
@@ -918,6 +953,8 @@ onMounted(() => {
   } catch {
     /* 隐私模式下忽略 */
   }
+  syncReadState()
+  window.addEventListener('storage', onReadStorage)
   void loadOwnerMessage()
   pollTimer = setInterval(() => {
     if (!document.hidden) void loadOwnerMessage()
@@ -940,6 +977,7 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
+  window.removeEventListener('storage', onReadStorage)
   motionPreference?.removeEventListener('change', onMotionPreferenceChange)
   clearTimer()
   clearSceneTimers()

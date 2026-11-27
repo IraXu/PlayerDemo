@@ -20,7 +20,7 @@
         <path :d="animal === 'fox' ? 'M22 37Q27 25 50 25 73 25 78 38L83 48Q74 66 50 69 27 66 17 48Z' : 'M22 38Q27 25 50 25 73 25 78 38C87 57 76 69 50 69S13 57 22 38Z'" :fill="coat"/>
         <template v-if="animal === 'cat'">
           <g fill="#C8BDAA" stroke="none"><path d="M38 26Q40 40 44 36L46 25ZM49 25Q50 38 54 35L56 25Z"/><path d="M21 43 29 46 21 49ZM22 52 29 54 25 58Z"/></g>
-          <g class="actor-eyes" :transform="`translate(0 ${46 * (1 - pose.blink)}) scale(1 ${pose.blink})`" fill="#596F80" stroke="none">
+          <g :opacity="1 - (crying || 0)" class="actor-eyes" :transform="`translate(0 ${46 * (1 - pose.blink)}) scale(1 ${pose.blink})`" fill="#596F80" stroke="none">
             <ellipse cx="37" cy="46" rx="2.5" :ry="pose.expression === 'surprised' ? 4.3 : 3.3"/><ellipse cx="63" cy="46" rx="2.5" :ry="pose.expression === 'surprised' ? 4.3 : 3.3"/>
             <circle cx="37.7" cy="44.8" r=".8" fill="#FFF"/><circle cx="63.7" cy="44.8" r=".8" fill="#FFF"/>
           </g>
@@ -29,6 +29,25 @@
           <path d="M47 53Q50 51 53 53 53 55 50 56 47 55 47 53Z" fill="#B995A1" stroke="none"/>
           <ellipse v-if="pose.jaw > 1" class="actor-mouth" cx="50" cy="60" rx="3.4" :ry="Math.min(5, pose.jaw * .3)" fill="#986D7B" stroke="#A57F89" stroke-width="1"/>
           <path v-else d="M50 56V58M45.5 58Q48 61 50 58 52 61 54.5 58" stroke-width="1.2" fill="none"/>
+          <g v-if="crying" class="cry-tears" :opacity="crying" stroke="none">
+            <!-- Curved wet lower lids and tapered tear trails follow the head joint. -->
+            <g fill="#E5AEB0" opacity=".38"><ellipse cx="29" cy="54" rx="6" ry="3.6"/><ellipse cx="71" cy="54" rx="6" ry="3.6"/></g>
+            <g fill="#A6D6E9" stroke="#85BBD4" stroke-width=".45">
+              <path d="M33 47Q37 49 41 47C40 51 38 52 39 56S39 62 36.5 63C33 62 35 58 35 55S33 50 33 47Z"/>
+              <path d="M59 47Q63 49 67 47C67 51 65 52 65 55S67 62 63.5 63C61 62 61 59 62 56S60 51 59 47Z"/>
+            </g>
+            <g fill="none" stroke-linecap="round">
+              <path d="M32 45Q37 49 42 45M58 45Q63 49 68 45" stroke="#627C8E" stroke-width="1.65"/>
+              <path d="M31 39Q36 40 40 37M60 37Q64 40 69 39" stroke="#8493A0" stroke-width="1.2"/>
+              <path class="tear-glint" d="M35.5 50Q37 52 36.5 57M64 50Q63 53 64 58" stroke="#F5FCFF" stroke-width="1.15"/>
+            </g>
+            <g v-for="i in 4" :key="i" :transform="`translate(${i % 2 ? 63.5 : 36.5} 62)`">
+              <g class="tear-drop" :style="{ '--delay': `${i * -.3}s`, '--drift': `${i % 2 ? 1.5 : -1.5}px` }">
+                <path d="M0-3.5C-.6-1.4-2.3.4-2.3 2.2A2.3 2.3 0 0 0 2.3 2.2C2.3.4.6-1.4 0-3.5Z" fill="#A6D6E9"/>
+                <path d="M-.8.5Q-1.4 1.5-.9 2.4" fill="none" stroke="#F5FCFF" stroke-width=".8" stroke-linecap="round"/>
+              </g>
+            </g>
+          </g>
           <path d="M26 53 17 51M26 57 18 58M74 53 83 51M74 57 82 58" stroke-width="1" opacity=".5"/>
         </template>
         <template v-else>
@@ -55,9 +74,17 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { ActorPose } from '../companion/motion'
-const props = defineProps<{ animal: 'cat' | 'fox'; pose: ActorPose; holding?: boolean }>()
+const props = defineProps<{ animal: 'cat' | 'fox'; pose: ActorPose; holding?: boolean; crying?: number }>()
 const coat = computed(() => props.animal === 'fox' ? '#DFAD89' : '#F3ECDD')
 // A small rounded mouth stays inside the cream muzzle, even at full opening.
 const opening = computed(() => Math.min(5.5, props.pose.jaw * .18))
 const cavity = computed(() => `M38 57Q42 59 46 57Q47 ${60 + opening.value} 42 ${60 + opening.value}Q37 ${60 + opening.value} 38 57Z`)
 </script>
+
+<style scoped>
+.tear-drop{animation:tearFall 1.2s var(--delay) linear infinite;transform-box:fill-box;transform-origin:center}
+@keyframes tearFall{0%,12%{translate:0 -2px;opacity:0;scale:.45 .65}24%{opacity:.9;scale:.8 1}70%{opacity:.8;scale:.7 1.15}100%{translate:var(--drift) 19px;opacity:0;scale:.45 .6}}
+.tear-glint{animation:tearGlint 1.8s ease-in-out infinite}
+@keyframes tearGlint{0%,100%{opacity:.55}50%{opacity:1}}
+@media(prefers-reduced-motion:reduce){.tear-drop,.tear-glint{animation:none}}
+</style>
