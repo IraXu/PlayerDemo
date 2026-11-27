@@ -46,9 +46,9 @@
           <span class="print-index">THE OFFICE / 017</span>
           <div class="waiting-art"><QuietWindow /></div>
           <div class="waiting-copy">
-            <span class="waiting-eyebrow">今日工位，等你来逗。</span>
-            <h2>{{ status === 'idle' ? '猫猫正在暴躁赶工' : placeholderTitle }}</h2>
-            <p>{{ status === 'idle' ? '键盘快冒烟了，消息还没回完\n连接猫猫，围观猫猫在线发疯！' : placeholderText }}</p>
+            <span class="waiting-eyebrow">工位有猫，欢迎打扰。</span>
+            <h2>{{ status === 'idle' ? '猫猫忙着，等你捣乱' : placeholderTitle }}</h2>
+            <p>{{ status === 'idle' ? '需求改了三遍，小鱼干还没加餐。\n来逗逗它，给这班添点可爱。' : placeholderText }}</p>
             <button class="play-btn" :class="{ 'is-loading': playbackLoading }" type="button"
               :disabled="playbackLoading" :aria-busy="playbackLoading"
               :aria-label="playbackButtonLabel" @click.stop="onPlaybackButtonClick">
