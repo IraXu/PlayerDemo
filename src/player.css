@@ -33,3 +33,20 @@
 
 /* Touch controls occupy their own row; the video keeps its full 16:9 frame. */
 .mobile-controls-dock:empty{display:none}
+
+.play-btn:disabled{cursor:wait;background:#f3f7f8;border-color:#c1d2dd;color:#8ba4b5}.play-btn.is-loading{min-width:116px}.play-btn:focus-visible{outline:2px solid #83a8c2;outline-offset:3px}
+
+.wordmark-icon{border:0;background:#edf2f4;border-radius:12px;flex-shrink:0}.wordmark-icon>svg{width:88%;height:88%;display:block}
+
+/* 藏在屏幕边缘的彩蛋：只露出半张脸，靠近时才探头。 */
+.page-cat{right:0;width:44px;height:64px;opacity:.46;transform:none}
+.page-cat .cat-mascot{position:absolute;right:-43px;top:0;width:70px;height:70px;animation:none;transition:right .5s cubic-bezier(.22,.75,.3,1),rotate .5s ease}
+.page-cat .mascot-hearts{display:none}
+.page-cat.revealed{transform:none;opacity:1}
+.page-cat.revealed .cat-mascot{right:10px;rotate:0deg}
+.page-cat.revealed .mascot-hearts{display:block}
+.page-cat:focus-visible{outline:1px dashed #a9bdc9;outline-offset:-3px;border-radius:12px;opacity:1}
+.page-cat:focus-visible .cat-mascot{right:-22px}
+@media(hover:hover){.page-cat:hover{opacity:.85}.page-cat:not(.revealed):hover .cat-mascot{right:-23px;rotate:-82deg}}
+@media(max-width:720px){.page-cat{right:0;width:44px;height:54px;top:6px}.page-cat .cat-mascot{width:58px;height:58px;right:-35px}.page-cat.revealed{transform:none}.page-cat.revealed .cat-mascot{right:8px}}
+@media(prefers-reduced-motion:reduce){.page-cat,.page-cat .cat-mascot{transition:none}}

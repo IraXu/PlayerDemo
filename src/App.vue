@@ -4,7 +4,16 @@
     :class="{ immersive: pseudoFullscreen || isFullscreen, touch: touchMode, 'bear-day': isBear, teasing: teasing }"
   >
     <header class="site-header">
-      <a class="wordmark" href="#office" aria-label="回到十七的逗猫室"><span class="wordmark-icon"><PawPrintIcon :size="19"/></span><span>十七的逗猫室<small>THE EVERYDAY OFFICE</small></span></a>
+      <a class="wordmark" href="#office" aria-label="回到十七的逗猫室"><span class="wordmark-icon">
+        <svg viewBox="0 0 36 36" fill="none" aria-hidden="true">
+          <path d="M8 15 7.5 7.5Q7.5 6 9 7l6 4.5a19 19 0 0 1 6 0L27 7q1.5-1 1.5.5L28 15c5 12-1 16-10 16S3 27 8 15Z" fill="#F3ECDD" stroke="#7896AA" stroke-width="1.4" stroke-linejoin="round"/>
+          <path d="m10 10 .5 5 3-2M26 10l-.5 5-3-2" fill="#DCB9B7"/>
+          <path d="M14 22q-1.5-2-3 0m14 0q-1.5-2-3 0" stroke="#6F8A9C" stroke-width="1.4" stroke-linecap="round"/>
+          <path d="m16.5 24 1.5 1.5 1.5-1.5" fill="#BB929F" stroke="#BB929F" stroke-linejoin="round"/>
+          <ellipse cx="10" cy="25" rx="2" ry="1" fill="#E6C7C8"/><ellipse cx="26" cy="25" rx="2" ry="1" fill="#E6C7C8"/>
+          <path d="m17 12 .5 3m2-3-.5 3" stroke="#C5B7A2" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+      </span><span>十七的逗猫室<small>THE EVERYDAY OFFICE</small></span></a>
       <span class="header-date">{{ officeDate }} <span>宜 · 来逗猫</span></span>
       <button class="page-cat" :class="{ revealed: eggRevealed }" type="button" aria-label="打开隐藏彩蛋" @click="openEgg">
         <svg class="cat-mascot" viewBox="0 0 120 110" fill="none" aria-hidden="true"><AnimalArtwork :animal="isBear ? 'bear' : 'cat'" :pink="!isBear" transform="translate(10 3)" /></svg>
@@ -40,9 +49,14 @@
             <span class="waiting-eyebrow">今日工位，等你来逗。</span>
             <h2>{{ status === 'idle' ? '猫猫正在暴躁赶工' : placeholderTitle }}</h2>
             <p>{{ status === 'idle' ? '键盘快冒烟了，消息还没回完\n连接猫猫，围观猫猫在线发疯！' : placeholderText }}</p>
-            <button v-if="status === 'idle'" class="play-btn" type="button" :aria-label="copy.playAria" @pointerenter="warmUpPlayer" @focus="warmUpPlayer" @click.stop="openPlayback"><PlayIcon :size="13"/><span>开始逗猫</span></button>
-            <Button v-else-if="status === 'error'" type="primary" class="retry" @click="connect"><RefreshIcon :size="14"/>重新连接</Button>
-            <span v-else class="connecting"><SpinnerIcon class="spinner" :size="17"/> 正在连接…</span>
+            <button class="play-btn" :class="{ 'is-loading': playbackLoading }" type="button"
+              :disabled="playbackLoading" :aria-busy="playbackLoading"
+              :aria-label="playbackButtonLabel" @click.stop="onPlaybackButtonClick">
+              <SpinnerIcon v-if="playbackLoading" class="spinner" :size="13"/>
+              <RefreshIcon v-else-if="status === 'error' || warmFailed" :size="13"/>
+              <PlayIcon v-else :size="13"/>
+              <span aria-live="polite">{{ playbackButtonLabel }}</span>
+            </button>
           </div>
           <span class="print-caption">A DESK. A CAT. A LITTLE COMPANY.</span>
         </div>
@@ -58,7 +72,7 @@
 
 
       </div>
-      <section class="office-note" aria-label="办公室小记"><span>OFFICE NOTE</span><p>不用每一分钟都有意义。<br class="mobile-break"/> 有时，只是一起待着就很好。</p><span class="note-symbol" aria-hidden="true">⌁</span></section>
+      <section class="office-note" aria-label="办公室小记"><span>OFFICE NOTE</span><p>今天也辛苦了，来和猫猫待一会儿吧。</p><span class="note-symbol" aria-hidden="true">⌁</span></section>
     </main>
     <footer class="site-footer"><span>十七的逗猫室</span><span>GOOD COMPANY, EVERY DAY.</span><span>慢一点，也没关系。</span></footer>
 
@@ -295,6 +309,12 @@ const shareError = ref(false)
 const shareSaved = ref(false)
 const shareUrl = ref('')
 
+const warmFailed = ref(false)
+const playbackLoading = computed(() => status.value === 'loading' || status.value === 'switching'
+  || (status.value === 'idle' && !firstFrameReady.value && !warmFailed.value))
+const playbackButtonLabel = computed(() => playbackLoading.value ? '猫猫准备中…'
+  : status.value === 'error' || warmFailed.value ? '重新连接' : '开始逗猫')
+
 const isLive = computed(() => status.value === 'playing')
 const fullActive = computed(() => isFullscreen.value || pseudoFullscreen.value)
 const statusLabel = computed(() => {
@@ -359,7 +379,7 @@ let suspendedByHidden = false
 let warmStart: Promise<void> | null = null
 let warmTeardown: Promise<void> | null = null
 let warmWatchdog: ReturnType<typeof setTimeout> | null = null
-let firstFrameReady = false
+const firstFrameReady = ref(false)
 let lastFrameAt = 0
 // 预热必须是静音的，点开始逗猫后再恢复用户之前的音量偏好
 let warmMutedBefore = true
@@ -502,7 +522,7 @@ async function startPlayer(info: StreamInfo, streamId: number, silent = false) {
     retryCnt: 0,
   })
   player = instance
-  firstFrameReady = false
+  firstFrameReady.value = false
   lastFrameAt = 0
 
   setupVideoGuard(el)
@@ -512,7 +532,8 @@ async function startPlayer(info: StreamInfo, streamId: number, silent = false) {
   const markFrame = () => {
     if (gotFrame) return
     gotFrame = true
-    firstFrameReady = true
+    firstFrameReady.value = true
+    warmFailed.value = false
     lastFrameAt = Date.now()
     reconnectAttempt = 0
     stopWatchdog()
@@ -534,9 +555,8 @@ async function startPlayer(info: StreamInfo, streamId: number, silent = false) {
 
   instance.on('state', ({ state }) => {
     if (player !== instance) return
-    if (state === 2 || state === 4) {
-      markFrame()
-    } else if (state === 5) {
+    // 通道状态不能代表解码出图；由实际帧率确认就绪。
+    if (state === 5) {
       if (wantLive) handleStreamInterruption('播放通道已中断，正在重连…')
       else discardWarmPlayer()
     }
@@ -594,7 +614,7 @@ async function startPlayer(info: StreamInfo, streamId: number, silent = false) {
 async function destroyPlayer() {
   stopWatchdog()
   stopWarmWatchdog()
-  firstFrameReady = false
+  firstFrameReady.value = false
   lastFrameAt = 0
   clearRedrawTimers()
   resizeObserver?.disconnect()
@@ -619,7 +639,7 @@ function startWarmWatchdog() {
   stopWarmWatchdog()
   warmWatchdog = setTimeout(() => {
     warmWatchdog = null
-    if (wantLive || !player || firstFrameReady) return
+    if (wantLive || !player || firstFrameReady.value) return
     discardWarmPlayer()
   }, WARM_FIRST_FRAME_TIMEOUT)
 }
@@ -632,8 +652,9 @@ function stopWarmWatchdog() {
 }
 
 function discardWarmPlayer() {
+  warmFailed.value = !document.hidden
   stopWarmWatchdog()
-  firstFrameReady = false
+  firstFrameReady.value = false
   lastFrameAt = 0
   if (!player || wantLive) return
   // 预热断掉多半是地址或链路过期，下次重新取一次
@@ -760,6 +781,9 @@ function fetchStream(): Promise<StreamInfo> {
 }
 
 async function connect() {
+  if (status.value === 'loading' || status.value === 'switching') return
+  status.value = 'loading'
+  errorMsg.value = ''
   clearReconnectTimer()
   clearHiddenSuspendTimer()
   wantLive = true
@@ -773,7 +797,7 @@ async function connect() {
   if (player) {
     stopWarmWatchdog()
     // 后台画面还活着：直接把占位层收起来，等同于秒开
-    if (firstFrameReady && Date.now() - lastFrameAt < WARM_FRAME_STALE_MS) {
+    if (firstFrameReady.value && Date.now() - lastFrameAt < WARM_FRAME_STALE_MS) {
       muted.value = warmMutedBefore
       status.value = 'playing'
       applyAudioState()
@@ -781,7 +805,7 @@ async function connect() {
       return
     }
     // 还在连：等同一个实例出图，不再重复拉一路流
-    if (!firstFrameReady) {
+    if (!firstFrameReady.value) {
       muted.value = warmMutedBefore
       status.value = 'loading'
       errorMsg.value = ''
@@ -822,14 +846,9 @@ async function connect() {
  * 但一直藏在占位层后面。点“开始逗猫”时只是把画面亮出来。
  */
 function warmConnect() {
-  if (warmStart || player || status.value !== 'idle' || document.hidden || !navigator.onLine) return
-
-  const connection = (
-    navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }
-  ).connection
-  // 省流模式或 2G 网络就不在后台拉流了
-  if (connection?.saveData) return
-  if (connection?.effectiveType && /(^|-)2g$/.test(connection.effectiveType)) return
+  if (warmStart || player || status.value !== 'idle' || document.hidden) return
+  if (!navigator.onLine) { warmFailed.value = true; return }
+  warmFailed.value = false
 
   warmStart = (async () => {
     try {
@@ -842,18 +861,15 @@ function warmConnect() {
       await startPlayer(info, stream.value, true)
       startWarmWatchdog()
     } catch {
-      // 预热失败不打扰用户，点击时再正常连接
+      warmFailed.value = true
+      // 失败后提供重试入口，避免按钮无限 loading。
       clearStreamCache()
-      if (!player) muted.value = warmMutedBefore
+      if (player) await destroyPlayer()
+      muted.value = warmMutedBefore
     } finally {
       warmStart = null
     }
   })()
-}
-
-// 悬停/聚焦播放按钮等于“马上要点”，直接把后台播放跑起来
-function warmUpPlayer() {
-  warmConnect()
 }
 
 /**
@@ -872,7 +888,16 @@ function scheduleWarmup() {
   }, 1500)
 }
 
-// 点击播放按钮才建立视频通道，避免进入页面自动拉流
+async function onPlaybackButtonClick() {
+  if (playbackLoading.value) return
+  if (status.value === 'idle' && warmFailed.value) {
+    warmConnect()
+    return
+  }
+  await openPlayback()
+}
+
+// 后台首帧准备好之后才允许揭开画面。
 async function openPlayback() {
   if (status.value !== 'idle' && status.value !== 'error') return
   await connect()
@@ -891,6 +916,7 @@ async function closePlayback() {
   stopWatchdog()
   resetMeta()
   errorMsg.value = ''
+  warmFailed.value = false
   status.value = 'idle'
   if (document.fullscreenElement) await document.exitFullscreen().catch(() => undefined)
   if (pseudoFullscreen.value) exitPseudoFullscreen()

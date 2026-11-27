@@ -26,14 +26,10 @@
       <g class="office-cat-bob">
         <g clip-path="url(#office-cat-clip)">
           <g class="office-cat" transform="translate(118 118) scale(1.9)">
-            <AnimalArtwork animal="cat" />
-          </g>
-        </g>
-      </g>
-      <!-- 痛苦赶工：八字眉、垮嘴、汗滴和眼泪；鼻子保留猫咪原本的小鼻子 -->
-      <rect x="203.5" y="227.3" width="19" height="7.9" fill="#F3ECDD"/>
-      <path d="M213 224.4v6.4" stroke="#758697" stroke-width="1.3" fill="none"/>
-      <path d="M205.8 230.8q3.6-3.6 7.2 0q3.6-3.6 7.2 0" stroke="#9C6B7A" stroke-width="1.7" fill="none"/>
+            <AnimalArtwork animal="cat" tired>
+              <template #face-details>
+                <g transform="translate(-62.105263 -62.105263) scale(.526315789)" stroke="none">
+      <!-- 赶工表情只保留眉毛和汗滴，嘴巴使用简洁的疲惫下弯弧线。 -->
       <path d="M177 196 195 192M249 196 231 192" stroke="#77889A" stroke-width="2.2"/>
       <path d="M183 213q5 2.2 10 0M233 213q5 2.2 10 0" stroke="#C9B9A9" stroke-width="1.2" fill="none" opacity=".85"/>
       <path d="M254 186q7 9 0 13-7-4 0-13Z" fill="#C6DDE9"/>
@@ -51,6 +47,12 @@
           <path d="M2.3-4.4C1.7-1.5 1.7 1.5 2.3 4.4"/>
         </g>
       </g></g>
+                </g>
+              </template>
+            </AnimalArtwork>
+          </g>
+        </g>
+      </g>
       <g class="office-think">
         <path d="M105 126h48a10 10 0 0 1 10 10v14a10 10 0 0 1-10 10l9 14-17-14h-40a10 10 0 0 1-10-10v-14a10 10 0 0 1 10-10Z" fill="#FBFCF7" stroke="#D3E1E9" stroke-width="1.2"/>
         <text x="102" y="148.5" fill="#6C8A9E" font-size="9" font-family="'PingFang SC',system-ui,sans-serif">累，想十七了</text>
@@ -198,33 +200,38 @@ import AnimalArtwork from './AnimalArtwork.vue'
 </script>
 <style scoped>
 .office-print{display:block;width:100%;height:auto;overflow:visible}
-.office-cat-bob{transform-box:fill-box;transform-origin:50% 100%;animation:catWork 3.2s ease-in-out infinite}
-.office-cat :deep(.companion-eye){transform-box:fill-box;transform-origin:center;animation:catBlink 7s ease-in-out infinite}
-.office-cat :deep(.companion-tail){transform-box:fill-box;transform-origin:right center;animation:tailFlick 1.8s ease-in-out infinite}
+.office-cat-bob{transform-box:fill-box;transform-origin:50% 100%;animation:catWork 9s ease-in-out infinite}
+.office-cat :deep(.companion-eye){transform-box:fill-box;transform-origin:center;animation:catBlink 9s ease-in-out infinite}
+.office-cat :deep(.companion-tail){transform-box:fill-box;transform-origin:right center;animation:tailFlick 9s ease-in-out infinite}
 .office-think{transform-box:fill-box;transform-origin:center;animation:floatSoft 6s ease-in-out infinite}
 .anger-steam{animation:steam 2.8s ease-in-out infinite}
 .anger-mark{transform-box:fill-box;transform-origin:center;animation:angerPulse 1.4s ease-in-out infinite}
-.cat-paw{transform-box:fill-box;transform-origin:50% 20%;animation:typing .32s ease-in-out infinite}
-.paw-right{animation-delay:-.16s}
+.cat-paw{transform-box:fill-box;transform-origin:50% 20%;animation:typing 9s ease-in-out infinite}
+.paw-right{animation-name:typingRight}
 .office-monitor{transform-box:fill-box;transform-origin:center bottom;animation:monitorShake 1s ease-in-out infinite}
 .notification{transform-box:fill-box;transform-origin:center;animation:badgePulse 2.4s ease-in-out infinite}
 .office-wecom{transform-box:fill-box;transform-origin:center;animation:floatSoft 4.8s ease-in-out infinite}
 .office-chat{transform-box:fill-box;transform-origin:center;animation:floatSoft 5.4s ease-in-out infinite}
 .office-chat-b{animation-delay:-1.8s}
-.typing-marks{animation:typingFlash .32s steps(2) infinite}
-.flying-key{animation:keyFly 1.6s ease-out infinite}
+.typing-marks{animation:typingFlash .32s steps(2) infinite,workPause 9s steps(1) infinite}
+.flying-key{animation:keyFly 1.6s ease-out infinite,workPause 9s steps(1) infinite}
 .office-steam{animation:steam 3s ease-in-out infinite}
 .cursor{animation:cursorBlink 1.1s steps(1) infinite}
 .office-hotfix{transform-box:fill-box;transform-origin:center;animation:floatSoft 6.4s ease-in-out infinite}
 .office-toast{transform-box:fill-box;transform-origin:center;animation:floatSoft 5.6s ease-in-out infinite;animation-delay:-1.4s}
-@keyframes typing{50%{transform:translateY(-6px) rotate(-3deg)}}
-@keyframes catWork{50%{transform:translateY(1.5px)}}
-@keyframes catBlink{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.12)}}
-@keyframes tailFlick{50%{transform:rotate(10deg)}}
+.office-cat :deep(.animal-paws){display:none}
+.office-cat :deep(.animal-head){transform-box:view-box;transform-origin:50px 68px;animation:workHead 9s ease-in-out infinite}
+@keyframes workHead{0%,36%,100%{transform:rotate(0)}8%,22%{transform:translateY(1px) rotate(1.5deg)}46%,53%{transform:rotate(7deg) translateY(-1px)}59%{transform:rotate(-3deg)}65%,73%{transform:translateY(2px) rotate(-2deg)}82%,91%{transform:rotate(1deg)}}
+@keyframes typing{0%,8%,16%,24%,32%,40%,60%,76%,84%,92%,100%{transform:translateY(0)}4%,12%,20%,28%,36%,80%,88%,96%{transform:translateY(-6px) rotate(-3deg)}45%,54%{transform:translateY(-2px) rotate(2deg)}66%,70%{transform:translateY(1px)}}
+@keyframes typingRight{0%,8%,16%,24%,32%,40%,60%,76%,84%,92%,100%{transform:translateY(-4px) rotate(2deg)}4%,12%,20%,28%,36%,80%,88%,96%{transform:translateY(0)}45%,54%,66%,70%{transform:translateY(1px)}}
+@keyframes catWork{0%,40%,60%,100%{transform:translateY(0)}12%,28%,84%,94%{transform:translateY(1px)}48%,53%{transform:translateY(-1px) rotate(-.5deg)}68%{transform:translateY(3px) scaleY(.99)}}
+@keyframes catBlink{0%,30%,34%,51%,55%,64%,75%,92%,96%,100%{transform:scaleY(1)}32%,53%,94%{transform:scaleY(.1)}68%,72%{transform:scaleY(.45)}}
+@keyframes tailFlick{0%,35%,60%,100%{transform:rotate(0)}12%,24%{transform:rotate(8deg)}18%,30%{transform:rotate(-5deg)}46%,54%{transform:rotate(-12deg)}70%{transform:rotate(3deg)}82%,94%{transform:rotate(9deg)}}
 @keyframes monitorShake{50%{transform:rotate(.4deg)}}
 @keyframes angerPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.16)}}
 @keyframes badgePulse{50%{transform:scale(1.08)}}
 @keyframes floatSoft{50%{transform:translateY(-2px)}}
+@keyframes workPause{0%,76%{visibility:visible}40%{visibility:hidden}}
 @keyframes typingFlash{50%{opacity:.15}}
 @keyframes keyFly{0%{opacity:0;transform:translateY(18px)}25%{opacity:1}85%,100%{opacity:0;transform:translate(6px,-12px) rotate(26deg)}}
 @keyframes steam{50%{opacity:.25;transform:translateY(-4px)}}

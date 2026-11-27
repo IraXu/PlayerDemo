@@ -32,8 +32,10 @@
     </g>
     <g fill="#D3B3B7" stroke="none" opacity=".65"><ellipse cx="29" cy="54" rx="5" ry="2.6" /><ellipse cx="71" cy="54" rx="5" ry="2.6" /></g>
     <path d="M47 53Q50 51 53 53 53 55 50 56 47 55 47 53Z" :fill="animal === 'cat' ? '#B995A1' : '#667E8F'" stroke="none" />
-    <path d="M50 56V58M45.5 58Q48 61 50 58 52 61 54.5 58" stroke-width="1.3" fill="none" />
+    <path v-if="tired" d="M46.5 60Q50 56.8 53.5 60" stroke="#9C7D87" stroke-width="1.1" fill="none" />
+    <path v-else d="M50 56V58M45.5 58Q48 61 50 58 52 61 54.5 58" stroke-width="1.3" fill="none" />
     <path v-if="animal === 'cat'" d="M26 53 17 51M26 57 18 58M74 53 83 51M74 57 82 58" stroke-width="1.1" opacity=".55" />
+    <slot name="face-details" />
     </g>
     <path d="M33 68Q50 74 67 68L65 74Q50 80 35 74Z" :fill="animal === 'fox' ? '#9DB5C6' : '#9BB9CD'" stroke="none" />
     <path class="companion-scarf cat-scarf" d="M38 74 36 85 43 83 46 76" :fill="animal === 'fox' ? '#9DB5C6' : '#9BB9CD'" stroke="none" />
@@ -46,6 +48,6 @@
 </template>
 <script setup lang="ts">
 import { computed } from 'vue'
-const props = withDefaults(defineProps<{ animal?: 'cat' | 'bear' | 'fox'; speaking?: boolean; pink?: boolean }>(), { animal: 'cat', speaking: false, pink: false })
+const props = withDefaults(defineProps<{ animal?: 'cat' | 'bear' | 'fox'; speaking?: boolean; pink?: boolean; tired?: boolean }>(), { animal: 'cat', speaking: false, pink: false, tired: false })
 const coat = computed(() => ({ cat: props.pink ? '#E2CCD3' : '#F3ECDD', bear: '#CCC1AF', fox: '#DFAD89' })[props.animal])
 </script>

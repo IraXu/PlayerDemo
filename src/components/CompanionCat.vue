@@ -145,7 +145,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { Modal } from '../ui'
 import { ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon } from '../ui/icons'
-import { preloadSoundEffects, playBearCall, playChirp, playMeow, playPurr, playReveal, playYip, playYowl } from '../sfx'
+import { preloadSoundEffects, playBearCall, playChirp, playMeow, playPurr, playReveal, playSniff, playYip, playYowl } from '../sfx'
 import { reportCompanionScene } from '../catReport'
 import AnimalArtwork from './AnimalArtwork.vue'
 import { copy, isBear } from '../theme'
@@ -413,6 +413,7 @@ function isToday(message: OwnerMessage) {
 let timer: ReturnType<typeof setTimeout> | null = null
 let inviteTimer: ReturnType<typeof setTimeout> | null = null
 let pollTimer: ReturnType<typeof setInterval> | null = null
+let stopSniff: (() => void) | null = null
 let sceneTimers: ReturnType<typeof setTimeout>[] = []
 let heartId = 0
 
@@ -534,6 +535,8 @@ function sceneLater(fn: () => void, delay: number) {
 }
 
 function clearSceneTimers() {
+  stopSniff?.()
+  stopSniff = null
   sceneTimers.forEach((id) => clearTimeout(id))
   sceneTimers = []
 }
@@ -696,6 +699,7 @@ function startBite() {
 function startGrape() {
   prepareInteraction()
   facing.value = 1
+  stopSniff = playSniff(0.7)
   scene.value = 'grape'
   scenePhase.value = 'approach'
   mode.value = 'sniff'

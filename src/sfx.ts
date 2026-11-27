@@ -82,6 +82,7 @@ function track(source: AudioScheduledSourceNode, gain: GainNode, kind: string) {
   const voice = { source, gain, kind }
   voices.add(voice)
   source.onended = () => { voices.delete(voice); source.disconnect(); gain.disconnect() }
+  return voice
 }
 
 async function play(kind: Sound, delay = 0) {
@@ -156,4 +157,36 @@ export function playReveal() {
       tone.stop(begin + duration)
     })
   })
+}
+
+/** Three soft, breathy nose sniffs, aligned to the fox's 560 ms head movement. */
+export function playSniff(delay = 0) {
+  const audio = audioContext()
+  if (!audio || document.hidden) return () => {}
+  const duration = 1.65
+  const buffer = audio.createBuffer(1, Math.ceil(audio.sampleRate * duration), audio.sampleRate)
+  const samples = buffer.getChannelData(0)
+  // A shaped noise breath avoids a pitched, electronic cue.
+  for (let i = 0; i < samples.length; i++) {
+    const t = i / audio.sampleRate
+    const phase = t % 0.56
+    const envelope = phase < 0.18 ? Math.sin(Math.PI * phase / 0.18) ** 1.6
+      : phase > 0.23 && phase < 0.34 ? 0.45 * Math.sin(Math.PI * (phase - 0.23) / 0.11) ** 2 : 0
+    samples[i] = (Math.random() * 2 - 1) * envelope
+  }
+  const source = audio.createBufferSource()
+  source.buffer = buffer
+  const filter = audio.createBiquadFilter()
+  filter.type = 'bandpass'
+  filter.frequency.value = 1350
+  filter.Q.value = 0.65
+  const gain = audio.createGain()
+  gain.gain.value = 0.24
+  source.connect(filter)
+  filter.connect(gain)
+  gain.connect(output!)
+  const voice = track(source, gain, 'sniff')
+  source.addEventListener('ended', () => filter.disconnect(), { once: true })
+  source.start(audio.currentTime + Math.max(0, delay))
+  return () => { if (voices.has(voice)) fadeOut(voice) }
 }

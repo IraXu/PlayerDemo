@@ -75,23 +75,48 @@ function buildMessage(
   client: ClientInfo,
   network: NetworkInfo | null,
 ) {
-  const sceneText = scenes
-    .map(([label, count]) => (count > 1 ? `${label}×${count}` : label))
-    .join(' + ')
-  const location =
-    network?.location && network.location !== '未知（仅获取到 IP）'
-      ? network.location.split(' · ').pop() || ''
-      : ''
+  // Keep the layout within the robot's basic Markdown subset: headings,
+  // quotes, bold text and the three supported font colors (no tables / CSS).
+  const text = (value: string) => value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/[\r\n]+/g, ' ')
+  const muted = (value: string) => `<font color="comment">${text(value)}</font>`
+  const total = scenes.reduce((sum, [, count]) => sum + count, 0)
+  const sceneNames: Record<string, string> = {
+    '摸摸': '摸摸脑袋 · 收到一份温柔',
+    '狐狸蹭蹭小剧场': '狐狸蹭蹭 · 贴贴进行中',
+    '狐狸扑咬小剧场': '狐狸扑咬 · 调皮了一下',
+    '葡萄味小剧场': '葡萄味奇遇 · 是葡萄味哎',
+    '打开未读留言': '拆开来信 · 有话对你说',
+  }
+  const sceneLines = scenes.map(([label, count]) => {
+    const name = sceneNames[label] || label
+    const badge = count > 1 ? `　<font color="warning">× ${count}</font>` : ''
+    return `> <font color="info">${text(name)}</font>${badge}`
+  })
+  const location = network?.location && network.location !== '未知（仅获取到 IP）'
+    && network.location !== '未知' ? network.location : ''
   const isp = network?.isp && network.isp !== '未知' ? network.isp : ''
   const place = [location, isp].filter(Boolean).join(' · ')
-  const device = client.device.split(' · ').pop() || client.device
-  const time = client.localTime.slice(5, 16)
 
   const lines = [
-    `**🐾 ${animal}被戳了** · ${sceneText}`,
-    `IP ${network?.ip || '未获取到'}${place ? `（${place}）` : ''} ｜ ${device} · ${client.browser} · ${client.os}`,
-    `${client.viewport} ｜ ${client.network} ｜ ${time} ｜ 第 ${interactions} 次`,
-    `<font color="comment">${client.page}</font>`,
+    `### 🐾 ${text(animal)}的互动来报`,
+    muted(`${client.localTime} · 十七的逗猫室`),
+    '',
+    ...sceneLines,
+    '',
+    `**本次 ${total} 次互动**　${muted(`本页累计 ${interactions} 次`)}`,
+    '',
+    '**来访足迹**',
+    `${muted('位置　')} ${text(place || '位置暂未获取')}`,
+    `${muted('地址　')} ${text(network?.ip || 'IP 暂未获取')}`,
+    `${muted('设备　')} ${text(client.device)} · ${text(client.os)}`,
+    `${muted('浏览器')} ${text(client.browser)}`,
+    `${muted('窗口　')} ${text(client.viewport)} · ${text(client.network)}`,
+    '',
+    `${muted('互动页面')} ${text(client.page)}`,
   ]
 
   if (client.referrer !== '直接访问') {
@@ -101,7 +126,7 @@ function buildMessage(
     } catch {
       /* 保留原始来源 */
     }
-    lines.push(`<font color="comment">来自 ${from}</font>`)
+    lines.push(muted(`访问来源 · ${from}`))
   }
 
   return lines.join('\n')
