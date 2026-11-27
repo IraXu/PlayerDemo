@@ -64,6 +64,9 @@ function audioContext() {
   return ctx
 }
 
+/** Unlock within the click gesture; scene cues can then play on the animation clock. */
+export function unlockSoundEffects() { audioContext() }
+
 function fadeOut(voice: Voice) {
   if (!ctx) return
   const now = ctx.currentTime

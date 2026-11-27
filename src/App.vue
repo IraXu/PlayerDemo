@@ -190,7 +190,8 @@
     </transition>
 
     <BreakMenu :searching="huntSearching" :found="huntFound" :immersive="fullActive" @action="onBreakAction" />
-    <CompanionCat />
+    <CompanionCat ref="companionRef" />
+    <DogIntruder v-if="!isBear && !fullActive" :companion="companionRef" />
   </div>
 </template>
 
@@ -232,6 +233,8 @@ import QuietWindow from './components/QuietWindow.vue'
 import TeaseEffects from './components/TeaseEffects.vue'
 import AnimalArtwork from './components/AnimalArtwork.vue'
 import CompanionCat from './components/CompanionCat.vue'
+import DogIntruder from './components/DogIntruder.vue'
+const companionRef = ref<InstanceType<typeof CompanionCat> | null>(null)
 import DailyFortune from './components/DailyFortune.vue'
 import FindTheCat from './components/FindTheCat.vue'
 

@@ -4,7 +4,7 @@
     <g v-if="animal !== 'bear'" :class="animal === 'fox' ? 'companion-fox-tail' : 'companion-tail cat-tail'">
       <path v-if="animal === 'fox'" d="M65 84C88 90 99 72 89 53 88 66 72 62 68 73Z" :fill="coat" />
       <path v-if="animal === 'fox'" d="M89 53C88 61 81 63 77 66L88 74C93 68 93 60 89 53Z" fill="#FFF7E8" stroke="none" />
-      <path v-else d="M70 83C91 87 94 65 84 65" fill="none" stroke="#758697" stroke-width="9" />
+      <path v-if="animal === 'cat'" d="M70 83C91 87 94 65 84 65" fill="none" stroke="#758697" stroke-width="9" />
       <path v-if="animal === 'cat'" d="M70 83C91 87 94 65 84 65" fill="none" :stroke="pink ? '#C2A6B2' : '#C8BDAA'" stroke-width="5.5" />
     </g>
     <path d="M35 63C26 71 26 82 31 88 37 94 63 94 69 88 74 82 74 71 65 63Z" :fill="coat" />

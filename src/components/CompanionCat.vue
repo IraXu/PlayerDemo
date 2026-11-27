@@ -1,9 +1,10 @@
 <template>
-  <div ref="rootRef" class="companion" :class="[mode, `scene-${scene}`, `phase-${scenePhase}`, { leftward: facing < 0, invite: showInvite }]" :style="style">
+  <div ref="rootRef" class="companion" :class="[mode, `scene-${scene}`, `phase-${scenePhase}`, { leftward: facing < 0, invite: showInvite, dispatching }]" :style="style">
     <button class="companion-btn" type="button" :aria-label="copy.companionAria" title="长按查看留言" @pointerenter="preloadCommonSounds" @pointerdown="onCatPointerDown" @pointermove="onCatPointerMove" @pointerup="onCatPointerUp" @pointerleave="cancelLongPress" @pointercancel="cancelLongPress" @contextmenu.prevent @click="onCatClick">
       <span
         v-if="bubbleHint"
         ref="bubbleRef"
+        :data-speaker="bubbleSpeaker"
         class="companion-bubble"
         :class="{ news: hasNews, scene: scene !== 'none' }"
         :style="bubbleStyle"
@@ -11,70 +12,12 @@
       >
         {{ bubbleHint }}
       </span>
-      <svg v-if="isBear" class="companion-cat" viewBox="0 0 100 100" fill="none" aria-hidden="true">
-        <AnimalArtwork animal="bear" :speaking="mode === 'speak'" />
-      </svg>
-      <svg v-else class="companion-cat" viewBox="0 0 100 100" fill="none" aria-hidden="true">
-        <AnimalArtwork animal="cat" :speaking="mode === 'speak'" />
-
-        <g
-          v-if="biteSpot"
-          class="companion-bite-anchor"
-          :transform="`translate(${biteSpot.x} ${biteSpot.y}) rotate(${biteSpot.rotate})`"
-        >
-          <g class="companion-bite-mark">
-            <ellipse cx="0" cy="0" rx="10" ry="6.6" fill="rgba(232, 96, 96, 0.16)" />
-            <path
-              d="M-9.4 -4.2l2.7 3.1 2.8-3.1 2.7 3.1 2.8-3.1 2.7 3.1 2.7-3.1"
-              stroke="#E06161"
-              stroke-width="1.8"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              fill="none"
-            />
-            <path
-              d="M-9.4 4.2l2.7-3.1 2.8 3.1 2.7-3.1 2.8 3.1 2.7-3.1 2.7 3.1"
-              stroke="#E06161"
-              stroke-width="1.8"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              fill="none"
-            />
-          </g>
-        </g>
+      <svg v-if="isBear || scene === 'none'" class="companion-cat" viewBox="0 0 100 100" fill="none" aria-hidden="true">
+        <AnimalArtwork :animal="isBear ? 'bear' : 'cat'" :speaking="mode === 'speak'" />
       </svg>
     </button>
-
-    <Transition name="fox">
-      <svg
-        v-if="foxVisible"
-        class="companion-fox"
-        :class="{ lunge: foxLunge, mischief: foxMood === 'mischief' }"
-        viewBox="0 0 100 100"
-        fill="none"
-        aria-hidden="true"
-      >
-        <g class="companion-fox-body"><AnimalArtwork animal="fox" /></g>
-      </svg>
-    </Transition>
-
-    <span v-if="biteBubble" class="companion-bubble scene fox-bubble" aria-hidden="true">
-      {{ biteBubble }}
-    </span>
-
-    <span v-if="grapesVisible" class="companion-grapes" aria-hidden="true">
-      <svg v-for="i in 5" :key="i" class="grape-drop" viewBox="0 0 32 40"
-        :style="{ '--i': i, '--drift': `${(i - 3) * 19}px`, '--spin': `${(i - 3) * 17}deg` }">
-        <path d="M16 10Q14 3 21 2" fill="none" stroke="#82986D" stroke-width="2"/>
-        <path d="M17 7Q25 1 27 8 22 12 17 7" fill="#A3B586"/>
-        <g fill="#A68DBA" stroke="#816E98" stroke-width="1">
-          <circle cx="11" cy="15" r="5"/><circle cx="21" cy="15" r="5"/>
-          <circle cx="8" cy="23" r="5"/><circle cx="17" cy="23" r="5"/><circle cx="25" cy="23" r="5"/>
-          <circle cx="12" cy="30" r="5"/><circle cx="21" cy="30" r="5"/><circle cx="16" cy="36" r="3.5"/>
-        </g>
-        <path d="M9 13l2-1M15 21l2-1" stroke="#E9DDF2" stroke-width="2" stroke-linecap="round"/>
-      </svg>
-    </span>
+    <CompanionTheater v-if="scene !== 'none'" :key="scene" :scene="scene" :target="biteTarget"
+      :reduced-motion="reducedMotion" :grapes-visible="grapesVisible" @cue="onSceneCue" @finish="finishScene" @anchors="onTheaterAnchors" />
 
     <span v-if="mode === 'sleep'" class="companion-zzz" aria-hidden="true">z</span>
 
@@ -132,6 +75,7 @@
         <article v-for="(item,i) in dayMessages" :key="item.id" class="inbox-letter" :class="{ latest: item.id === latestMessage?.id }">
           <div class="inbox-letter-head"><span class="letter-name">娇娇</span><span v-if="item.id === latestMessage?.id" class="letter-latest">最新</span><time v-if="item.time">{{ timeLabel(item) }}</time><span class="letter-index">{{ String(i + 1).padStart(2, '0') }}</span></div>
           <p>{{ item.text }}</p>
+          <img v-if="item.image" class="letter-photo" :src="messagePhoto(item)" alt="留言附图" loading="lazy" />
           <p v-if="item.wish" class="letter-wish">{{ item.wish }}</p>
         </article>
         <p v-if="!dayMessages.length" class="inbox-empty">这一天还没有留言，点上面的日期可以翻看以前写的信。</p>
@@ -145,13 +89,16 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { Modal } from '../ui'
 import { ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon } from '../ui/icons'
-import { preloadSoundEffects, playBearCall, playChirp, playMeow, playPurr, playReveal, playSniff, playYip, playYowl } from '../sfx'
+import { preloadSoundEffects, unlockSoundEffects, playBearCall, playChirp, playMeow, playPurr, playReveal, playSniff, playYip, playYowl } from '../sfx'
 import { reportCompanionScene } from '../catReport'
 import AnimalArtwork from './AnimalArtwork.vue'
+import CompanionTheater from './CompanionTheater.vue'
+import type { TheaterScene } from '../companion/motion'
+import { createScenePicker } from '../companion/selection'
 import { copy, isBear } from '../theme'
 
 type Mode = 'sniff' | 'sit' | 'walk' | 'sleep' | 'happy' | 'speak' | 'nuzzle' | 'bite'
-type Scene = 'none' | 'nuzzle' | 'bite' | 'grape'
+type Scene = 'none' | TheaterScene
 
 interface BiteSpot {
   x: number
@@ -165,6 +112,7 @@ interface OwnerMessage {
   text: string
   time?: string
   wish?: string
+  image?: string
 }
 
 interface Heart {
@@ -176,14 +124,13 @@ interface Heart {
 
 // 每次点击随机挑一处下嘴，都选狐狸够得着的右侧和中间
 const BITE_SPOTS: BiteSpot[] = [
-  { x: 69, y: 20, rotate: 14, label: '耳朵' },
-  { x: 50, y: 16, rotate: -6, label: '头顶' },
-  { x: 66, y: 57, rotate: -12, label: '脸颊' },
-  { x: 65, y: 80, rotate: -18, label: '屁股' },
+  { x: 73, y: 23, rotate: 14, label: '耳朵' },
+  { x: 75, y: 53, rotate: -12, label: '脸颊' },
   { x: 84, y: 68, rotate: 26, label: '尾巴' },
-  { x: 62, y: 86, rotate: 6, label: '前爪' },
+  { x: 64, y: 87, rotate: 6, label: '前爪' },
 ]
 
+const dispatching = ref(false)
 const mode = ref<Mode>('sit')
 const facing = ref<1 | -1>(1)
 // x 是离屏幕左边的距离，lift 是离屏幕底边的距离：
@@ -194,7 +141,16 @@ const bubbleRef = ref<HTMLElement | null>(null)
 // 气泡默认以小猫为中心，靠近屏幕边缘时整体平移回来，尾巴再指回小猫
 const bubbleShift = ref(0)
 const bubbleTail = ref(50)
+const theaterAnchors = ref({ cat: { x: 50, y: 0 }, fox: { x: 139, y: 0 } })
+const bubbleAnchor = computed(() => scene.value === 'none' || hasNews.value
+  ? { x: 50, y: -5 } : theaterAnchors.value[bubbleSpeaker.value])
+function onTheaterAnchors(points: typeof theaterAnchors.value) {
+  theaterAnchors.value = points
+  if (bubbleHint.value) void updateBubbleClamp()
+}
 const bubbleStyle = computed<Record<string, string>>(() => ({
+  left: `${bubbleAnchor.value.x}%`,
+  bottom: `${(100 - bubbleAnchor.value.y) * catSize().w / 100}px`,
   '--bubble-shift': `${bubbleShift.value}px`,
   '--bubble-tail': `${bubbleTail.value}%`,
 }))
@@ -202,14 +158,18 @@ const walkDuration = ref(3.6)
 const hearts = ref<Heart[]>([])
 const showInvite = ref(false)
 const hasPetted = ref(false)
-// 小狐狸来访：蹭蹭、扑咬、葡萄味三个小剧场
+// 小狐狸来访：蹭蹭、扑咬、葡萄味和冰咖啡小剧场
 const scene = ref<Scene>('none')
 const scenePhase = ref<'approach' | 'contact' | 'reveal'>('approach')
 const grapesVisible = ref(false)
-const foxVisible = ref(false)
-const foxLunge = ref(false)
-const foxMood = ref<'happy' | 'mischief'>('happy')
-const biteSpot = ref<BiteSpot | null>(null)
+const biteTarget = ref<BiteSpot>(BITE_SPOTS[1]!)
+const reducedMotion = ref(false)
+let motionPreference: MediaQueryList | null = null
+function onMotionPreferenceChange() {
+  reducedMotion.value = motionPreference?.matches ?? false
+  if (reducedMotion.value) { settleWalk(); clearTimer() }
+  else if (scene.value === 'none') schedule()
+}
 // 十七的留言：有未读时小猫进入说话模式，点击后打开信箱
 const messages = ref<OwnerMessage[]>([])
 const ownerMessage = ref<OwnerMessage | null>(null)
@@ -227,13 +187,20 @@ const style = computed<Record<string, string>>(() => ({
   '--walk': `${walkDuration.value}s`,
 }))
 
-const bubbleHint = computed(() => {
-  if (hasNews.value) return '有话对你说'
-  if (scene.value === 'nuzzle') return '蹭蹭～钻进狐狸怀里去～'
-  return showInvite.value ? '摸摸我～娇娇能感知到了喔～' : ''
+// Dialogue explicitly names its speaker; placement never infers ownership from a shared button.
+const dialogue = computed<{ speaker: 'cat' | 'fox'; text: string }>(() => {
+  if (hasNews.value) return { speaker: 'cat', text: '有话对你说' }
+  if (scene.value === 'nuzzle' && scenePhase.value === 'contact') return { speaker: 'cat', text: '蹭蹭～再贴一会儿～' }
+  if (scene.value === 'bite' && scenePhase.value === 'reveal') return { speaker: 'fox', text: `嗷呜！轻轻咬到${biteTarget.value.label}了` }
+  if (scene.value === 'coffee' && scenePhase.value === 'contact') return { speaker: 'fox', text: '必须喝口冰的了！' }
+  if (scene.value === 'coffee' && scenePhase.value === 'reveal') return { speaker: 'cat', text: '我也想喝' }
+  if (scene.value === 'grape' && scenePhase.value === 'reveal') return { speaker: 'fox', text: '是葡萄味哎' }
+  return { speaker: 'cat', text: showInvite.value ? '摸摸我～娇娇能感知到了喔～' : '' }
 })
+const bubbleSpeaker = computed(() => dialogue.value.speaker)
+const bubbleHint = computed(() => dialogue.value.text)
 
-/** 气泡贴近屏幕左右边缘时，整体平移到安全区内，尾巴仍然指向小猫 */
+/** 气泡贴近屏幕左右边缘时，整体平移到安全区内，尾巴仍然指向说话的角色 */
 async function updateBubbleClamp() {
   await nextTick()
   const bubble = bubbleRef.value
@@ -243,7 +210,7 @@ async function updateBubbleClamp() {
   if (!width) return
 
   const cat = root.getBoundingClientRect()
-  const center = cat.left + cat.width / 2
+  const center = cat.left + cat.width * bubbleAnchor.value.x / 100
   // 留 10px 余量，避免取整后仍压到屏幕边缘
   const margin = 10
   const desired = Math.min(
@@ -267,7 +234,7 @@ function refreshBubbleClamp() {
   }, 350)
 }
 
-watch(bubbleHint, (text) => {
+watch([bubbleHint, bubbleSpeaker], ([text]) => {
   if (text) {
     refreshBubbleClamp()
     return
@@ -275,9 +242,6 @@ watch(bubbleHint, (text) => {
   bubbleShift.value = 0
   bubbleTail.value = 50
 })
-
-// 咬人的吐槽气泡挂在狐狸头顶，顺便报出这次咬到的部位
-const biteBubble = computed(() => scene.value === 'grape' && scenePhase.value === 'reveal' ? '是葡萄味哎' : (biteSpot.value ? `嗷呜！咬到${biteSpot.value.label}了` : ''))
 
 // 聊天记录按时间倒序，最新的留言排在最上面
 const chatMessages = computed(() => {
@@ -403,6 +367,11 @@ function monthLabel(month: string) {
 /** 已经按天筛选了，时间只显示时分 */
 function timeLabel(message: OwnerMessage) {
   return message.time?.match(/[T ](\d{2}:\d{2})/)?.[1] ?? ''
+}
+
+/** 留言附图存在 public 下，路径按部署 base 补全 */
+function messagePhoto(message: OwnerMessage) {
+  return message.image ? `${import.meta.env.BASE_URL}${message.image}` : ''
 }
 
 /** 只有今天的留言才提醒，往日留言留在信箱里慢慢看 */
@@ -546,9 +515,7 @@ function resetScene() {
   scene.value = 'none'
   scenePhase.value = 'approach'
   grapesVisible.value = false
-  foxVisible.value = false
-  foxLunge.value = false
-  biteSpot.value = null
+  hearts.value = []
 }
 
 /** 任何一次互动都算摸过它了：收起邀请、停下随机溜达 */
@@ -566,12 +533,13 @@ function prepareInteraction() {
 
 function schedule(delay = rand(7000, 15000)) {
   clearTimer()
+  if (reducedMotion.value) return
   timer = setTimeout(next, delay)
 }
 
 function next() {
   // 有未读留言、正在看信箱或正冒着气泡时，老老实实待在原地
-  if (document.hidden || hasNews.value || messageOpen.value || showInvite.value) {
+  if (dispatching.value || document.hidden || reducedMotion.value || scene.value !== 'none' || hasNews.value || messageOpen.value || showInvite.value) {
     schedule()
     return
   }
@@ -612,110 +580,70 @@ function rest() {
 
 function pet() {
   if (isBear.value) {
+    prepareInteraction()
     playBearCall()
-  } else {
-    playPurr()
-    playMeow(0.24)
+    mode.value = 'happy'
+    burstHearts()
+    timer = setTimeout(() => { mode.value = 'sit'; schedule() }, 1800)
+    return
   }
-
-  prepareInteraction()
-  mode.value = 'happy'
-  burstHearts()
-
-  timer = setTimeout(() => {
-    mode.value = 'sit'
-    schedule()
-  }, 1800)
+  beginScene('pet', 'happy')
+  playPurr()
+  playMeow(.25)
 }
 
-/** 小剧场一：狐狸来做客，小猫凑上去疯狂蹭蹭 */
+/** Each actor shares a clock and stage; audio and effects follow its cue points. */
+function beginScene(nextScene: TheaterScene, nextMode: Mode) {
+  prepareInteraction()
+  resetScene()
+  facing.value = 1
+  scenePhase.value = 'approach'
+  scene.value = nextScene
+  mode.value = nextMode
+  unlockSoundEffects()
+}
 function startNuzzle() {
-  prepareInteraction()
-  facing.value = 1
-  scenePhase.value = 'approach'
-  scene.value = 'nuzzle'
-  mode.value = 'nuzzle'
-  foxMood.value = 'happy'
-  foxLunge.value = false
-  biteSpot.value = null
-  foxVisible.value = true
-
+  beginScene('nuzzle', 'nuzzle')
   playChirp()
-
-  sceneLater(() => { scenePhase.value = 'contact'; burstHearts(26) }, 650)
-  sceneLater(() => burstHearts(30), 1200)
-  sceneLater(() => burstHearts(24), 1750)
-  sceneLater(() => {
-    playChirp()
-    burstHearts(28)
-  }, 2300)
-
-  sceneLater(() => {
-    foxVisible.value = false
-    mode.value = 'sit'
-    scene.value = 'none'
-    schedule(rand(5000, 9000))
-  }, 3500)
 }
-
-/** 小剧场二：狐狸突然翻脸咬一口，下嘴的位置每次都不一样 */
 function startBite() {
-  prepareInteraction()
-  facing.value = 1
-  scenePhase.value = 'approach'
-  scene.value = 'bite'
-  foxMood.value = 'mischief'
-  foxLunge.value = false
-  biteSpot.value = null
-  foxVisible.value = true
-
-  // 先盯一会儿，再猛扑上去
-  sceneLater(() => {
-    scenePhase.value = 'contact'
-    foxLunge.value = true
-    playYip()
-  }, 620)
-
-  sceneLater(() => {
-    biteSpot.value = BITE_SPOTS[Math.floor(Math.random() * BITE_SPOTS.length)]
-    mode.value = 'bite'
-    playYowl()
-  }, 880)
-
-  sceneLater(() => {
-    foxLunge.value = false
-  }, 1500)
-
-  sceneLater(() => {
-    foxVisible.value = false
-    biteSpot.value = null
-    mode.value = 'sit'
-    scene.value = 'none'
-    schedule(rand(5000, 9000))
-  }, 2400)
+  // Decide the target before approaching, so the jaw's trajectory can meet it.
+  biteTarget.value = BITE_SPOTS[Math.floor(Math.random() * BITE_SPOTS.length)]!
+  beginScene('bite', 'sit')
+  playChirp()
 }
-
-/** 靠近、嗅闻、发现香味，再让葡萄落地。所有阶段可统一取消。 */
 function startGrape() {
-  prepareInteraction()
-  facing.value = 1
-  stopSniff = playSniff(0.7)
-  scene.value = 'grape'
-  scenePhase.value = 'approach'
-  mode.value = 'sniff'
-  foxMood.value = 'happy'
-  foxVisible.value = true
-  sceneLater(() => { scenePhase.value = 'contact' }, 700)
-  sceneLater(() => {
+  beginScene('grape', 'sniff')
+}
+function startCoffee() {
+  beginScene('coffee', 'sit')
+}
+function onSceneCue(cue: string) {
+  if (cue === 'coffee-fox') { scenePhase.value = 'contact'; return }
+  if (cue === 'coffee-cat') { scenePhase.value = 'reveal'; return }
+  if (cue === 'contact') {
+    scenePhase.value = 'contact'
+    if (scene.value === 'nuzzle') playPurr()
+    if (scene.value === 'grape') stopSniff = playSniff()
+  } else if (cue === 'hearts') {
+    burstHearts(scene.value === 'nuzzle' ? 30 : 0)
+  } else if (cue === 'ready') {
+    scenePhase.value = 'contact'
+  } else if (cue === 'bite') {
+    mode.value = 'bite'
+    playYip()
+    playYowl(.1)
+  } else if (cue === 'reveal') {
     scenePhase.value = 'reveal'
-    playChirp()
-  }, 2400)
-  sceneLater(() => { grapesVisible.value = true }, 2900)
-  sceneLater(() => {
-    resetScene()
-    mode.value = 'sit'
-    schedule(rand(5000, 9000))
-  }, 6500)
+    if (scene.value === 'grape') playChirp()
+  } else if (cue === 'grapes') {
+    grapesVisible.value = true
+  }
+}
+function finishScene() {
+  resetScene()
+  mode.value = 'sit'
+  schedule(rand(5000, 9000))
 }
 
 function scheduleInvite(delay = 4000) {
@@ -786,7 +714,10 @@ function reportInteraction(label: string) {
   reportCompanionScene(label, isBear.value ? '小熊' : '小猫')
 }
 
+const pickInteractionScene = createScenePicker()
+
 function onCatClick() {
+  if (dispatching.value) return
   // 长按触发时不执行摸摸/小剧场
   if (suppressClick || longPressReady) return
   // 有未读留言时，打开信箱
@@ -803,21 +734,17 @@ function onCatClick() {
     pet()
     return
   }
-  // 四种互动等概率：摸摸、蹭蹭、扑咬、嗅出葡萄味
-  const roll = Math.floor(Math.random() * 4)
-  if (roll === 0) {
-    reportInteraction('摸摸')
-    pet()
-  } else if (roll === 1) {
-    reportInteraction('狐狸蹭蹭小剧场')
-    startNuzzle()
-  } else if (roll === 2) {
-    reportInteraction('狐狸扑咬小剧场')
-    startBite()
-  } else {
-    reportInteraction('葡萄味小剧场')
-    startGrape()
+  // Ordinary draws are uniform across five scenes; a two-scene streak excludes one next time.
+  const selected = pickInteractionScene()
+  const actions: Record<TheaterScene, { label: string; start: () => void }> = {
+    pet: { label: '摸摸', start: pet },
+    nuzzle: { label: '狐狸蹭蹭小剧场', start: startNuzzle },
+    bite: { label: '狐狸扑咬小剧场', start: startBite },
+    grape: { label: '葡萄味小剧场', start: startGrape },
+    coffee: { label: '狐狸喝咖啡小剧场', start: startCoffee },
   }
+  reportInteraction(actions[selected].label)
+  actions[selected].start()
 }
 
 function markMessageRead(message: OwnerMessage) {
@@ -934,7 +861,10 @@ async function loadOwnerMessage() {
 }
 
 function onVisibilityChange() {
-  if (document.hidden) return
+  if (document.hidden) {
+    if (scene.value !== 'none') { resetScene(); mode.value = 'sit'; schedule() }
+    return
+  }
   void loadOwnerMessage()
   // 从后台回来时视口可能已经变了，顺手把位置校正一次
   scheduleClampLater()
@@ -949,7 +879,7 @@ function burstHearts(offset = 0) {
   }))
   hearts.value.push(...batch)
   const ids = new Set(batch.map((heart) => heart.id))
-  setTimeout(() => {
+  sceneLater(() => {
     hearts.value = hearts.value.filter((heart) => !ids.has(heart.id))
   }, 1400)
 }
@@ -959,13 +889,26 @@ function preloadCommonSounds() {
   else preloadSoundEffects('bear')
 }
 
+defineExpose({
+  dispatch() {
+    prepareInteraction()
+    resetScene()
+    const rect = rootRef.value?.getBoundingClientRect()
+    dispatching.value = true
+    return rect
+  },
+  returnHome() { dispatching.value = false; schedule() },
+})
+
 onMounted(() => {
   const b = bounds()
   pos.x = b.minX + 12
   pos.lift = b.minLift
 
-  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  if (!reduced) schedule(6000)
+  motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)')
+  reducedMotion.value = motionPreference.matches
+  motionPreference.addEventListener('change', onMotionPreferenceChange)
+  if (!reducedMotion.value) schedule(6000)
 
   // 主动招呼人来摸摸它；没被摸的话每隔一段时间再提醒一次
   scheduleInvite(4000)
@@ -997,6 +940,7 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
+  motionPreference?.removeEventListener('change', onMotionPreferenceChange)
   clearTimer()
   clearSceneTimers()
   cancelLongPress()
@@ -1058,9 +1002,11 @@ onBeforeUnmount(() => {
 .letter-index{margin-left:auto;color:#b9c7d0;font-size:8px}
 .inbox-letter p{font-size:13px!important;line-height:2!important;color:#6d899d!important;white-space:pre-wrap;overflow-wrap:anywhere;margin:11px 0 0}
 .inbox-letter .letter-wish{margin-top:13px;font-size:11px!important;line-height:1.6!important;color:#94acbb!important;text-align:right;letter-spacing:.06em}
+.inbox-letter .letter-photo{display:block;width:100%;max-width:335px;margin-top:11px;border:1px solid #e3eaef;border-radius:4px;background:#f6f1e8}
 .inbox-empty{text-align:center;padding:30px 10px;font-size:12px}
 .inbox-end{display:block;text-align:center;padding:18px 0 2px;color:#adbcc5;font-size:9px}
 
+.companion.dispatching { visibility: hidden; }
 .companion {
   position: fixed;
   /* 贴底定位：iOS 地址栏收起/展开、旋转时不会因为 innerHeight 过期被推出屏幕 */
@@ -1102,59 +1048,9 @@ onBeforeUnmount(() => {
   filter: none;
 }
 
-/* 来做客的小狐狸：平时待在猫咪右后方，扑咬时压到最上层 */
-.companion-fox {
-  position: absolute;
-  left: 56px;
-  bottom: 0;
-  z-index: -1;
-  width: 64px;
-  height: 78px;
-  overflow: visible;
-  pointer-events: none;
-  transform-origin: 50% 92%;
-  filter: none;
-}
-
-.companion-fox.lunge {
-  z-index: 2;
-  animation: companionFoxLunge 0.95s ease-in-out both;
-}
-
-:deep(.companion-fox-tail) {
-  transform-box: fill-box;
-  transform-origin: 0% 55%;
-  animation: companionFoxTail 2.4s ease-in-out infinite;
-}
-
-.companion-fox.mischief :deep(.companion-fox-tail) {
-  animation-duration: 0.9s;
-}
-
-.companion-fox-body {
-  transform-box: fill-box;
-  transform-origin: 50% 92%;
-}
-
-.companion-fox-jaw {
-  transform-box: fill-box;
-  transform-origin: 100% 8%;
-}
-
-.lunge .companion-fox-jaw {
-  animation: companionFoxChomp 0.24s ease-in-out 3;
-}
-
-.fox-enter-active {
-  animation: companionFoxIn 0.34s cubic-bezier(0.2, 0.9, 0.3, 1.35) both;
-}
-
-.fox-leave-active {
-  animation: companionFoxOut 0.28s ease-in both;
-}
-
 .companion-bubble {
   position: absolute;
+  z-index: 2;
   left: 50%;
   bottom: calc(100% + 4px);
   padding: 4px 9px;
@@ -1199,11 +1095,6 @@ onBeforeUnmount(() => {
   color: #A48D98;
   border-color: #E2D6DC;
   box-shadow: none;
-}
-
-/* 咬人的吐槽气泡挂在狐狸头顶（狐狸中心在容器右侧约 88px 处） */
-.companion-bubble.fox-bubble {
-  left: 88px;
 }
 
 .chat-list {
@@ -1328,36 +1219,6 @@ onBeforeUnmount(() => {
 
 .speak :deep(.companion-tail) {
   animation: companionTail 1.5s ease-in-out infinite;
-}
-
-.nuzzle .companion-cat {
-  animation: companionCatNuzzle 1.6s ease-in-out infinite;
-}
-
-.nuzzle :deep(.companion-tail) {
-  animation: companionTail 0.9s ease-in-out infinite;
-}
-
-.nuzzle :deep(.companion-eye) {
-  transform: scaleY(0.16);
-}
-
-.nuzzle .companion-fox-body {
-  animation: companionFoxRub 1.6s ease-in-out infinite;
-}
-
-.bite .companion-cat {
-  animation: companionCatBite 0.85s ease-out both;
-}
-
-.bite :deep(.companion-eye) {
-  animation: companionStartle 0.85s ease-out both;
-}
-
-.companion-bite-mark {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: companionBiteMark 1.3s ease-out both;
 }
 
 .companion.invite .companion-cat {
@@ -1534,183 +1395,12 @@ onBeforeUnmount(() => {
   }
 }
 
-@keyframes companionCatNuzzle {
-  0%,
-  100% {
-    transform: translate(0, 0) rotate(0deg);
-  }
-  15% {
-    transform: translate(11px, -2px) rotate(9deg);
-  }
-  30% {
-    transform: translate(4px, 0) rotate(-4deg);
-  }
-  45% {
-    transform: translate(13px, -2px) rotate(11deg);
-  }
-  60% {
-    transform: translate(5px, 0) rotate(-3deg);
-  }
-  75% {
-    transform: translate(11px, -1px) rotate(8deg);
-  }
-}
-
-@keyframes companionFoxRub {
-  0%,
-  100% {
-    transform: translate(0, 0) rotate(0deg);
-  }
-  20% {
-    transform: translate(-3px, 0) rotate(-3deg);
-  }
-  50% {
-    transform: translate(2px, -1px) rotate(2deg);
-  }
-  80% {
-    transform: translate(-2px, 0) rotate(-2deg);
-  }
-}
-
-@keyframes companionFoxIn {
-  0% {
-    opacity: 0;
-    transform: translateX(22px) scale(0.55);
-  }
-  60% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 1;
-    transform: translateX(0) scale(1);
-  }
-}
-
-@keyframes companionFoxOut {
-  0% {
-    opacity: 1;
-    transform: translateX(0) scale(1);
-  }
-  100% {
-    opacity: 0;
-    transform: translateX(20px) scale(0.7);
-  }
-}
-
-@keyframes companionFoxLunge {
-  0% {
-    transform: translate(0, 0) rotate(0deg);
-  }
-  24% {
-    transform: translate(-26px, -10px) rotate(-10deg);
-  }
-  36% {
-    transform: translate(-21px, -4px) rotate(-3deg);
-  }
-  48% {
-    transform: translate(-25px, -8px) rotate(-8deg);
-  }
-  60% {
-    transform: translate(-20px, -3px) rotate(-2deg);
-  }
-  100% {
-    transform: translate(0, 0) rotate(0deg);
-  }
-}
-
-@keyframes companionFoxChomp {
-  0%,
-  100% {
-    transform: rotate(0deg);
-  }
-  50% {
-    transform: rotate(-12deg) scaleY(1.08);
-  }
-}
-
-@keyframes companionFoxTail {
-  0%,
-  100% {
-    transform: rotate(-5deg);
-  }
-  50% {
-    transform: rotate(8deg);
-  }
-}
-
-@keyframes companionCatBite {
-  0% {
-    transform: translate(0, 0) rotate(0deg);
-  }
-  12% {
-    transform: translate(-4px, -12px) rotate(-12deg);
-  }
-  28% {
-    transform: translate(3px, -5px) rotate(9deg);
-  }
-  44% {
-    transform: translate(-3px, -9px) rotate(-7deg);
-  }
-  62% {
-    transform: translate(2px, -2px) rotate(4deg);
-  }
-  80% {
-    transform: translate(-1px, 0) rotate(-2deg);
-  }
-  100% {
-    transform: translate(0, 0) rotate(0deg);
-  }
-}
-
-@keyframes companionStartle {
-  0%,
-  100% {
-    transform: scale(1);
-  }
-  30% {
-    transform: scale(1.55, 1.45);
-  }
-  65% {
-    transform: scale(1.2, 1.15);
-  }
-}
-
-@keyframes companionBiteMark {
-  0% {
-    opacity: 0;
-    transform: scale(0.2) rotate(-12deg);
-  }
-  18% {
-    opacity: 1;
-    transform: scale(1.12) rotate(0deg);
-  }
-  30% {
-    transform: scale(1);
-  }
-  72% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-    transform: scale(0.94);
-  }
-}
-
 @media (max-width: 720px) {
   .companion {
     width: 56px;
     height: 60px;
   }
 
-  .companion-fox {
-    left: 40px;
-    width: 47px;
-    height: 58px;
-  }
-
-  .companion-bubble.fox-bubble {
-    left: 64px;
-  }
 }
 
 /* 头、爪、尾巴各自运动，身体以脚底为支点保持重量感。 */
@@ -1719,49 +1409,8 @@ onBeforeUnmount(() => {
 .sit :deep(.animal-head) { animation: animalLook 7s ease-in-out infinite; }
 .walk :deep(.animal-paws) { animation: animalStep .42s ease-in-out infinite; }
 .walk :deep(.animal-head) { animation: animalLook 2.5s ease-in-out infinite; }
-.companion-fox-body { animation: companionBreathe 3.8s ease-in-out infinite; }
-.companion-fox :deep(.companion-eye) { animation: companionBlink 5.3s ease-in-out infinite; }
-.fox-enter-active { animation: foxArrive .65s ease-out both; }
-.fox-enter-active :deep(.animal-paws) { animation: animalStep .18s ease-in-out 4; }
-.fox-leave-active { animation: foxDepart .45s ease-in both; }
-.nuzzle .companion-cat { animation: catApproach .65s ease-out both; }
-.nuzzle.phase-contact .companion-cat { animation: catLean 1.4s ease-in-out infinite; }
-.nuzzle :deep(.animal-head) { animation: catCheek 1.4s ease-in-out infinite; animation-delay: .65s; }
-.nuzzle .companion-fox-body { animation: none; }
-.nuzzle.phase-contact .companion-fox :deep(.animal-head) { animation: foxReceive 1.4s ease-in-out infinite; }
-.scene-bite.phase-approach .companion-fox-body { animation: foxCrouch .62s ease-in both; }
-.lunge :deep(.animal-head) { animation: foxReceive .3s ease-in-out 3; }
-.sniff.phase-contact .companion-fox-body { transform: translateX(-16px); animation: none; transition: transform .55s ease; }
-.sniff.phase-contact .companion-fox :deep(.animal-head) { animation: foxSniff .56s ease-in-out 3; }
-.sniff .companion-cat :deep(.animal-head) { transform: rotate(8deg); transition: transform .6s ease; }
-.sniff.phase-reveal .companion-cat :deep(.animal-head) { animation: grapeDelight 1s ease-in-out 2; }
-.sniff.phase-reveal .companion-fox :deep(.animal-head) { transform: rotate(-6deg); }
-.companion-grapes { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
-.grape-drop { position: absolute; left: 62px; bottom: 3px; width: 23px; height: 29px; overflow: visible;
-  opacity: 0; animation: grapeFall 2.7s linear both; animation-delay: calc(var(--i) * .14s); }
 @keyframes animalLook { 0%, 30%, 100% { transform: rotate(0); } 42%, 58% { transform: rotate(-4deg) translateY(1px); } 75% { transform: rotate(3deg); } }
 @keyframes animalStep { 0%, 100% { transform: rotate(-5deg) translateY(-1px); } 50% { transform: rotate(5deg) translateY(1px); } }
-@keyframes foxArrive { 0% { opacity: 0; transform: translateX(36px); } 25% { opacity: 1; transform: translate(25px,-2px) rotate(-3deg); } 50% { transform: translate(14px,0) rotate(2deg); } 75% { transform: translate(5px,-2px); } 100% { transform: translate(0,0); } }
-@keyframes foxDepart { to { opacity: 0; transform: translate(32px,-2px); } }
-@keyframes catApproach { 0% { transform: translateX(0); } 45% { transform: translate(7px,-2px) rotate(2deg); } 100% { transform: translate(15px,0) rotate(4deg); } }
-@keyframes catLean { 0%, 100% { transform: translate(15px,0) rotate(4deg); } 45% { transform: translate(18px,1px) rotate(6deg) scaleY(.98); } 70% { transform: translate(16px,0) rotate(3deg); } }
-@keyframes catCheek { 0%, 100% { transform: rotate(0); } 40% { transform: translate(4px,-1px) rotate(10deg); } 75% { transform: translate(1px,1px) rotate(-3deg); } }
-@keyframes foxReceive { 0%, 100% { transform: rotate(0); } 45% { transform: translate(-2px,1px) rotate(-8deg); } 75% { transform: rotate(-3deg); } }
-@keyframes foxCrouch { 0%, 25% { transform: none; } 100% { transform: translate(3px,3px) scale(1.04,.93); } }
-@keyframes foxSniff { 0%, 100% { transform: translate(-3px,2px) rotate(-12deg); } 35%, 65% { transform: translate(-7px,3px) rotate(-16deg); } 50% { transform: translate(-5px,2px) rotate(-13deg); } }
-@keyframes grapeDelight { 0%, 100% { transform: rotate(8deg); } 40% { transform: translateY(-3px) rotate(-5deg); } }
-@keyframes grapeFall {
-  0% { opacity: 0; transform: translate(0,-145px) rotate(-15deg); }
-  8% { opacity: 1; transform: translate(0,-140px) rotate(-10deg); }
-  24% { transform: translate(calc(var(--drift) * .35),-100px); }
-  40% { transform: translate(calc(var(--drift) * .6),0) rotate(var(--spin)) scale(1.12,.82); }
-  52% { transform: translate(calc(var(--drift) * .78),-23px) rotate(var(--spin)); }
-  64% { transform: translate(calc(var(--drift) * .9),0) rotate(var(--spin)) scale(1.05,.94); }
-  72% { transform: translate(var(--drift),-7px) rotate(var(--spin)); }
-  80%, 92% { opacity: 1; transform: translate(var(--drift),0) rotate(var(--spin)); }
-  100% { opacity: 0; transform: translate(var(--drift),0) rotate(var(--spin)); }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .companion {
     transition: none;
@@ -1769,38 +1418,15 @@ onBeforeUnmount(() => {
 
   .companion-cat,
   .companion.invite .companion-cat,
-  .speak .companion-cat,
-  .nuzzle .companion-cat,
-  .bite .companion-cat,
-  .bite :deep(.companion-eye),
-  .nuzzle :deep(.companion-tail),
   :deep(.companion-tail),
   :deep(.companion-eye),
+  :deep(.animal-head),
+  :deep(.animal-paws),
   .companion-zzz,
   .companion-heart,
   .companion-bubble,
-  :deep(.companion-waves) path,
-  .companion-fox,
-  .companion-fox.lunge,
-  :deep(.companion-fox-tail),
-  .companion-fox-body,
-  .nuzzle .companion-fox-body,
-  .companion-fox-jaw,
-  .lunge .companion-fox-jaw,
-  .companion-bite-mark,
-  :deep(.animal-head),
-  :deep(.animal-paws),
-  .companion-fox :deep(.animal-head),
-  .companion-cat :deep(.animal-head),
-  .scene-bite.phase-approach .companion-fox-body,
-  .sniff.phase-contact .companion-fox :deep(.animal-head),
-  .nuzzle.phase-contact .companion-fox :deep(.animal-head),
-  .nuzzle.phase-contact .companion-cat,
-  .grape-drop {
-    animation: none !important;
-  }
+  :deep(.companion-waves) path { animation: none !important; }
 
-  .grape-drop { opacity: 1; transform: translateX(var(--drift)); }
   .speak :deep(.companion-waves) path {
     opacity: 0.7;
   }
