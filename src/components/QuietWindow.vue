@@ -53,7 +53,7 @@
       </g></g>
       <g class="office-think">
         <path d="M105 126h48a10 10 0 0 1 10 10v14a10 10 0 0 1-10 10l9 14-17-14h-40a10 10 0 0 1-10-10v-14a10 10 0 0 1 10-10Z" fill="#FBFCF7" stroke="#D3E1E9" stroke-width="1.2"/>
-        <text x="113" y="148.5" fill="#6C8A9E" font-size="9" font-family="'PingFang SC',system-ui,sans-serif">在改了…</text>
+        <text x="102" y="148.5" fill="#6C8A9E" font-size="9" font-family="'PingFang SC',system-ui,sans-serif">累，想十七了</text>
       </g>
 
       <!-- 桌子 -->

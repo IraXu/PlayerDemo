@@ -193,6 +193,7 @@ import {
   SpinnerIcon,
 } from './ui/icons'
 import {
+  clearStreamCache,
   interact,
   LIGHT_DURATION_MS,
   queryStream,
@@ -310,7 +311,9 @@ const placeholderTitle = computed(() => {
 const placeholderText = computed(() => {
   if (status.value === 'error') return errorMsg.value || copy.value.errorText
   if (status.value === 'idle') return copy.value.playText
-  return status.value === 'switching' ? copy.value.switchingText : copy.value.loadingText
+  if (status.value === 'switching') return copy.value.switchingText
+  if (slowConnect.value) return '网络有点慢，正在努力连上画面，再等一下下～'
+  return copy.value.loadingText
 })
 const interactDisabled = computed(
   () => interacting.value || teasing.value || cooldownLeft.value > 0,
@@ -321,6 +324,18 @@ const interactDisabled = computed(
 const MAX_RECONNECT_ATTEMPTS = 4
 const RECONNECT_MAX_DELAY = 12_000
 const HIDDEN_SUSPEND_MS = 3 * 60_000
+// 首帧超过这个时间还没出来就视为连接异常；软解 wasm 在弱网下可能要十几秒
+const FIRST_FRAME_TIMEOUT = 20_000
+// 等太久时换一句文案，避免用户以为页面卡死
+const SLOW_CONNECT_MS = 6_000
+// 后台预热如果一直没出图，就悄悄放弃，等用户点击时再正常连接
+const WARM_FIRST_FRAME_TIMEOUT = 25_000
+// 后台画面超过这个时间没有新帧，接管时重新拉一次
+const WARM_FRAME_STALE_MS = 20_000
+
+const slowConnect = ref(false)
+let slowTimer: ReturnType<typeof setTimeout> | null = null
+let warmupTimer: ReturnType<typeof setTimeout> | null = null
 
 let player: HMPlayerInstance | null = null
 let resizeObserver: ResizeObserver | null = null
@@ -339,6 +354,15 @@ let reconnectAttempt = 0
 let reconnecting = false
 // 后台挂久了主动停流，回来时再恢复
 let suspendedByHidden = false
+
+// 后台预热：进页面就把播放链路跑起来，静音出图藏在占位层后面
+let warmStart: Promise<void> | null = null
+let warmTeardown: Promise<void> | null = null
+let warmWatchdog: ReturnType<typeof setTimeout> | null = null
+let firstFrameReady = false
+let lastFrameAt = 0
+// 预热必须是静音的，点开始逗猫后再恢复用户之前的音量偏好
+let warmMutedBefore = true
 
 function showToast(message: string) {
   toast.value = message
@@ -456,7 +480,7 @@ function applyAudioState() {
   }
 }
 
-async function startPlayer(info: StreamInfo, streamId: number) {
+async function startPlayer(info: StreamInfo, streamId: number, silent = false) {
   await nextTick()
   const el = containerRef.value
   if (!el) throw new Error('播放器容器未就绪')
@@ -478,20 +502,43 @@ async function startPlayer(info: StreamInfo, streamId: number) {
     retryCnt: 0,
   })
   player = instance
+  firstFrameReady = false
+  lastFrameAt = 0
 
   setupVideoGuard(el)
+
+  // 后台预热和正式播放共用同一套回调：靠 wantLive 决定是出图还是继续藏着
+  let gotFrame = false
+  const markFrame = () => {
+    if (gotFrame) return
+    gotFrame = true
+    firstFrameReady = true
+    lastFrameAt = Date.now()
+    reconnectAttempt = 0
+    stopWatchdog()
+    stopWarmWatchdog()
+    attachResizeObserver(el)
+    forceRedraw()
+    if (wantLive) {
+      status.value = 'playing'
+      applyAudioState()
+    } else {
+      // 预热期间保持静音，等用户点了开始逗猫再恢复声音
+      try {
+        instance.mute()
+      } catch {
+        /* ignore */
+      }
+    }
+  }
 
   instance.on('state', ({ state }) => {
     if (player !== instance) return
     if (state === 2 || state === 4) {
-      status.value = 'playing'
-      reconnectAttempt = 0
-      stopWatchdog()
-      attachResizeObserver(el)
-      forceRedraw()
-      applyAudioState()
+      markFrame()
     } else if (state === 5) {
-      handleStreamInterruption('播放通道已中断，正在重连…')
+      if (wantLive) handleStreamInterruption('播放通道已中断，正在重连…')
+      else discardWarmPlayer()
     }
   })
 
@@ -504,17 +551,16 @@ async function startPlayer(info: StreamInfo, streamId: number) {
   instance.on('stats', (stats) => {
     if (player !== instance) return
     fps.value = stats.vFramerate || stats.yuvFramerate || stats.vRemuxFramerate || 0
-    if (status.value !== 'playing' && (stats.vFramerate > 0 || stats.yuvFramerate > 0)) {
-      status.value = 'playing'
-      reconnectAttempt = 0
-      stopWatchdog()
-      attachResizeObserver(el)
+    if (stats.vFramerate > 0 || stats.yuvFramerate > 0) {
+      lastFrameAt = Date.now()
+      if (!gotFrame) markFrame()
     }
   })
 
   instance.on('error', () => {
     if (player !== instance) return
-    handleStreamInterruption('拉流异常，正在重连…')
+    if (wantLive) handleStreamInterruption('拉流异常，正在重连…')
+    else discardWarmPlayer()
   })
 
   resizeObserver?.disconnect()
@@ -534,11 +580,22 @@ async function startPlayer(info: StreamInfo, streamId: number) {
     0,
   )
 
-  applyAudioState()
+  if (silent) {
+    try {
+      instance.mute()
+    } catch {
+      /* ignore */
+    }
+  } else {
+    applyAudioState()
+  }
 }
 
 async function destroyPlayer() {
   stopWatchdog()
+  stopWarmWatchdog()
+  firstFrameReady = false
+  lastFrameAt = 0
   clearRedrawTimers()
   resizeObserver?.disconnect()
   resizeObserver = null
@@ -557,13 +614,60 @@ async function destroyPlayer() {
   if (containerRef.value) containerRef.value.innerHTML = ''
 }
 
+/** 后台预热如果迟迟出不了图，就悄悄收掉，别一直占着摄像头 */
+function startWarmWatchdog() {
+  stopWarmWatchdog()
+  warmWatchdog = setTimeout(() => {
+    warmWatchdog = null
+    if (wantLive || !player || firstFrameReady) return
+    discardWarmPlayer()
+  }, WARM_FIRST_FRAME_TIMEOUT)
+}
+
+function stopWarmWatchdog() {
+  if (warmWatchdog) {
+    clearTimeout(warmWatchdog)
+    warmWatchdog = null
+  }
+}
+
+function discardWarmPlayer() {
+  stopWarmWatchdog()
+  firstFrameReady = false
+  lastFrameAt = 0
+  if (!player || wantLive) return
+  // 预热断掉多半是地址或链路过期，下次重新取一次
+  clearStreamCache()
+  warmTeardown = destroyPlayer().finally(() => {
+    warmTeardown = null
+  })
+}
+
 function startWatchdog() {
   stopWatchdog()
+  slowTimer = setTimeout(() => {
+    slowTimer = null
+    if (status.value === 'loading' || status.value === 'switching') slowConnect.value = true
+  }, SLOW_CONNECT_MS)
   watchdogTimer = setTimeout(() => {
     watchdogTimer = null
     if (status.value !== 'loading' && status.value !== 'switching') return
+    // 超清迟迟不出图：先自动降到高清重连，别让用户一直盯着黑屏等
+    if (stream.value === 0) {
+      stream.value = 1
+      try {
+        localStorage.setItem(QUALITY_KEY, '1')
+      } catch {
+        /* 隐私模式下忽略 */
+      }
+      reconnectAttempt = 0
+      clearStreamCache()
+      showToast('网络有点慢，先切到高清模式重连…')
+      void reconnectStream()
+      return
+    }
     handleStreamInterruption('连接超时，正在重试…')
-  }, 10_000)
+  }, FIRST_FRAME_TIMEOUT)
 }
 
 function stopWatchdog() {
@@ -571,6 +675,11 @@ function stopWatchdog() {
     clearTimeout(watchdogTimer)
     watchdogTimer = null
   }
+  if (slowTimer) {
+    clearTimeout(slowTimer)
+    slowTimer = null
+  }
+  slowConnect.value = false
 }
 
 function clearReconnectTimer() {
@@ -591,6 +700,8 @@ function clearHiddenSuspendTimer() {
 function handleStreamInterruption(message: string) {
   if (!wantLive || reconnecting) return
   stopWatchdog()
+  // 地址可能已经过期，重连时重新取一次
+  clearStreamCache()
   status.value = 'loading'
   errorMsg.value = ''
   showToast(message)
@@ -636,6 +747,7 @@ async function reconnectStream() {
     }
     startWatchdog()
   } catch {
+    clearStreamCache()
     scheduleReconnect()
   } finally {
     reconnecting = false
@@ -654,6 +766,32 @@ async function connect() {
   reconnectAttempt = 0
   suspendedByHidden = false
 
+  // 后台预热可能还在启动或收尾，等它稳定后再决定是接管还是重连
+  if (warmStart) await warmStart
+  if (warmTeardown) await warmTeardown
+
+  if (player) {
+    stopWarmWatchdog()
+    // 后台画面还活着：直接把占位层收起来，等同于秒开
+    if (firstFrameReady && Date.now() - lastFrameAt < WARM_FRAME_STALE_MS) {
+      muted.value = warmMutedBefore
+      status.value = 'playing'
+      applyAudioState()
+      forceRedraw()
+      return
+    }
+    // 还在连：等同一个实例出图，不再重复拉一路流
+    if (!firstFrameReady) {
+      muted.value = warmMutedBefore
+      status.value = 'loading'
+      errorMsg.value = ''
+      startWatchdog()
+      return
+    }
+    // 后台画面已经僵住（很久没有新帧），换一个取流地址重新拉
+    clearStreamCache()
+  }
+
   await destroyPlayer()
   stopWatchdog()
   resetMeta()
@@ -666,6 +804,8 @@ async function connect() {
     await startPlayer(info, stream.value)
     startWatchdog()
   } catch (error) {
+    stopWatchdog()
+    clearStreamCache()
     status.value = 'error'
     errorMsg.value = (error as Error).message || '连接失败'
     // 断网时保留观看意图，等网络恢复后自动重连
@@ -677,10 +817,59 @@ async function connect() {
   }
 }
 
-// 悬停/聚焦播放按钮时先拉起 SDK 主文件，点击后少等一个网络往返
+/**
+ * 进页面后在后台把整条播放链路跑起来：取流、连设备、解码，静音出图，
+ * 但一直藏在占位层后面。点“开始逗猫”时只是把画面亮出来。
+ */
+function warmConnect() {
+  if (warmStart || player || status.value !== 'idle' || document.hidden || !navigator.onLine) return
+
+  const connection = (
+    navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }
+  ).connection
+  // 省流模式或 2G 网络就不在后台拉流了
+  if (connection?.saveData) return
+  if (connection?.effectiveType && /(^|-)2g$/.test(connection.effectiveType)) return
+
+  warmStart = (async () => {
+    try {
+      // 上一次预热可能还在销毁，等它清空容器再重新建
+      if (warmTeardown) await warmTeardown
+      const [info] = await Promise.all([queryStream(), loadPlayerSdk()])
+      if (player || status.value !== 'idle' || document.hidden) return
+      warmMutedBefore = muted.value
+      muted.value = true
+      await startPlayer(info, stream.value, true)
+      startWarmWatchdog()
+    } catch {
+      // 预热失败不打扰用户，点击时再正常连接
+      clearStreamCache()
+      if (!player) muted.value = warmMutedBefore
+    } finally {
+      warmStart = null
+    }
+  })()
+}
+
+// 悬停/聚焦播放按钮等于“马上要点”，直接把后台播放跑起来
 function warmUpPlayer() {
-  if (status.value !== 'idle' && status.value !== 'error') return
-  void loadPlayerSdk().catch(() => undefined)
+  warmConnect()
+}
+
+/**
+ * 首屏稳定后在后台开始播放：静音拉流、解码出图都藏在占位层后面。
+ * 用户点“开始逗猫”时只是把画面亮出来，不再等下载和连接。
+ */
+function scheduleWarmup() {
+  if (warmupTimer) return
+  warmupTimer = setTimeout(() => {
+    warmupTimer = null
+    if (typeof window.requestIdleCallback === 'function') {
+      window.requestIdleCallback(() => warmConnect(), { timeout: 3000 })
+    } else {
+      warmConnect()
+    }
+  }, 1500)
 }
 
 // 点击播放按钮才建立视频通道，避免进入页面自动拉流
@@ -696,6 +885,8 @@ async function closePlayback() {
   suspendedByHidden = false
   clearReconnectTimer()
   clearHiddenSuspendTimer()
+  // 下次再打开时重新取一次地址，顺便重新预热
+  clearStreamCache()
   await destroyPlayer()
   stopWatchdog()
   resetMeta()
@@ -703,6 +894,7 @@ async function closePlayback() {
   status.value = 'idle'
   if (document.fullscreenElement) await document.exitFullscreen().catch(() => undefined)
   if (pseudoFullscreen.value) exitPseudoFullscreen()
+  scheduleWarmup()
 }
 
 async function switchStream(target: 0 | 1) {
@@ -723,6 +915,7 @@ async function switchStream(target: 0 | 1) {
     await startPlayer(info, target)
     startWatchdog()
   } catch (error) {
+    clearStreamCache()
     status.value = 'error'
     errorMsg.value = (error as Error).message || '切换码流失败'
   }
@@ -1085,6 +1278,8 @@ function scheduleHiddenSuspend() {
 function onVisibilityChange() {
   if (document.hidden) {
     scheduleHiddenSuspend()
+    // 后台不再白占一路摄像头码流，回到前台会重新预热
+    if (player && !wantLive) discardWarmPlayer()
     return
   }
 
@@ -1104,11 +1299,18 @@ function onVisibilityChange() {
   if (player && status.value === 'playing') {
     forceRedraw()
     applyAudioState()
+    return
   }
+  if (!wantLive && !player && status.value === 'idle') scheduleWarmup()
 }
 
 function onOnline() {
-  if (!wantLive || status.value === 'playing' || document.hidden) return
+  if (!wantLive) {
+    // 进页面时断网没能预热，网络恢复后补上
+    if (!player && status.value === 'idle') scheduleWarmup()
+    return
+  }
+  if (status.value === 'playing' || document.hidden) return
   reconnectAttempt = 0
   clearReconnectTimer()
   showToast('网络恢复了，正在重新连接…')
@@ -1224,11 +1426,13 @@ onMounted(() => {
   window.visualViewport?.addEventListener('resize', onViewportResize)
   window.addEventListener('keydown', onKeydown)
   window.addEventListener('online', onOnline)
+  scheduleWarmup()
 })
 
 onBeforeUnmount(() => {
   if (eggRevealTimer) clearTimeout(eggRevealTimer)
   if (toastTimer) clearTimeout(toastTimer)
+  if (warmupTimer) clearTimeout(warmupTimer)
   clearTeaseTimers()
   if (rotateHintTimer) clearTimeout(rotateHintTimer)
   clearReconnectTimer()

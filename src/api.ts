@@ -201,7 +201,16 @@ export async function queryDevice(): Promise<DeviceInfo> {
   return data
 }
 
+const STREAM_CACHE_MS = 60_000
+let streamCache: { info: StreamInfo; expireAt: number } | null = null
+
+export function clearStreamCache() {
+  streamCache = null
+}
+
 export async function queryStream(): Promise<StreamInfo> {
+  if (streamCache && Date.now() < streamCache.expireAt) return streamCache.info
+
   const auth = await platformToken()
   const resp = await call(
     '/GMModule/V3/Media/GetMultiMediaAddr',
@@ -211,13 +220,15 @@ export async function queryStream(): Promise<StreamInfo> {
   if (resp.Code !== '0') throw new Error(resp.Message || `取流失败(${resp.Code})`)
   const info = resp.Data || {}
   if (!info.WSUrl) throw new Error('设备离线或未返回播放地址')
-  return {
+  const data: StreamInfo = {
     ws_url: info.WSUrl,
     resource_id: info.ResourceID || '',
     enc_type: String(info.EncType || '49'),
     enc_key: info.EncKey || '',
     enc_load: info.EncLoad || '',
   }
+  streamCache = { info: data, expireAt: Date.now() + STREAM_CACHE_MS }
+  return data
 }
 
 let lightTimer: ReturnType<typeof setTimeout> | null = null

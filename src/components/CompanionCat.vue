@@ -1,10 +1,12 @@
 <template>
-  <div class="companion" :class="[mode, { leftward: facing < 0, invite: showInvite }]" :style="style">
+  <div ref="rootRef" class="companion" :class="[mode, { leftward: facing < 0, invite: showInvite }]" :style="style">
     <button class="companion-btn" type="button" :aria-label="copy.companionAria" title="长按查看留言" @pointerenter="preloadCommonSounds" @pointerdown="onCatPointerDown" @pointermove="onCatPointerMove" @pointerup="onCatPointerUp" @pointerleave="cancelLongPress" @pointercancel="cancelLongPress" @contextmenu.prevent @click="onCatClick">
       <span
         v-if="bubbleHint"
+        ref="bubbleRef"
         class="companion-bubble"
         :class="{ news: hasNews, scene: scene !== 'none' }"
+        :style="bubbleStyle"
         aria-hidden="true"
       >
         {{ bubbleHint }}
@@ -118,7 +120,7 @@
           <p>{{ item.text }}</p>
           <p v-if="item.wish" class="letter-wish">{{ item.wish }}</p>
         </article>
-        <p v-if="!dayMessages.length" class="inbox-empty">这一天的信还在路上，改天再来读读吧。</p>
+        <p v-if="!dayMessages.length" class="inbox-empty">这一天还没有留言，点上面的日期可以翻看以前写的信。</p>
       </div>
       <span class="inbox-end">写给你的每一句，都留在这里。</span>
     </div>
@@ -130,6 +132,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } 
 import { Modal } from '../ui'
 import { ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon } from '../ui/icons'
 import { preloadSoundEffects, playBearCall, playChirp, playMeow, playPurr, playReveal, playYip, playYowl } from '../sfx'
+import { reportCompanionScene } from '../catReport'
 import AnimalArtwork from './AnimalArtwork.vue'
 import { copy, isBear } from '../theme'
 
@@ -169,7 +172,18 @@ const BITE_SPOTS: BiteSpot[] = [
 
 const mode = ref<Mode>('sit')
 const facing = ref<1 | -1>(1)
-const pos = reactive({ x: 24, y: 0 })
+// x 是离屏幕左边的距离，lift 是离屏幕底边的距离：
+// 贴底定位后，iOS 地址栏/工具栏变化不会再把它挤到屏幕外
+const pos = reactive({ x: 24, lift: 14 })
+const rootRef = ref<HTMLElement>()
+const bubbleRef = ref<HTMLElement | null>(null)
+// 气泡默认以小猫为中心，靠近屏幕边缘时整体平移回来，尾巴再指回小猫
+const bubbleShift = ref(0)
+const bubbleTail = ref(50)
+const bubbleStyle = computed<Record<string, string>>(() => ({
+  '--bubble-shift': `${bubbleShift.value}px`,
+  '--bubble-tail': `${bubbleTail.value}%`,
+}))
 const walkDuration = ref(3.6)
 const hearts = ref<Heart[]>([])
 const showInvite = ref(false)
@@ -193,14 +207,57 @@ const calendarOpen = ref(false)
 const weekdays = ['一', '二', '三', '四', '五', '六', '日']
 
 const style = computed<Record<string, string>>(() => ({
-  transform: `translate3d(${pos.x}px, ${pos.y}px, 0)`,
+  transform: `translate3d(${pos.x}px, ${-pos.lift}px, 0)`,
   '--walk': `${walkDuration.value}s`,
 }))
 
 const bubbleHint = computed(() => {
   if (hasNews.value) return '有话对你说'
-  if (scene.value === 'nuzzle') return '蹭蹭蹭～钻进狐狸怀里去～'
-  return showInvite.value ? '摸摸我～' : ''
+  if (scene.value === 'nuzzle') return '蹭蹭～钻进狐狸怀里去～'
+  return showInvite.value ? '摸摸我～娇娇能感知到了喔～' : ''
+})
+
+/** 气泡贴近屏幕左右边缘时，整体平移到安全区内，尾巴仍然指向小猫 */
+async function updateBubbleClamp() {
+  await nextTick()
+  const bubble = bubbleRef.value
+  const root = rootRef.value
+  if (!bubble || !root) return
+  const width = bubble.offsetWidth
+  if (!width) return
+
+  const cat = root.getBoundingClientRect()
+  const center = cat.left + cat.width / 2
+  // 留 10px 余量，避免取整后仍压到屏幕边缘
+  const margin = 10
+  const desired = Math.min(
+    Math.max(center, margin + width / 2),
+    window.innerWidth - margin - width / 2,
+  )
+  bubbleShift.value = desired - center
+  const tail = ((center - (desired - width / 2)) / width) * 100
+  bubbleTail.value = Math.round(Math.min(92, Math.max(8, tail)))
+}
+
+let bubbleClampTimer: ReturnType<typeof setTimeout> | null = null
+
+/** 气泡刚出现时可能还在走动收尾，缓一下再量一次最终位置 */
+function refreshBubbleClamp() {
+  void updateBubbleClamp()
+  if (bubbleClampTimer) clearTimeout(bubbleClampTimer)
+  bubbleClampTimer = setTimeout(() => {
+    bubbleClampTimer = null
+    if (bubbleHint.value) void updateBubbleClamp()
+  }, 350)
+}
+
+watch(bubbleHint, (text) => {
+  if (text) {
+    refreshBubbleClamp()
+    return
+  }
+  bubbleShift.value = 0
+  bubbleTail.value = 50
 })
 
 // 咬人的吐槽气泡挂在狐狸头顶，顺便报出这次咬到的部位
@@ -238,8 +295,17 @@ const messageMonths = computed(() => {
 })
 
 const monthIndex = computed(() => messageMonths.value.indexOf(selectedMonth.value))
-const canOlderMonth = computed(() => monthIndex.value >= 0 && monthIndex.value < messageMonths.value.length - 1)
-const canNewerMonth = computed(() => monthIndex.value > 0)
+// 当前月份可能还没有留言（比如月初），这时也要能翻到最近的有留言月份
+const canOlderMonth = computed(() =>
+  monthIndex.value >= 0
+    ? monthIndex.value < messageMonths.value.length - 1
+    : messageMonths.value.some((month) => month < selectedMonth.value),
+)
+const canNewerMonth = computed(() =>
+  monthIndex.value >= 0
+    ? monthIndex.value > 0
+    : messageMonths.value.some((month) => month > selectedMonth.value),
+)
 
 // 选中日期的留言，按时间倒序
 const dayMessages = computed(() => {
@@ -277,8 +343,18 @@ const calendarCells = computed(() => {
 })
 
 function shiftMonth(step: number) {
-  const next = messageMonths.value[monthIndex.value + step]
-  if (next) selectedMonth.value = next
+  if (!messageMonths.value.length) return
+  const index = monthIndex.value
+  if (index >= 0) {
+    const next = messageMonths.value[index + step]
+    if (next) selectedMonth.value = next
+    return
+  }
+  // 当前月还没有留言：往前翻就直接跳到最近一个有留言的月份
+  if (step > 0) {
+    const older = messageMonths.value.find((month) => month < selectedMonth.value)
+    if (older) selectedMonth.value = older
+  }
 }
 
 function toggleCalendar() {
@@ -332,24 +408,97 @@ let readId = ''
 
 const rand = (min: number, max: number) => min + Math.random() * (max - min)
 
+function catSize() {
+  const el = rootRef.value
+  if (el?.offsetWidth && el?.offsetHeight) return { w: el.offsetWidth, h: el.offsetHeight }
+  return window.innerWidth <= 720 ? { w: 56, h: 60 } : { w: 78, h: 82 }
+}
+
 function bounds() {
   const vw = window.innerWidth
-  const vh = window.innerHeight
+  const { w } = catSize()
   const mobile = vw <= 720
   // 待在页面左下角附近，不走到中间和右下角按钮后面
   const roamWidth = mobile ? 100 : Math.min(520, vw * 0.42)
   return {
     minX: 14,
-    maxX: Math.max(14, Math.min(roamWidth, vw - (mobile ? 305 : 335))),
-    minY: vh - (mobile ? 118 : 156),
-    maxY: vh - (mobile ? 74 : 96),
+    // 用真实宽度兜底，窄屏上也不会只露出一半
+    maxX: Math.max(14, Math.min(roamWidth, vw - w - 14)),
+    // 离底边的高度：最低贴着页面底部，最高也不超过原来那一段范围
+    minLift: 14,
+    maxLift: mobile ? 58 : 74,
   }
 }
 
 function clampPosition() {
   const b = bounds()
   pos.x = Math.min(Math.max(pos.x, b.minX), b.maxX)
-  pos.y = Math.min(Math.max(pos.y, b.minY), b.maxY)
+  pos.lift = Math.min(Math.max(pos.lift, b.minLift), b.maxLift)
+}
+
+let clampFrame = 0
+let clampLaterTimer: ReturnType<typeof setTimeout> | null = null
+let healTimer: ReturnType<typeof setInterval> | null = null
+
+/** 视口变化集中到一帧里处理，避免 resize 期间反复改位置 */
+function scheduleClamp() {
+  if (clampFrame) return
+  clampFrame = requestAnimationFrame(() => {
+    clampFrame = 0
+    clampPosition()
+    rescueIfOffscreen()
+    if (bubbleHint.value) void updateBubbleClamp()
+  })
+}
+
+/** iOS 旋转后尺寸会晚一点才更新，等变化停下来再校正一次 */
+function scheduleClampLater() {
+  scheduleClamp()
+  if (clampLaterTimer) clearTimeout(clampLaterTimer)
+  clampLaterTimer = setTimeout(() => {
+    clampLaterTimer = null
+    scheduleClamp()
+  }, 300)
+}
+
+/**
+ * iOS 偶尔会把 fixed 元素留在旧视口的位置上（地址栏收起、旋转、从后台回来时），
+ * 渲染出来的位置和记下的坐标对不上。发现大半只猫在屏幕外就把它叫回左下角。
+ */
+function rescueIfOffscreen() {
+  const el = rootRef.value
+  if (!el) return
+  const rect = el.getBoundingClientRect()
+  const vw = window.innerWidth
+  const vh = window.innerHeight
+  const visibleW = Math.max(0, Math.min(rect.right, vw) - Math.max(rect.left, 0))
+  const visibleH = Math.max(0, Math.min(rect.bottom, vh) - Math.max(rect.top, 0))
+  if (visibleW * visibleH >= rect.width * rect.height * 0.5) return
+
+  const b = bounds()
+  walkDuration.value = 0.3
+  pos.x = b.minX + 10
+  pos.lift = b.minLift
+  if (mode.value === 'walk') mode.value = 'sit'
+}
+
+/** 打断走动时把猫停在当前看到的位置，避免气泡跟着它滑出屏幕 */
+function settleWalk() {
+  if (mode.value !== 'walk') return
+  const el = rootRef.value
+  if (el) {
+    const rect = el.getBoundingClientRect()
+    const b = bounds()
+    const anchorBottom = parseFloat(getComputedStyle(el).bottom) || 0
+    walkDuration.value = 0.2
+    pos.x = Math.min(Math.max(rect.left, b.minX), b.maxX)
+    pos.lift = Math.min(
+      Math.max(window.innerHeight - rect.bottom - anchorBottom, b.minLift),
+      b.maxLift,
+    )
+  }
+  mode.value = 'sit'
+  clearTimer()
 }
 
 function clearTimer() {
@@ -389,6 +538,7 @@ function prepareInteraction() {
     clearTimeout(inviteTimer)
     inviteTimer = null
   }
+  settleWalk()
   clearTimer()
   clearSceneTimers()
 }
@@ -399,8 +549,8 @@ function schedule(delay = rand(7000, 15000)) {
 }
 
 function next() {
-  // 有未读留言或正在看信箱时，老老实实待在原地
-  if (document.hidden || hasNews.value || messageOpen.value) {
+  // 有未读留言、正在看信箱或正冒着气泡时，老老实实待在原地
+  if (document.hidden || hasNews.value || messageOpen.value || showInvite.value) {
     schedule()
     return
   }
@@ -411,19 +561,21 @@ function next() {
 function walk() {
   const b = bounds()
   const targetX = rand(b.minX, b.maxX)
-  const targetY = rand(b.minY, b.maxY)
+  const targetLift = rand(b.minLift, b.maxLift)
   const dx = targetX - pos.x
-  const distance = Math.hypot(dx, targetY - pos.y)
+  const distance = Math.hypot(dx, targetLift - pos.lift)
 
   if (Math.abs(dx) > 8) facing.value = dx > 0 ? 1 : -1
   walkDuration.value = Math.min(5.5, Math.max(2.6, distance / 42))
   mode.value = 'walk'
   pos.x = targetX
-  pos.y = targetY
+  pos.lift = targetLift
 
   clearTimer()
   timer = setTimeout(() => {
     mode.value = 'sit'
+    // 走动结束后气泡可能已经贴边，重新摆一次
+    if (bubbleHint.value) void updateBubbleClamp()
     schedule()
   }, walkDuration.value * 1000 + 200)
 }
@@ -444,10 +596,10 @@ function pet() {
     playPurr()
     playMeow(0.24)
   }
-  mode.value = 'happy'
-  burstHearts()
 
   prepareInteraction()
+  mode.value = 'happy'
+  burstHearts()
 
   timer = setTimeout(() => {
     mode.value = 'sit'
@@ -524,6 +676,11 @@ function scheduleInvite(delay = 4000) {
   if (inviteTimer) clearTimeout(inviteTimer)
   inviteTimer = setTimeout(() => {
     if (hasPetted.value || hasNews.value) return
+    // 走动途中先不冒气泡，等站定了再提示，免得气泡跟着猫滑出屏幕
+    if (mode.value === 'walk') {
+      scheduleInvite(1200)
+      return
+    }
     showInvite.value = true
     inviteTimer = setTimeout(() => {
       showInvite.value = false
@@ -572,8 +729,14 @@ function onCatPointerUp() {
   suppressClick = true
   setTimeout(() => {
     suppressClick = false
+    reportInteraction('长按打开信箱')
     openMessageDialog()
   }, 0)
+}
+
+/** 把这次互动记到企微：谁、什么设备、触发了哪个小场景 */
+function reportInteraction(label: string) {
+  reportCompanionScene(label, isBear.value ? '小熊' : '小猫')
 }
 
 function onCatClick() {
@@ -581,6 +744,7 @@ function onCatClick() {
   if (suppressClick || longPressReady) return
   // 有未读留言时，打开信箱
   if (hasNews.value && ownerMessage.value) {
+    reportInteraction('打开未读留言')
     openMessageDialog()
     return
   }
@@ -588,14 +752,22 @@ function onCatClick() {
   if (scene.value !== 'none') return
   // 小熊日还是原来的摸摸
   if (isBear.value) {
+    reportInteraction('摸摸')
     pet()
     return
   }
   // 三种互动等概率：摸一摸 / 蹭蹭狐狸 / 被狐狸咬
   const roll = Math.floor(Math.random() * 3)
-  if (roll === 0) pet()
-  else if (roll === 1) startNuzzle()
-  else startBite()
+  if (roll === 0) {
+    reportInteraction('摸摸')
+    pet()
+  } else if (roll === 1) {
+    reportInteraction('狐狸蹭蹭小剧场')
+    startNuzzle()
+  } else {
+    reportInteraction('狐狸扑咬小剧场')
+    startBite()
+  }
 }
 
 function markMessageRead(message: OwnerMessage) {
@@ -617,11 +789,12 @@ function openMessageDialog() {
   const message = latestMessage.value
   if (!message) return
 
+  settleWalk()
   resetScene()
   ownerMessage.value = message
-  // 默认停在最新留言那天，再用日历回看往日的
-  selectedDate.value = message.time?.slice(0, 10) || messageDates.value[0] || ''
-  selectedMonth.value = selectedDate.value.slice(0, 7) || messageMonths.value[0] || ''
+  // 打开就先停在今天，往日的留言再用日历回看
+  selectedDate.value = todayKey()
+  selectedMonth.value = selectedDate.value.slice(0, 7)
   calendarOpen.value = false
   hasNews.value = false
   messageOpen.value = true
@@ -693,6 +866,7 @@ async function loadOwnerMessage() {
         clearTimeout(inviteTimer)
         inviteTimer = null
       }
+      settleWalk()
       resetScene()
       mode.value = 'speak'
       clearTimer()
@@ -710,7 +884,10 @@ async function loadOwnerMessage() {
 }
 
 function onVisibilityChange() {
-  if (!document.hidden) void loadOwnerMessage()
+  if (document.hidden) return
+  void loadOwnerMessage()
+  // 从后台回来时视口可能已经变了，顺手把位置校正一次
+  scheduleClampLater()
 }
 
 function burstHearts(offset = 0) {
@@ -727,10 +904,6 @@ function burstHearts(offset = 0) {
   }, 1400)
 }
 
-function onResize() {
-  clampPosition()
-}
-
 function preloadCommonSounds() {
   if (!isBear.value) preloadSoundEffects('meow', 'purr')
   else preloadSoundEffects('bear')
@@ -739,7 +912,7 @@ function preloadCommonSounds() {
 onMounted(() => {
   const b = bounds()
   pos.x = b.minX + 12
-  pos.y = b.maxY
+  pos.lift = b.minLift
 
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
   if (!reduced) schedule(6000)
@@ -758,7 +931,19 @@ onMounted(() => {
   }, POLL_INTERVAL)
   document.addEventListener('visibilitychange', onVisibilityChange)
 
-  window.addEventListener('resize', onResize)
+  window.addEventListener('resize', scheduleClampLater)
+  window.addEventListener('orientationchange', scheduleClampLater)
+  window.addEventListener('scroll', scheduleClamp, { passive: true })
+  window.addEventListener('pageshow', scheduleClampLater)
+  window.visualViewport?.addEventListener('resize', scheduleClampLater)
+  window.visualViewport?.addEventListener('scroll', scheduleClamp)
+
+  // iOS 的地址栏变化不一定会触发 resize，隔几秒自检一次兜底
+  healTimer = setInterval(() => {
+    if (document.hidden) return
+    clampPosition()
+    rescueIfOffscreen()
+  }, 4000)
 })
 
 onBeforeUnmount(() => {
@@ -767,8 +952,17 @@ onBeforeUnmount(() => {
   cancelLongPress()
   if (inviteTimer) clearTimeout(inviteTimer)
   if (pollTimer) clearInterval(pollTimer)
+  if (healTimer) clearInterval(healTimer)
+  if (clampFrame) cancelAnimationFrame(clampFrame)
+  if (clampLaterTimer) clearTimeout(clampLaterTimer)
+  if (bubbleClampTimer) clearTimeout(bubbleClampTimer)
   document.removeEventListener('visibilitychange', onVisibilityChange)
-  window.removeEventListener('resize', onResize)
+  window.removeEventListener('resize', scheduleClampLater)
+  window.removeEventListener('orientationchange', scheduleClampLater)
+  window.removeEventListener('scroll', scheduleClamp)
+  window.removeEventListener('pageshow', scheduleClampLater)
+  window.visualViewport?.removeEventListener('resize', scheduleClampLater)
+  window.visualViewport?.removeEventListener('scroll', scheduleClamp)
 })
 </script>
 
@@ -819,7 +1013,9 @@ onBeforeUnmount(() => {
 
 .companion {
   position: fixed;
-  top: 0;
+  /* 贴底定位：iOS 地址栏收起/展开、旋转时不会因为 innerHeight 过期被推出屏幕 */
+  top: auto;
+  bottom: env(safe-area-inset-bottom, 0px);
   left: 0;
   z-index: 24;
   width: 78px;
@@ -922,13 +1118,15 @@ onBeforeUnmount(() => {
   white-space: nowrap;
   box-shadow: none;
   cursor: pointer;
+  /* 靠近屏幕边缘时靠 --bubble-shift 平移回安全区 */
+  transform: translateX(calc(-50% + var(--bubble-shift, 0px)));
   animation: companionBubbleIn 0.32s cubic-bezier(0.2, 0.8, 0.3, 1) both;
 }
 
 .companion-bubble::after {
   content: '';
   position: absolute;
-  left: 50%;
+  left: var(--bubble-tail, 50%);
   top: 100%;
   width: 8px;
   height: 8px;
@@ -1229,11 +1427,11 @@ onBeforeUnmount(() => {
 @keyframes companionBubbleIn {
   from {
     opacity: 0;
-    transform: translate(-50%, 4px) scale(0.9);
+    transform: translate(calc(-50% + var(--bubble-shift, 0px)), 4px) scale(0.9);
   }
   to {
     opacity: 1;
-    transform: translate(-50%, 0) scale(1);
+    transform: translate(calc(-50% + var(--bubble-shift, 0px)), 0) scale(1);
   }
 }
 
