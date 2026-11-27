@@ -74,6 +74,7 @@
       </div>
       <section class="office-note" aria-label="办公室小记"><span>OFFICE NOTE</span><p>今天也辛苦了，来和猫猫待一会儿吧。</p><span class="note-symbol" aria-hidden="true">⌁</span></section>
     </main>
+    <KuroCatPet v-if="!fullActive" />
     <footer class="site-footer"><span>十七的逗猫室</span><span>GOOD COMPANY, EVERY DAY.</span><span>慢一点，也没关系。</span></footer>
 
     <Modal v-model:open="huntOpen" :title="huntFound ? '找到猫猫了' : '工间寻猫'" :width="400">
@@ -233,6 +234,7 @@ import QuietWindow from './components/QuietWindow.vue'
 import TeaseEffects from './components/TeaseEffects.vue'
 import AnimalArtwork from './components/AnimalArtwork.vue'
 import CompanionCat from './components/CompanionCat.vue'
+import KuroCatPet from './components/KuroCatPet.vue'
 import DogIntruder from './components/DogIntruder.vue'
 const companionRef = ref<InstanceType<typeof CompanionCat> | null>(null)
 import DailyFortune from './components/DailyFortune.vue'
